@@ -66,3 +66,16 @@ Action: IMPLEMENTED
 Owner: DevA
 Notes: Implemented all 23 SQLAlchemy models strictly following the ERD with singular snake_case naming. Configured Alembic migrations with custom script templates, established PostgreSQL Docker infrastructure, and seeded the database with initial technical tags. Resolved complex generic relationship mapping issues for AI analysis and team voting.
 Date: 2026-01-29
+
+---
+
+[MOCK_CREATED]
+Entity: API
+Name: Opportunities API
+Role: D
+Path: backend/app/mocks/opportunity_mock.py
+Status: MOCK
+Action: CREATED
+Owner: Role D
+Notes: Mocking opportunity counts and top opportunities for Landing Page.
+Date: 2026-01-29

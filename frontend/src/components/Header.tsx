@@ -1,7 +1,17 @@
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import './Header.css';
 
 export const Header: React.FC = () => {
+  const [count, setCount] = useState<number>(0);
+
+  useEffect(() => {
+    // Attempt API call, fallback to 101 if backend not running (mock mode)
+    fetch('/api/opportunities/count')
+      .then(res => res.json())
+      .then(data => setCount(data.count))
+      .catch(() => setCount(101)); // Fallback for dev without backend
+  }, []);
+
   return (
     <header className="header">
       <div className="header-container">
@@ -18,8 +28,8 @@ export const Header: React.FC = () => {
         {/* Navigation Links */}
         <nav className="desktop-nav">
           <a href="#" className="nav-link">
-            Events
-            <span className="header-badge header-badge-blue">24</span>
+            Opportunities
+            <span className="header-badge header-badge-blue">{count > 100 ? '+100' : count}</span>
           </a>
           <a href="#" className="nav-link">
             Companies

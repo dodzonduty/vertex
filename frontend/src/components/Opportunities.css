@@ -1,0 +1,230 @@
+.opportunities-section {
+  padding: 6rem 0; /* Keep vertical padding on section for background spacing */
+  background-color: white;
+}
+
+/* media queries for section padding removed */
+
+.opportunities-container {
+  width: 100%;
+  max-width: 80rem;
+  margin: 0 auto;
+  padding-left: 1rem; /* px-4 */
+  padding-right: 1rem;
+}
+
+@media (min-width: 768px) {
+  .opportunities-container {
+    padding-left: 2rem; /* md:px-8 */
+    padding-right: 2rem;
+  }
+}
+
+@media (min-width: 1024px) {
+  .opportunities-container {
+    padding-left: 4rem; /* lg:px-16 */
+    padding-right: 4rem;
+  }
+}
+
+/* Header */
+.opportunities-header {
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  margin-bottom: 3rem;
+}
+
+.opportunities-title {
+  font-size: 1.5rem; /* text-2xl */
+  font-weight: 700;
+  color: #0f172a;
+  margin: 0 0 0.5rem;
+}
+
+@media (min-width: 768px) {
+  .opportunities-title {
+    font-size: 1.875rem; /* text-3xl */
+  }
+}
+
+.opportunities-subtitle {
+  font-size: 0.875rem; /* text-sm */
+  color: #64748b; /* slate-500 */
+}
+
+.view-all-link {
+  font-size: 0.875rem;
+  font-weight: 600;
+  color: #4f46e5; /* indigo-600 */
+  text-decoration: none;
+  display: flex;
+  align-items: center;
+  gap: 0.25rem;
+}
+
+.view-all-link:hover {
+  color: #3730a3; /* indigo-800 */
+}
+
+.view-all-arrow {
+  font-size: 1.125rem; /* text-lg */
+}
+
+/* Grid */
+.opportunities-grid {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 1.5rem;
+}
+
+@media (min-width: 768px) {
+  .opportunities-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+@media (min-width: 1024px) {
+  .opportunities-grid {
+    grid-template-columns: repeat(3, 1fr);
+  }
+}
+
+/* Opportunity Card */
+.opportunity-card {
+  border: 1px solid #e2e8f0; /* slate-200 */
+  border-radius: 1rem;
+  overflow: hidden;
+  background-color: white;
+  display: flex;
+  flex-direction: column;
+  transition: box-shadow 0.3s;
+  height: 100%; /* Ensure card fills grid cell for uniform height */
+  min-height: 28rem; /* Reduced from 32rem to close gap */
+}
+
+.opportunity-card:hover {
+  box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
+}
+
+.opportunity-image-wrapper {
+  height: 14rem; /* h-56 - Increased from 10rem */
+  overflow: hidden;
+  position: relative;
+}
+
+.opportunity-img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  transition: transform 0.5s;
+}
+
+.opportunity-card:hover .opportunity-img {
+  transform: scale(1.05);
+}
+
+.opportunity-badge {
+  position: absolute;
+  top: 1rem;
+  left: 1rem;
+  text-transform: uppercase;
+  font-size: 10px;
+  font-weight: 700;
+  padding: 0.25rem 0.5rem;
+  border-radius: 9999px;
+  color: white;
+  letter-spacing: 0.025em; /* tracking-wide */
+  z-index: 10;
+}
+
+.opportunity-badge-blue { background-color: #2563eb; }
+.opportunity-badge-emerald { background-color: #059669; }
+.opportunity-badge-orange { background-color: #f97316; }
+
+/* Content */
+.opportunity-content {
+  padding: 1.25rem;
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+}
+
+.opportunity-meta-top {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  margin-bottom: 0.5rem;
+}
+
+.opportunity-title {
+  font-size: 1.125rem; /* text-lg */
+  font-weight: 700;
+  color: #0f172a;
+}
+
+.opportunity-price {
+  color: #4f46e5;
+  font-weight: 700;
+  font-size: 0.875rem;
+}
+
+.opportunity-tag {
+  font-size: 10px;
+  font-weight: 700;
+  padding: 0.25rem 0.5rem;
+  border-radius: 0.375rem;
+  text-transform: uppercase;
+}
+
+.tag-purple {
+  background-color: #f3e8ff;
+  color: #9333ea;
+}
+
+.tag-teal {
+  background-color: #ccfbf1;
+  color: #0f766e;
+}
+
+.opportunity-details {
+  margin-top: 0.5rem;
+  margin-bottom: 1.5rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.detail-item {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-size: 0.75rem; /* text-xs */
+  color: #64748b;
+}
+
+.detail-icon {
+  width: 1rem;
+  height: 1rem;
+}
+
+.btn-apply {
+  margin-top: auto;
+  width: 100%;
+  padding: 0.625rem 0;
+  border-radius: 0.5rem;
+  font-size: 0.875rem;
+  font-weight: 700;
+  border: none;
+  cursor: pointer;
+  transition: background-color 0.15s;
+}
+
+.btn-apply-blue {
+  background-color: #eff6ff;
+  color: #2563eb;
+}
+
+.btn-apply-blue:hover {
+  background-color: #dbeafe;
+}

@@ -54,3 +54,14 @@ Mock_Owner: DevC
 Replacement_Required: YES  
 
 ---
+
+## Opportunities API
+Status: MOCK
+Route: GET /api/opportunities/count, GET /api/opportunities/top
+Location: backend/app/mocks/opportunity_mock.py
+
+Mocked_By: Role D
+Mock_Owner: Role D
+Replacement_Required: YES
+
+---

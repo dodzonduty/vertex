@@ -95,9 +95,7 @@
 .header-badge-blue {
   background-color: #dbeafe; /* blue-100 */
   color: #2563eb; /* blue-600 */
-  width: 1.25rem; /* w-5 */
-  height: 1.25rem; /* h-5 */
-  padding: 0; /* Ensure no padding affects dimensions */
+  padding: 0.125rem 0.375rem; /* px-1.5 py-0.5 */
 }
 
 .header-badge-purple {
