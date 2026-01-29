@@ -48,7 +48,7 @@ pip install -r requirements.txt
 # Create initial migration (first time only)
 alembic revision --autogenerate -m "Initial migration"
 
-# Apply migrations
+# Apply migrations  
 alembic upgrade head
 ```
 
