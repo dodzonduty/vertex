@@ -1,24 +1,24 @@
 # Vertex System Contracts (FastAPI)
 
 ## Auth API
-Status: MOCK  
-Route: POST /api/auth/login  
-Location: backend/app/mocks/auth_mock.py  
+Status: REAL  
+Route: POST /api/auth/login, GET /api/auth/me  
+Location: backend/app/api/routes/auth.py  
 
-Mocked_By: Role B  
-Mock_Owner: DevB  
-Replacement_Required: YES  
+Implemented_By: Role B  
+Owner: DevB  
+Replacement_Required: NO  
 
 ---
 
 ## Student Profile API
-Status: MOCK  
-Route: GET /api/students/{id}  
-Location: backend/app/mocks/student_mock.py  
+Status: REAL  
+Route: GET /api/students/{id}, GET /api/students/  
+Location: backend/app/api/routes/students.py  
 
-Mocked_By: Role B  
-Mock_Owner: DevB  
-Replacement_Required: YES  
+Implemented_By: Role B  
+Owner: DevB  
+Replacement_Required: NO  
 
 ---
 

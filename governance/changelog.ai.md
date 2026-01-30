@@ -79,3 +79,42 @@ Action: CREATED
 Owner: Role D
 Notes: Mocking opportunity counts and top opportunities for Landing Page.
 Date: 2026-01-29
+
+---
+
+[REAL_IMPLEMENTED]
+Entity: API
+Name: Authentication API
+Role: B
+Path: backend/app/api/routes/auth.py
+Status: REAL
+Action: IMPLEMENTED
+Owner: DevB
+Notes: Implemented JWT-based authentication with login endpoint (POST /api/auth/login) and current user endpoint (GET /api/auth/me). Includes password hashing with bcrypt and token validation.
+Date: 2026-01-30
+
+---
+
+[REAL_IMPLEMENTED]
+Entity: API
+Name: Student Profile API
+Role: B
+Path: backend/app/api/routes/students.py
+Status: REAL
+Action: IMPLEMENTED
+Owner: DevB
+Notes: Implemented student profile endpoints (GET /api/students/{id} for single profile, GET /api/students/ for paginated list). Returns student data with user information.
+Date: 2026-01-30
+
+---
+
+[REAL_IMPLEMENTED]
+Entity: Module
+Name: Core Backend Infrastructure
+Role: B
+Path: backend/app/core/, backend/app/api/deps.py, backend/app/main.py
+Status: REAL
+Action: IMPLEMENTED
+Owner: DevB
+Notes: Set up FastAPI application with CORS middleware, configuration management (Pydantic Settings), security utilities (JWT + password hashing), authentication dependencies, and Pydantic schemas for auth and students.
+Date: 2026-01-30
