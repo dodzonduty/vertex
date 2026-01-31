@@ -4,18 +4,11 @@
   left: 0;
   right: 0;
   z-index: 100;
-  padding: 1.5rem 0;
-  transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
-  background: transparent;
-}
-
-.header-scrolled,
-.header-solid {
-  padding: 0.75rem 0;
+  padding: 1rem 0;
   background: rgba(255, 255, 255, 0.95);
   backdrop-filter: blur(20px);
   border-bottom: 1px solid rgba(0, 0, 0, 0.05);
-  box-shadow: 0 4px 20px -5px rgba(0, 0, 0, 0.05);
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
 }
 
 .header-container {
@@ -27,32 +20,16 @@
   justify-content: space-between;
 }
 
-.logo-area {
+.logo-link {
   display: flex;
   align-items: center;
   gap: 0.75rem;
   text-decoration: none;
 }
 
-.logo-icon-wrapper {
-  width: 2.5rem;
-  height: 2.5rem;
-  background: white;
-  border-radius: 0.75rem;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
-  transition: transform 0.3s;
-}
-
-.logo-area:hover .logo-icon-wrapper {
-  transform: scale(1.05) rotate(-5deg);
-}
-
 .logo-img {
-  width: 1.5rem;
-  height: 1.5rem;
+  width: 2rem;
+  height: 2rem;
   object-fit: contain;
 }
 
@@ -78,20 +55,28 @@
   display: flex;
   align-items: center;
   gap: 0.5rem;
-  text-decoration: none;
 }
 
 .nav-link:hover {
   color: #0f172a;
 }
 
-.nav-badge {
+/* Badge styles */
+.header-badge {
   padding: 0.125rem 0.5rem;
-  background: #f1f5f9;
   border-radius: 9999px;
   font-size: 0.625rem;
-  color: #4f46e5;
   font-weight: 800;
+}
+
+.header-badge-blue {
+  background: #dbeafe;
+  color: #2563eb;
+}
+
+.header-badge-purple {
+  background: #f3e8ff;
+  color: #9333ea;
 }
 
 .auth-buttons {
@@ -100,36 +85,33 @@
   gap: 1.5rem;
 }
 
-.login-btn {
+.btn-login {
   color: #0f172a;
   text-decoration: none;
-  font-weight: 800;
+  font-weight: 700;
   font-size: 0.9375rem;
   transition: color 0.3s;
 }
 
-.login-btn:hover {
+.btn-login:hover {
   color: #4f46e5;
 }
 
-.btn-primary-premium {
-  display: flex;
-  align-items: center;
+.btn-student {
+  display: inline-block;
   background: #0f172a;
   color: white;
-  padding: 0.875rem 1.75rem;
-  border-radius: 1rem;
+  padding: 0.75rem 1.5rem;
+  border-radius: 0.75rem;
   text-decoration: none;
-  font-weight: 800;
+  font-weight: 700;
   font-size: 0.9375rem;
-  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-  box-shadow: 0 10px 20px -5px rgba(15, 23, 42, 0.2);
+  transition: all 0.3s;
 }
 
-.btn-primary-premium:hover {
+.btn-student:hover {
   background: #4f46e5;
   transform: translateY(-2px);
-  box-shadow: 0 15px 30px -8px rgba(79, 70, 229, 0.3);
 }
 
 @media (max-width: 768px) {

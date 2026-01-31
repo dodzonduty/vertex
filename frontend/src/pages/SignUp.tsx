@@ -14,7 +14,7 @@ export function SignUp() {
         // Simulate API call
         setTimeout(() => {
             setLoading(false);
-            navigate(role === 'student' ? '/onboarding' : '/company-dashboard');
+            navigate(role === 'student' ? '/onboarding' : '/company-home');
         }, 1500);
     };
 

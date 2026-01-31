@@ -1,8 +1,7 @@
 import { useState } from 'react';
 import { Link } from 'react-router-dom';
-import { Building2, Calendar, Search, Compass } from 'lucide-react';
+import { Building2, Search, Compass } from 'lucide-react';
 import { CompanyProfile } from '../components/company/CompanyProfile';
-import { CompanyEvents } from '../components/company/CompanyEvents';
 import { CompanyHiring } from '../components/company/CompanyHiring';
 import { BrowseStudents } from '../components/company/BrowseStudents';
 import '../components/Header.css'; // Import global header styles
@@ -11,7 +10,7 @@ interface CompanyDashboardProps {
   onLogout: () => void;
 }
 
-type Tab = 'profile' | 'events' | 'hiring' | 'browse';
+type Tab = 'profile' | 'hiring' | 'browse';
 
 export function CompanyDashboard({ onLogout }: CompanyDashboardProps) {
   const [activeTab, setActiveTab] = useState<Tab>('profile');
@@ -60,12 +59,6 @@ export function CompanyDashboard({ onLogout }: CompanyDashboardProps) {
               onClick={() => setActiveTab('profile')}
             />
             <TabButton
-              icon={<Calendar className="w-4 h-4" />}
-              label="Events"
-              active={activeTab === 'events'}
-              onClick={() => setActiveTab('events')}
-            />
-            <TabButton
               icon={<Search className="w-4 h-4" />}
               label="Hiring"
               active={activeTab === 'hiring'}
@@ -83,7 +76,6 @@ export function CompanyDashboard({ onLogout }: CompanyDashboardProps) {
         {/* Content */}
         <div className="min-h-[500px]">
           {activeTab === 'profile' && <CompanyProfile />}
-          {activeTab === 'events' && <CompanyEvents />}
           {activeTab === 'hiring' && <CompanyHiring />}
           {activeTab === 'browse' && <BrowseStudents />}
         </div>

@@ -296,8 +296,8 @@ export default function Onboarding() {
                         </div>
 
                         <div className="flex flex-col sm:flex-row gap-6 justify-center">
-                            <Button onClick={() => navigate('/student-dashboard')} className="px-12 py-8 bg-indigo-600 hover:bg-indigo-700 text-white rounded-3xl font-black text-lg transition-all transform hover:scale-105 shadow-2xl shadow-indigo-200">
-                                Go to Dashboard
+                            <Button onClick={() => navigate('/student-home')} className="px-12 py-8 bg-indigo-600 hover:bg-indigo-700 text-white rounded-3xl font-black text-lg transition-all transform hover:scale-105 shadow-2xl shadow-indigo-200">
+                                Go to Home
                             </Button>
                         </div>
                     </div>

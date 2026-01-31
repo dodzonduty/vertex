@@ -4,8 +4,8 @@ import './styling.css';
 import { LandingPage } from './pages/LandingPage';
 import { SignIn } from './pages/SignIn';
 import { SignUp } from './pages/SignUp';
+import { AuthenticatedLanding } from './pages/AuthenticatedLanding';
 import { StudentDashboard } from './pages/StudentDashboard';
-import { CompanyDashboard } from './pages/CompanyDashboard';
 import { PublicStudentProfile } from './pages/PublicStudentProfile';
 import { PublicCompanyProfile } from './pages/PublicCompanyProfile';
 import Onboarding from './pages/Onboarding';
@@ -23,8 +23,10 @@ function App() {
         <Route path="/signin" element={<MainLayout><SignIn /></MainLayout>} />
         <Route path="/signup" element={<MainLayout><SignUp /></MainLayout>} />
         <Route path="/onboarding" element={<MainLayout><Onboarding /></MainLayout>} />
+        <Route path="/home" element={<AuthenticatedLanding onLogout={() => window.location.href = '/'} userType="student" />} />
+        <Route path="/student-home" element={<AuthenticatedLanding onLogout={() => window.location.href = '/'} userType="student" />} />
         <Route path="/student-dashboard" element={<StudentDashboard onLogout={() => window.location.href = '/'} />} />
-        <Route path="/company-dashboard" element={<CompanyDashboard onLogout={() => window.location.href = '/'} />} />
+        <Route path="/company-home" element={<AuthenticatedLanding onLogout={() => window.location.href = '/'} userType="company" />} />
         <Route path="/student/profile/:id" element={<MainLayout><PublicStudentProfile /></MainLayout>} />
         <Route path="/company/profile/:id" element={<MainLayout><PublicCompanyProfile /></MainLayout>} />
         <Route path="/opportunities" element={<MainLayout><Opportunities /></MainLayout>} />

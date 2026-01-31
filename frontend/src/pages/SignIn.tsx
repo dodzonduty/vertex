@@ -14,7 +14,7 @@ export function SignIn() {
         // Simulate API call
         setTimeout(() => {
             setLoading(false);
-            navigate(role === 'student' ? '/student-dashboard' : '/company-dashboard');
+            navigate(role === 'student' ? '/student-home' : '/company-home');
         }, 1000);
     };
 

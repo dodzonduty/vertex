@@ -24,7 +24,7 @@ export const HeroSection: React.FC = () => {
           </p>
 
           <div className="hero-buttons">
-            <Link to="/signup" className="btn-hero-primary">Get Started</Link>
+            <Link to="/signup" className="btn-hero-primary">Create Account</Link>
             <a href="/#path-to-mastery" className="btn-hero-secondary">Explore Features</a>
           </div>
         </div>

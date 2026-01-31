@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Github, Linkedin, Award, Sparkles, CheckCircle2, Edit, Mail, Phone, MapPin, Save, X } from 'lucide-react';
+import { Github, Linkedin, Award, Sparkles, CheckCircle2, Edit, Mail, Phone, MapPin, Save, X, Plus, ExternalLink } from 'lucide-react';
 import { Button } from '../ui/button';
 import { Card, CardContent } from '../ui/card';
 import { Badge } from '../ui/badge';
@@ -179,6 +179,32 @@ export function StudentProfile() {
                 ))}
               </div>
             </section>
+
+            <section>
+              <div className="flex items-center justify-between mb-4">
+                <h3 className="text-2xl font-black text-slate-900 tracking-tight">Projects</h3>
+                <button className="flex items-center gap-2 px-4 py-2 bg-indigo-600 text-white rounded-xl font-bold text-sm hover:bg-indigo-700 transition-colors">
+                  <Plus className="w-4 h-4" />
+                  Add Project
+                </button>
+              </div>
+              <div className="grid gap-4">
+                <ProjectCard
+                  name="AI Chat Bot"
+                  description="Built a conversational AI using NLP and machine learning. Implements context awareness and multi-turn conversations."
+                  tags={['AI/ML', 'Python', 'NLP', 'TensorFlow']}
+                  githubLink="https://github.com/username/ai-chatbot"
+                  verified={true}
+                />
+                <ProjectCard
+                  name="E-commerce Platform"
+                  description="Full-stack marketplace application with payment integration, real-time inventory, and admin dashboard."
+                  tags={['Full-Stack', 'React', 'Node.js', 'MongoDB']}
+                  link="https://demo-shop.example.com"
+                  verified={false}
+                />
+              </div>
+            </section>
           </div>
         </div>
       </div>
@@ -242,12 +268,17 @@ export function StudentProfile() {
               <div className="grid md:grid-cols-2 gap-8">
                 <div className="space-y-2">
                   <Label className="text-[10px] font-black uppercase tracking-widest text-slate-400">GitHub URL</Label>
-                  <Input defaultValue={profileData.githubLink} className="py-6 rounded-xl border-slate-200" />
+                  <Input defaultValue={profileData.githubLink} placeholder="https://github.com/username" className="py-6 rounded-xl border-slate-200" />
                 </div>
                 <div className="space-y-2">
                   <Label className="text-[10px] font-black uppercase tracking-widest text-slate-400">LinkedIn URL</Label>
-                  <Input defaultValue={profileData.linkedinLink} className="py-6 rounded-xl border-slate-200" />
+                  <Input defaultValue={profileData.linkedinLink} placeholder="https://linkedin.com/in/username" className="py-6 rounded-xl border-slate-200" />
                 </div>
+              </div>
+
+              <div className="space-y-2">
+                <Label className="text-[10px] font-black uppercase tracking-widest text-slate-400">Email Address</Label>
+                <Input defaultValue={profileData.email} type="email" className="py-6 rounded-xl border-slate-200" />
               </div>
             </div>
 
@@ -258,6 +289,54 @@ export function StudentProfile() {
           </form>
         </CardContent>
       </Card>
+    </div>
+  );
+}
+
+// Project Card Component
+function ProjectCard({ name, description, tags, githubLink, link, verified }: {
+  name: string;
+  description: string;
+  tags: string[];
+  githubLink?: string;
+  link?: string;
+  verified: boolean;
+}) {
+  return (
+    <div className="flex items-start gap-4 p-6 bg-white border border-slate-100 rounded-2xl hover:border-indigo-100 hover:shadow-lg hover:shadow-indigo-500/5 transition-all group">
+      <div className="flex-1">
+        <div className="flex items-center gap-2 mb-2">
+          <h4 className="font-bold text-slate-900 text-lg">{name}</h4>
+          {verified && (
+            <Badge className="bg-green-50 text-green-700 border-green-100 flex items-center gap-1">
+              <CheckCircle2 className="w-3 h-3" />
+              Verified
+            </Badge>
+          )}
+        </div>
+        <p className="text-sm text-slate-500 mb-4 leading-relaxed">{description}</p>
+        <div className="flex flex-wrap gap-2 mb-4">
+          {tags.map((tag, idx) => (
+            <Badge key={idx} variant="secondary" className="bg-white border-slate-100 text-slate-600 text-xs">
+              {tag}
+            </Badge>
+          ))}
+        </div>
+        <div className="flex items-center gap-4">
+          {githubLink && (
+            <a href={githubLink} target="_blank" rel="noopener noreferrer" className="flex items-center gap-1.5 text-xs font-bold text-slate-400 hover:text-slate-900 transition-colors">
+              <Github className="w-4 h-4" />
+              Code
+            </a>
+          )}
+          {link && (
+            <a href={link} target="_blank" rel="noopener noreferrer" className="flex items-center gap-1.5 text-xs font-bold text-slate-400 hover:text-slate-900 transition-colors">
+              <ExternalLink className="w-4 h-4" />
+              Live Demo
+            </a>
+          )}
+        </div>
+      </div>
     </div>
   );
 }

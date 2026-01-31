@@ -1,25 +1,25 @@
 import { useState } from 'react';
 import { Link } from 'react-router-dom';
-import { User, FolderGit2, Calendar, Users, Compass } from 'lucide-react';
+import { User, Users, Building2, Sparkles, FolderGit2 } from 'lucide-react';
 import { StudentProfile } from '../components/student/StudentProfile';
 import { StudentProjects } from '../components/student/StudentProjects';
-import { StudentEvents } from '../components/student/StudentEvents';
 import { StudentOpenMatch } from '../components/student/StudentOpenMatch';
 import { BrowseProfiles } from '../components/student/BrowseProfiles';
-import '../components/Header.css'; // Import global header styles
+import { OpportunitiesContent } from '../components/OpportunitiesContent';
+import '../components/Header.css';
 
 interface StudentDashboardProps {
   onLogout: () => void;
 }
 
-type Tab = 'profile' | 'projects' | 'events' | 'openmatch' | 'browse';
+type Tab = 'profile' | 'projects' | 'opportunities' | 'openmatch' | 'browse' | 'companies';
 
 export function StudentDashboard({ onLogout }: StudentDashboardProps) {
   const [activeTab, setActiveTab] = useState<Tab>('profile');
 
   return (
-    <div className="min-h-screen bg-white font-sans text-slate-900 pt-24">
-      {/* Premium Header */}
+    <div className="min-h-screen bg-white font-sans text-slate-900">
+      {/* Header */}
       <header className="header header-solid z-50">
         <div className="header-container">
           <Link to="/" className="logo-area">
@@ -31,7 +31,9 @@ export function StudentDashboard({ onLogout }: StudentDashboardProps) {
               />
             </div>
             <span className="logo-text">Vertex</span>
-            <span className="ml-2 px-3 py-1 bg-indigo-50/50 text-indigo-600 text-[10px] font-black uppercase tracking-widest rounded-full border border-indigo-100/50 backdrop-blur-sm">Student</span>
+            <span className="ml-2 px-3 py-1 text-[10px] font-black uppercase tracking-widest rounded-full border backdrop-blur-sm bg-indigo-50/50 text-indigo-600 border-indigo-100/50">
+              Student
+            </span>
           </Link>
 
           <div className="flex items-center gap-6">
@@ -41,59 +43,89 @@ export function StudentDashboard({ onLogout }: StudentDashboardProps) {
             >
               Log out
             </button>
-            <div className="w-10 h-10 bg-indigo-600 rounded-2xl flex items-center justify-center text-white font-black text-sm shadow-lg shadow-indigo-200 ring-2 ring-white">
+            <button
+              onClick={() => setActiveTab('profile')}
+              className="w-10 h-10 rounded-2xl flex items-center justify-center text-white font-black text-sm shadow-lg ring-2 ring-white transition-all hover:scale-105 cursor-pointer bg-indigo-600 shadow-indigo-200"
+              title="View Profile"
+            >
               AJ
-            </div>
+            </button>
           </div>
         </div>
       </header>
 
       {/* Main Content */}
-      <main className="max-w-7xl mx-auto px-4 py-8">
+      <main className="pt-24">
+        {/* Hero Section */}
+        <div className="bg-gradient-to-b from-indigo-50/50 to-white py-16">
+          <div className="max-w-7xl mx-auto px-4 text-center">
+            <h1 className="text-5xl font-black text-slate-900 mb-4">
+              Welcome back to Vertex
+            </h1>
+            <p className="text-xl text-slate-600 mb-8">
+              Discover opportunities, connect with peers, and grow your career
+            </p>
+          </div>
+        </div>
 
-        {/* Minimal Navigation */}
-        <div className="mb-8 border-b border-slate-200">
-          <div className="flex gap-8 overflow-x-auto no-scrollbar">
-            <TabButton
-              icon={<Users className="w-4 h-4" />}
-              label="OpenMatch"
-              active={activeTab === 'openmatch'}
-              onClick={() => setActiveTab('openmatch')}
-            />
-            <TabButton
-              icon={<User className="w-4 h-4" />}
-              label="Profile"
-              active={activeTab === 'profile'}
-              onClick={() => setActiveTab('profile')}
-            />
-            <TabButton
-              icon={<FolderGit2 className="w-4 h-4" />}
-              label="Projects"
-              active={activeTab === 'projects'}
-              onClick={() => setActiveTab('projects')}
-            />
-            <TabButton
-              icon={<Calendar className="w-4 h-4" />}
-              label="Events"
-              active={activeTab === 'events'}
-              onClick={() => setActiveTab('events')}
-            />
-            <TabButton
-              icon={<Compass className="w-4 h-4" />}
-              label="Browse"
-              active={activeTab === 'browse'}
-              onClick={() => setActiveTab('browse')}
-            />
+        {/* Navigation Tabs */}
+        <div className="border-b border-slate-200 sticky top-20 bg-white z-40">
+          <div className="max-w-7xl mx-auto px-4">
+            <div className="flex gap-8 overflow-x-auto no-scrollbar">
+              <TabButton
+                icon={<User className="w-4 h-4" />}
+                label="My Profile"
+                active={activeTab === 'profile'}
+                onClick={() => setActiveTab('profile')}
+              />
+              <TabButton
+                icon={<FolderGit2 className="w-4 h-4" />}
+                label="Projects"
+                active={activeTab === 'projects'}
+                onClick={() => setActiveTab('projects')}
+              />
+              <TabButton
+                icon={<Sparkles className="w-4 h-4" />}
+                label="Opportunities"
+                active={activeTab === 'opportunities'}
+                onClick={() => setActiveTab('opportunities')}
+              />
+              <TabButton
+                icon={<Users className="w-4 h-4" />}
+                label="Open Match"
+                active={activeTab === 'openmatch'}
+                onClick={() => setActiveTab('openmatch')}
+              />
+              <TabButton
+                icon={<Users className="w-4 h-4" />}
+                label="Browse Profiles"
+                active={activeTab === 'browse'}
+                onClick={() => setActiveTab('browse')}
+              />
+              <TabButton
+                icon={<Building2 className="w-4 h-4" />}
+                label="Companies"
+                active={activeTab === 'companies'}
+                onClick={() => setActiveTab('companies')}
+              />
+            </div>
           </div>
         </div>
 
         {/* Content */}
-        <div className="min-h-[500px]">
+        <div className="max-w-7xl mx-auto px-4 py-8">
           {activeTab === 'profile' && <StudentProfile />}
           {activeTab === 'projects' && <StudentProjects />}
-          {activeTab === 'events' && <StudentEvents />}
+          {activeTab === 'opportunities' && <OpportunitiesContent />}
           {activeTab === 'openmatch' && <StudentOpenMatch />}
           {activeTab === 'browse' && <BrowseProfiles />}
+          {activeTab === 'companies' && (
+            <div className="text-center py-20">
+              <Building2 className="w-16 h-16 text-slate-300 mx-auto mb-4" />
+              <h3 className="text-2xl font-bold text-slate-900 mb-2">Companies Directory</h3>
+              <p className="text-slate-500">Browse partner companies and opportunities</p>
+            </div>
+          )}
         </div>
       </main>
     </div>
@@ -111,9 +143,9 @@ function TabButton({ icon, label, active, onClick }: TabButtonProps) {
   return (
     <button
       onClick={onClick}
-      className={`flex items-center gap-2 px-4 py-2.5 rounded-full text-sm font-semibold transition-all duration-300 transform scale-100 hover:scale-105 active:scale-95 ${active
-        ? 'bg-indigo-600 text-white shadow-lg shadow-indigo-200'
-        : 'bg-white text-slate-600 hover:bg-slate-50 hover:text-indigo-600 border border-slate-200/50 hover:border-indigo-100 hover:shadow-md'
+      className={`flex items-center gap-2 px-4 py-3 text-sm font-bold transition-all duration-300 border-b-2 ${active
+        ? 'border-indigo-600 text-indigo-600'
+        : 'border-transparent text-slate-600 hover:text-indigo-600 hover:border-slate-200'
         }`}
     >
       {icon}
