@@ -1,6 +1,7 @@
 .path-section {
   padding: 6rem 0;
-  background-color: #f8fafc; /* slate-50 */
+  background-color: #f8fafc;
+  /* slate-50 */
 }
 
 /* media queries for section padding removed */
@@ -35,30 +36,38 @@
 
 .section-eyebrow {
   display: block;
-  font-size: 0.75rem; /* text-xs */
+  font-size: 0.75rem;
+  /* text-xs */
   font-weight: 700;
-  letter-spacing: 0.1em; /* tracking-widest */
-  color: #94a3b8; /* slate-400 */
+  letter-spacing: 0.1em;
+  /* tracking-widest */
+  color: #94a3b8;
+  /* slate-400 */
   text-transform: uppercase;
   margin-bottom: 0.5rem;
 }
 
 .section-title {
-  font-size: 1.875rem; /* text-3xl */
+  font-size: 1.875rem;
+  /* text-3xl */
   font-weight: 700;
-  color: #0f172a; /* slate-900 */
+  color: #0f172a;
+  /* slate-900 */
   margin: 0;
 }
 
 @media (min-width: 768px) {
   .section-title {
-    font-size: 2.25rem; /* text-4xl */
+    font-size: 2.25rem;
+    /* text-4xl */
   }
 }
 
 .section-underline {
-  height: 0.25rem; /* h-1 */
-  width: 4rem; /* w-16 */
+  height: 0.25rem;
+  /* h-1 */
+  width: 4rem;
+  /* w-16 */
   background: var(--gradient-primary);
   margin: 1rem auto 0;
   border-radius: 9999px;
@@ -80,45 +89,50 @@
 /* Feature Card */
 .feature-card {
   background-color: white;
-  border-radius: 1.5rem; /* Larger border radius matching photo */
+  border-radius: 2rem;
+  /* Even larger for premium feel */
   padding: 3rem 2rem;
   text-align: center;
-  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05), 0 2px 4px -1px rgba(0, 0, 0, 0.03);
-  border: none; /* Removed border to match clean look */
-  transition: all 0.3s ease;
+  box-shadow: 0 10px 30px -5px rgba(0, 0, 0, 0.04);
+  border: 1px solid #f1f5f9;
+  transition: all 0.5s cubic-bezier(0.4, 0, 0.2, 1);
   display: flex;
   flex-direction: column;
   align-items: center;
 }
 
 .feature-card:hover {
-  transform: translateY(-5px);
-  box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+  transform: translateY(-8px);
+  box-shadow: 0 20px 40px -10px rgba(79, 70, 229, 0.1);
+  border-color: #e0e7ff;
 }
 
 /* Icons */
 .icon-wrapper {
   width: 64px;
   height: 64px;
-  border-radius: 1rem;
+  border-radius: 1.25rem;
   display: flex;
   align-items: center;
   justify-content: center;
-  margin-bottom: 1.5rem;
-  background-color: #f3e8ff; /* purple-100 */
-  color: #9333ea; /* purple-600 */
-  transition: transform 0.3s ease;
+  margin-bottom: 2rem;
+  background-color: #f5f3ff;
+  /* violet-50 */
+  color: #4f46e5;
+  /* indigo-600 */
+  transition: all 0.5s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
 .feature-card:hover .icon-wrapper {
-  transform: scale(1.1);
-  background-color: #e9d5ff; /* purple-200 */
+  transform: scale(1.1) rotate(5deg);
+  background-color: #4f46e5;
+  color: white;
+  box-shadow: 0 10px 20px -5px rgba(79, 70, 229, 0.4);
 }
 
 .card-icon {
-  width: 1.75rem;
-  height: 1.75rem;
-  object-fit: contain;
+  width: 1.5rem;
+  height: 1.5rem;
 }
 
 .card-icon-placeholder {
@@ -130,15 +144,18 @@
 
 /* Text */
 .card-title {
-  font-size: 1.25rem; /* text-xl */
+  font-size: 1.25rem;
+  /* text-xl */
   font-weight: 700;
   color: #0f172a;
   margin-bottom: 0.75rem;
 }
 
 .card-desc {
-  font-size: 0.875rem; /* text-sm */
-  color: #64748b; /* slate-500 */
+  font-size: 0.875rem;
+  /* text-sm */
+  color: #64748b;
+  /* slate-500 */
   line-height: 1.625;
   margin-bottom: 2rem;
 }
@@ -163,19 +180,28 @@
   color: #4f46e5;
   background-color: #eef2ff;
 }
-.link-blue:hover { background-color: #e0e7ff; }
+
+.link-blue:hover {
+  background-color: #e0e7ff;
+}
 
 .link-fuchsia {
   color: #c026d3;
   background-color: #fdf4ff;
 }
-.link-fuchsia:hover { background-color: #fae8ff; }
+
+.link-fuchsia:hover {
+  background-color: #fae8ff;
+}
 
 .link-cyan {
   color: #0891b2;
   background-color: #ecfeff;
 }
-.link-cyan:hover { background-color: #cffafe; }
+
+.link-cyan:hover {
+  background-color: #cffafe;
+}
 
 .arrow {
   font-size: 1.125rem;

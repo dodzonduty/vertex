@@ -1,11 +1,11 @@
-import React from 'react';
+import { User, Code2, Trophy, Users, Briefcase, Building2 } from 'lucide-react';
 import './PathToMastery.css';
 
 export const PathToMastery: React.FC = () => {
   return (
-    <section className="path-section">
+    <section id="path-to-mastery" className="path-section">
       <div className="path-container">
-        
+
         {/* Section Header */}
         <div className="section-header">
           <span className="section-eyebrow">Our Ecosystem</span>
@@ -15,11 +15,11 @@ export const PathToMastery: React.FC = () => {
 
         {/* Cards Grid */}
         <div className="cards-grid">
-          
+
           {/* Card 1: Smart Profiles */}
           <div className="card feature-card">
             <div className="icon-wrapper">
-               <div className="card-icon-placeholder">👤</div> 
+              <User className="card-icon" />
             </div>
             <h3 className="card-title">Smart Profiles</h3>
             <p className="card-desc">
@@ -30,7 +30,7 @@ export const PathToMastery: React.FC = () => {
           {/* Card 2: Project Showcase */}
           <div className="card feature-card">
             <div className="icon-wrapper">
-               <div className="card-icon-placeholder">{"<>"}</div>
+              <Code2 className="card-icon" />
             </div>
             <h3 className="card-title">Project Showcase</h3>
             <p className="card-desc">
@@ -41,7 +41,7 @@ export const PathToMastery: React.FC = () => {
           {/* Card 3: Events & Hackathons */}
           <div className="card feature-card">
             <div className="icon-wrapper">
-               <div className="card-icon-placeholder">🏆</div>
+              <Trophy className="card-icon" />
             </div>
             <h3 className="card-title">Events & Hackathons</h3>
             <p className="card-desc">
@@ -52,7 +52,7 @@ export const PathToMastery: React.FC = () => {
           {/* Card 4: OpenMatch */}
           <div className="card feature-card">
             <div className="icon-wrapper">
-               <div className="card-icon-placeholder">👥</div>
+              <Users className="card-icon" />
             </div>
             <h3 className="card-title">OpenMatch</h3>
             <p className="card-desc">
@@ -63,7 +63,7 @@ export const PathToMastery: React.FC = () => {
           {/* Card 5: Hiring Intelligence */}
           <div className="card feature-card">
             <div className="icon-wrapper">
-               <div className="card-icon-placeholder">💼</div>
+              <Briefcase className="card-icon" />
             </div>
             <h3 className="card-title">Hiring Intelligence</h3>
             <p className="card-desc">
@@ -74,7 +74,7 @@ export const PathToMastery: React.FC = () => {
           {/* Card 6: Company Profiles */}
           <div className="card feature-card">
             <div className="icon-wrapper">
-               <div className="card-icon-placeholder">🏢</div>
+              <Building2 className="card-icon" />
             </div>
             <h3 className="card-title">Company Profiles</h3>
             <p className="card-desc">
