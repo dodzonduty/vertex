@@ -1,5 +1,7 @@
 /* Global Styles extracted from provided Design */
 @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;500;600;700&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200');
 
 :root {
   /* Colors */
@@ -15,9 +17,8 @@
 
   /* Fonts */
   --font-main: 'Inter', sans-serif;
+  --font-display: 'Space Grotesk', sans-serif;
   
-  /* Shadows */
-  --shadow-soft: 0 10px 40px -10px rgba(0,0,0,0.05);
   /* Shadows */
   --shadow-soft: 0 10px 40px -10px rgba(0,0,0,0.05);
 }
@@ -49,6 +50,7 @@ h1, h2, h3, h4, h5, h6 {
   font-size: inherit;
   font-weight: inherit;
   margin: 0;
+  font-family: var(--font-display, var(--font-main));
 }
 
 p {

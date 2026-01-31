@@ -56,25 +56,24 @@ export const Opportunities: React.FC = () => {
     fetch('/api/opportunities/top')
       .then(res => res.json())
       .then(data => {
-          if (Array.isArray(data)) {
+          if (Array.isArray(data) && data.length > 0) {
               setOpportunities(data);
           }
       })
       .catch(() => {
-        // Keep fallback data if fetch fails
         console.warn('Failed to fetch opportunities, using fallback data');
       });
   }, []);
 
   return (
-    <section className="opportunities-section">
-      <div className="opportunities-container">
+    <section className="featured-section">
+      <div className="featured-container">
         
         {/* Header */}
-        <div className="opportunities-header">
+        <div className="featured-header">
           <div>
-            <h2 className="opportunities-title">Opportunities</h2>
-            <p className="opportunities-subtitle">Curated missions from our network of partners.</p>
+            <h2 className="featured-title">Live Opportunities</h2>
+            <p className="featured-subtitle">Curated missions from our network of partners.</p>
           </div>
           <a href="#" className="view-all-link">
              View all opportunities <span className="view-all-arrow">↗</span>
@@ -82,23 +81,23 @@ export const Opportunities: React.FC = () => {
         </div>
 
         {/* Opps Grid */}
-        <div className="opportunities-grid">
+        <div className="events-grid">
           {opportunities.map((opp) => (
-            <article key={opp.opportunity_id} className="opportunity-card">
-                <div className="opportunity-image-wrapper">
-                <span className={`opportunity-badge opportunity-badge-${opp.badge_color}`}>{opp.badge_text}</span>
+            <article key={opp.opportunity_id} className="event-card">
+                <div className="event-image-wrapper">
+                <span className={`event-badge event-badge-${opp.badge_color}`}>{opp.badge_text}</span>
                 <img 
                     alt={opp.title}
-                    className="opportunity-img" 
+                    className="event-img" 
                     src={opp.image} 
                 />
                 </div>
-                <div className="opportunity-content">
-                <div className="opportunity-meta-top">
-                    <h3 className="opportunity-title">{opp.title}</h3>
-                    <span className="opportunity-price">{opp.price}</span>
+                <div className="event-content">
+                <div className="event-meta-top">
+                    <h3 className="event-title">{opp.title}</h3>
+                    <span className="event-price">{opp.price}</span>
                 </div>
-                <div className="opportunity-details">
+                <div className="event-details">
                     <div className="detail-item">
                     <svg className="detail-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" strokeLinecap="round" strokeLinejoin="round" strokeWidth="2"></path></svg>
                     {opp.date}

@@ -1,9 +1,15 @@
-import './styling.css';
+import { BrowserRouter, Routes, Route } from 'react-router-dom';
 import { LandingPage } from './pages/LandingPage';
+import { Opportunities } from './pages/Opportunities';
 
 function App() {
   return (
-    <LandingPage />
+    <BrowserRouter>
+      <Routes>
+        <Route path="/" element={<LandingPage />} />
+        <Route path="/opportunities" element={<Opportunities />} />
+      </Routes>
+    </BrowserRouter>
   );
 }
 

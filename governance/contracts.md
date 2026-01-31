@@ -65,3 +65,64 @@ Mock_Owner: Role D
 Replacement_Required: YES
 
 ---
+
+---
+
+## Tags API
+Status: MOCK
+Route: GET /api/tags
+Location: backend/app/mocks/tags_mock.py
+
+Mocked_By: Role D
+Mock_Owner: Role D
+Replacement_Required: YES
+
+---
+
+## Trending API
+Status: MOCK
+Route: GET /api/trending
+Location: backend/app/mocks/trending_mock.py
+
+Mocked_By: Role D
+Mock_Owner: Role D
+Replacement_Required: YES
+
+---
+
+## Perfect Match API
+Status: MOCK
+Route: GET /api/perfect-match
+Location: backend/app/mocks/perfect_match_mock.py
+
+Mocked_By: Role D
+Mock_Owner: Role D
+Replacement_Required: YES
+
+---
+
+## Vertex Connect API
+Status: MOCK
+Route: GET /api/vertex-connect
+Location: backend/app/mocks/vertex_connect_mock.py
+
+Mocked_By: Role D
+Mock_Owner: Role D
+Replacement_Required: YES
+
+---
+
+## Opportunity List API
+Status: MOCK
+Route: GET /api/opportunities-list
+Location: backend/app/mocks/opportunity_list_mock.py
+
+Mocked_By: Role D
+Mock_Owner: Role D
+Replacement_Required: YES
+
+---
+
+
+
+

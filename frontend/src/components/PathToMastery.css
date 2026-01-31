@@ -3,8 +3,6 @@
   background-color: #f8fafc; /* slate-50 */
 }
 
-/* media queries for section padding removed */
-
 .path-container {
   width: 100%;
   max-width: 80rem;
@@ -115,18 +113,10 @@
   background-color: #e9d5ff; /* purple-200 */
 }
 
-.card-icon {
-  width: 1.75rem;
-  height: 1.75rem;
-  object-fit: contain;
-}
-
 .card-icon-placeholder {
   font-size: 1.75rem;
   line-height: 1;
 }
-
-/* Removed individual color variations (icon-blue, icon-cyan, etc) to match uniform design */
 
 /* Text */
 .card-title {
@@ -141,42 +131,4 @@
   color: #64748b; /* slate-500 */
   line-height: 1.625;
   margin-bottom: 2rem;
-}
-
-/* Links */
-.card-link {
-  margin-top: auto;
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  gap: 0.5rem;
-  font-size: 0.875rem;
-  font-weight: 600;
-  padding: 0.625rem 1.5rem;
-  border-radius: 0.5rem;
-  width: 100%;
-  text-decoration: none;
-  transition: background-color 0.15s;
-}
-
-.link-blue {
-  color: #4f46e5;
-  background-color: #eef2ff;
-}
-.link-blue:hover { background-color: #e0e7ff; }
-
-.link-fuchsia {
-  color: #c026d3;
-  background-color: #fdf4ff;
-}
-.link-fuchsia:hover { background-color: #fae8ff; }
-
-.link-cyan {
-  color: #0891b2;
-  background-color: #ecfeff;
-}
-.link-cyan:hover { background-color: #cffafe; }
-
-.arrow {
-  font-size: 1.125rem;
 }

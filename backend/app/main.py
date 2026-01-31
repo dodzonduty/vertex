@@ -32,6 +32,16 @@ app.add_middleware(
 app.include_router(auth.router)
 app.include_router(students.router)
 
+# Mocks
+from app.mocks import opportunity_mock, tags_mock, trending_mock, perfect_match_mock
+app.include_router(opportunity_mock.router)
+app.include_router(tags_mock.router)
+app.include_router(trending_mock.router)
+app.include_router(perfect_match_mock.router)
+from app.mocks import vertex_connect_mock, opportunity_list_mock
+app.include_router(vertex_connect_mock.router)
+app.include_router(opportunity_list_mock.router)
+
 
 @app.get("/")
 def root():
