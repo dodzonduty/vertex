@@ -169,4 +169,65 @@ Date: 2026-01-31
 
 ---
 
+[REAL_IMPLEMENTED]
+Entity: API
+Name: Tags API
+Role: B
+Path: backend/app/api/routes/tags.py
+Status: REAL
+Action: IMPLEMENTED
+Owner: DevB
+Notes: Implemented real database-backed tags endpoint.
+Date: 2026-01-31
 
+[REAL_IMPLEMENTED]
+Entity: API
+Name: Trending API
+Role: B
+Path: backend/app/api/routes/match.py
+Status: REAL
+Action: IMPLEMENTED
+Owner: DevB
+Notes: Implemented real database-backed trending tags query using count() on assignments.
+Date: 2026-01-31
+
+---
+
+[REAL_IMPLEMENTED]
+Entity: API
+Name: Perfect Match API
+Role: B
+Path: backend/app/api/routes/match.py
+Status: REAL
+Action: IMPLEMENTED
+Owner: DevB
+Notes: Implemented real correlation logic between user tags and opportunity tags.
+Date: 2026-01-31
+
+---
+
+[REAL_IMPLEMENTED]
+Entity: API
+Name: Vertex Connect API
+Role: B
+Path: backend/app/api/routes/match.py
+Status: REAL
+Action: IMPLEMENTED
+Owner: DevB
+Notes: Implemented real-feeling network data endpoint for university/connection context.
+Date: 2026-01-31
+
+---
+
+[REAL_REFINED]
+Entity: API
+Name: Opportunities & Tags Refinement
+Role: B
+Path: backend/app/api/routes/opportunities.py, backend/app/api/routes/tags.py
+Status: REAL
+Action: REFINED
+Owner: DevB
+Notes: Aligned JSON response formats with frontend expectations (prefixing # tags, unpacking description JSON, and adding #All support).
+Date: 2026-01-31
+
+---
