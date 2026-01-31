@@ -4,8 +4,6 @@
   /* slate-50 */
 }
 
-/* media queries for section padding removed */
-
 .path-container {
   width: 100%;
   max-width: 80rem;
@@ -139,8 +137,6 @@
   font-size: 1.75rem;
   line-height: 1;
 }
-
-/* Removed individual color variations (icon-blue, icon-cyan, etc) to match uniform design */
 
 /* Text */
 .card-title {

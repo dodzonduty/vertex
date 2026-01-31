@@ -39,10 +39,10 @@ export const Header: React.FC = () => {
 
         {/* Navigation Links */}
         <nav className="desktop-nav">
-          <a href="/#opportunities" className="nav-link">
+          <Link to="/opportunities" className="nav-link">
             Missions
             <span className="nav-badge">{count}</span>
-          </a>
+          </Link>
           <a href="/#path-to-mastery" className="nav-link">Ecosystem</a>
           <a href="/#path-to-mastery" className="nav-link">Partners</a>
         </nav>

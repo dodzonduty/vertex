@@ -6,7 +6,7 @@ from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
 from app.core.config import settings
-from app.api.routes import auth, students
+from app.api.routes import auth, students, opportunities, tags, match
 
 
 # Create FastAPI application
@@ -31,6 +31,19 @@ app.add_middleware(
 # Include routers
 app.include_router(auth.router)
 app.include_router(students.router)
+app.include_router(opportunities.router)
+app.include_router(tags.router)
+app.include_router(match.router)
+
+# Mocks
+from app.mocks import opportunity_mock, tags_mock, trending_mock, perfect_match_mock
+app.include_router(opportunity_mock.router)
+app.include_router(tags_mock.router)
+app.include_router(trending_mock.router)
+app.include_router(perfect_match_mock.router)
+from app.mocks import vertex_connect_mock, opportunity_list_mock
+app.include_router(vertex_connect_mock.router)
+app.include_router(opportunity_list_mock.router)
 
 
 @app.get("/")

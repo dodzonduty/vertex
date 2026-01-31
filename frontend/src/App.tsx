@@ -11,6 +11,7 @@ import { PublicCompanyProfile } from './pages/PublicCompanyProfile';
 import Onboarding from './pages/Onboarding';
 import { NotFound } from './pages/NotFound';
 import { MainLayout } from './components/shared/MainLayout';
+import { Opportunities } from './pages/Opportunities';
 
 function App() {
   return (
@@ -25,6 +26,7 @@ function App() {
         <Route path="/company-dashboard" element={<CompanyDashboard onLogout={() => window.location.href = '/'} />} />
         <Route path="/student/profile/:id" element={<MainLayout><PublicStudentProfile /></MainLayout>} />
         <Route path="/company/profile/:id" element={<MainLayout><PublicCompanyProfile /></MainLayout>} />
+        <Route path="/opportunities" element={<MainLayout><Opportunities /></MainLayout>} />
         <Route path="*" element={<MainLayout><NotFound /></MainLayout>} />
       </Routes>
     </BrowserRouter>

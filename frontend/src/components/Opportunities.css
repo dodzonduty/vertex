@@ -1,24 +1,19 @@
 .opportunities-section {
   padding: 6rem 0;
-  /* Keep vertical padding on section for background spacing */
   background-color: white;
 }
-
-/* media queries for section padding removed */
 
 .opportunities-container {
   width: 100%;
   max-width: 80rem;
   margin: 0 auto;
   padding-left: 1rem;
-  /* px-4 */
   padding-right: 1rem;
 }
 
 @media (min-width: 768px) {
   .opportunities-container {
     padding-left: 2rem;
-    /* md:px-8 */
     padding-right: 2rem;
   }
 }
@@ -26,7 +21,6 @@
 @media (min-width: 1024px) {
   .opportunities-container {
     padding-left: 4rem;
-    /* lg:px-16 */
     padding-right: 4rem;
   }
 }
@@ -41,7 +35,6 @@
 
 .opportunities-title {
   font-size: 1.5rem;
-  /* text-2xl */
   font-weight: 700;
   color: #0f172a;
   margin: 0 0 0.5rem;
@@ -50,22 +43,18 @@
 @media (min-width: 768px) {
   .opportunities-title {
     font-size: 1.875rem;
-    /* text-3xl */
   }
 }
 
 .opportunities-subtitle {
   font-size: 0.875rem;
-  /* text-sm */
   color: #64748b;
-  /* slate-500 */
 }
 
 .view-all-link {
   font-size: 0.875rem;
   font-weight: 600;
   color: #4f46e5;
-  /* indigo-600 */
   text-decoration: none;
   display: flex;
   align-items: center;
@@ -74,12 +63,6 @@
 
 .view-all-link:hover {
   color: #3730a3;
-  /* indigo-800 */
-}
-
-.view-all-arrow {
-  font-size: 1.125rem;
-  /* text-lg */
 }
 
 /* Grid */

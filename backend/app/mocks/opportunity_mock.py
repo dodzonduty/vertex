@@ -76,3 +76,4 @@ async def get_top_opportunities():
     active_ops = [op for op in MOCK_OPPORTUNITIES if op["active"]]
     sorted_ops = sorted(active_ops, key=lambda x: x["application_count"], reverse=True)
     return sorted_ops[:3]
+

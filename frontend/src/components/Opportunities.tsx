@@ -59,12 +59,11 @@ export const Opportunities: React.FC = () => {
     fetch('/api/opportunities/top')
       .then(res => res.json())
       .then(data => {
-        if (Array.isArray(data)) {
+        if (Array.isArray(data) && data.length > 0) {
           setOpportunities(data);
         }
       })
       .catch(() => {
-        // Keep fallback data if fetch fails
         console.warn('Failed to fetch opportunities, using fallback data');
       });
   }, []);
@@ -72,7 +71,6 @@ export const Opportunities: React.FC = () => {
   return (
     <section id="opportunities" className="opportunities-section">
       <div className="opportunities-container">
-
         {/* Header */}
         <div className="opportunities-header">
           <div>

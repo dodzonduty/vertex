@@ -75,7 +75,7 @@ Name: Opportunities API
 Role: D
 Path: backend/app/mocks/opportunity_mock.py
 Status: MOCK
-Action: CREATED
+Action: IMPLEMENTED 
 Owner: Role D
 Notes: Mocking opportunity counts and top opportunities for Landing Page.
 Date: 2026-01-29
@@ -118,3 +118,116 @@ Action: IMPLEMENTED
 Owner: DevB
 Notes: Set up FastAPI application with CORS middleware, configuration management (Pydantic Settings), security utilities (JWT + password hashing), authentication dependencies, and Pydantic schemas for auth and students.
 Date: 2026-01-30
+
+---
+
+[MOCK_CREATED]
+Entity: API
+Name: Tags API
+Role: D
+Path: backend/app/mocks/tags_mock.py
+Status: MOCK
+Action: CREATED
+Owner: Role D
+Notes: Created dedicated GET /api/tags endpoint for opportunity tags.
+Date: 2026-01-31
+
+---
+
+[MOCK_CREATED]
+Entity: API
+Name: Trending API
+Role: D
+Path: backend/app/mocks/trending_mock.py
+Status: MOCK
+Action: CREATED
+Owner: Role D
+Notes: Created dedicated GET /api/trending endpoint for widget data.
+Date: 2026-01-31
+
+[MOCK_CREATED]
+Entity: API
+Name: Perfect Match API
+Role: D
+Path: backend/app/mocks/perfect_match_mock.py
+Status: MOCK
+Action: CREATED
+Owner: Role D
+Notes: Created dedicated GET /api/perfect-match endpoint for widget data.
+Date: 2026-01-31
+
+[MOCK_CREATED]
+Entity: API
+Name: Vertex Connect API
+Role: D
+Path: backend/app/mocks/vertex_connect_mock.py
+Status: MOCK
+Action: CREATED
+Owner: Role D
+Notes: Created dedicated GET /api/vertex-connect endpoint for widget data.
+Date: 2026-01-31
+
+---
+
+[REAL_IMPLEMENTED]
+Entity: API
+Name: Tags API
+Role: B
+Path: backend/app/api/routes/tags.py
+Status: REAL
+Action: IMPLEMENTED
+Owner: DevB
+Notes: Implemented real database-backed tags endpoint.
+Date: 2026-01-31
+
+[REAL_IMPLEMENTED]
+Entity: API
+Name: Trending API
+Role: B
+Path: backend/app/api/routes/match.py
+Status: REAL
+Action: IMPLEMENTED
+Owner: DevB
+Notes: Implemented real database-backed trending tags query using count() on assignments.
+Date: 2026-01-31
+
+---
+
+[REAL_IMPLEMENTED]
+Entity: API
+Name: Perfect Match API
+Role: B
+Path: backend/app/api/routes/match.py
+Status: REAL
+Action: IMPLEMENTED
+Owner: DevB
+Notes: Implemented real correlation logic between user tags and opportunity tags.
+Date: 2026-01-31
+
+---
+
+[REAL_IMPLEMENTED]
+Entity: API
+Name: Vertex Connect API
+Role: B
+Path: backend/app/api/routes/match.py
+Status: REAL
+Action: IMPLEMENTED
+Owner: DevB
+Notes: Implemented real-feeling network data endpoint for university/connection context.
+Date: 2026-01-31
+
+---
+
+[REAL_REFINED]
+Entity: API
+Name: Opportunities & Tags Refinement
+Role: B
+Path: backend/app/api/routes/opportunities.py, backend/app/api/routes/tags.py
+Status: REAL
+Action: REFINED
+Owner: DevB
+Notes: Aligned JSON response formats with frontend expectations (prefixing # tags, unpacking description JSON, and adding #All support).
+Date: 2026-01-31
+
+---
