@@ -40,7 +40,50 @@ export function AuthenticatedLanding({ onLogout, userType }: AuthenticatedLandin
                             {userType}
                         </span>
                     </Link>
-
+                    <div className="border-b border-slate-200 sticky top-20 bg-white z-40">
+                        <div className="max-w-7xl mx-auto px-4">
+                            <div className="flex gap-8 overflow-x-auto no-scrollbar">
+                                <TabButton
+                                    icon={<User className="w-4 h-4" />}
+                                    label="My Profile"
+                                    active={activeTab === 'profile'}
+                                    onClick={() => setActiveTab('profile')}
+                                />
+                                <TabButton
+                                    icon={<Sparkles className="w-4 h-4" />}
+                                    label="Opportunities"
+                                    active={activeTab === 'opportunities'}
+                                    onClick={() => setActiveTab('opportunities')}
+                                />
+                                <TabButton
+                                    icon={<Users className="w-4 h-4" />}
+                                    label="Profiles"
+                                    active={activeTab === 'profiles'}
+                                    onClick={() => setActiveTab('profiles')}
+                                />
+                                <TabButton
+                                    icon={<GraduationCap className="w-4 h-4" />}
+                                    label="Professors"
+                                    active={activeTab === 'professors'}
+                                    onClick={() => setActiveTab('professors')}
+                                />
+                                {userType === 'student' && (
+                                    <TabButton
+                                        icon={<Users className="w-4 h-4" />}
+                                        label="Open Match"
+                                        active={activeTab === 'openmatch'}
+                                        onClick={() => setActiveTab('openmatch')}
+                                    />
+                                )}
+                                <TabButton
+                                    icon={<Building2 className="w-4 h-4" />}
+                                    label="Companies"
+                                    active={activeTab === 'companies'}
+                                    onClick={() => setActiveTab('companies')}
+                                />
+                            </div>
+                        </div>
+                    </div>
                     <div className="flex items-center gap-6">
                         <button
                             onClick={onLogout}
@@ -77,50 +120,7 @@ export function AuthenticatedLanding({ onLogout, userType }: AuthenticatedLandin
                 </div>
 
                 {/* Navigation Tabs */}
-                <div className="border-b border-slate-200 sticky top-20 bg-white z-40">
-                    <div className="max-w-7xl mx-auto px-4">
-                        <div className="flex gap-8 overflow-x-auto no-scrollbar">
-                            <TabButton
-                                icon={<User className="w-4 h-4" />}
-                                label="My Profile"
-                                active={activeTab === 'profile'}
-                                onClick={() => setActiveTab('profile')}
-                            />
-                            <TabButton
-                                icon={<Sparkles className="w-4 h-4" />}
-                                label="Opportunities"
-                                active={activeTab === 'opportunities'}
-                                onClick={() => setActiveTab('opportunities')}
-                            />
-                            <TabButton
-                                icon={<Users className="w-4 h-4" />}
-                                label="Profiles"
-                                active={activeTab === 'profiles'}
-                                onClick={() => setActiveTab('profiles')}
-                            />
-                            <TabButton
-                                icon={<GraduationCap className="w-4 h-4" />}
-                                label="Professors"
-                                active={activeTab === 'professors'}
-                                onClick={() => setActiveTab('professors')}
-                            />
-                            {userType === 'student' && (
-                                <TabButton
-                                    icon={<Users className="w-4 h-4" />}
-                                    label="Open Match"
-                                    active={activeTab === 'openmatch'}
-                                    onClick={() => setActiveTab('openmatch')}
-                                />
-                            )}
-                            <TabButton
-                                icon={<Building2 className="w-4 h-4" />}
-                                label="Companies"
-                                active={activeTab === 'companies'}
-                                onClick={() => setActiveTab('companies')}
-                            />
-                        </div>
-                    </div>
-                </div>
+
 
                 {/* Content */}
                 <div className="max-w-7xl mx-auto px-4 py-8">

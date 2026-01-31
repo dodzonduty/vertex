@@ -1,21 +1,43 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Mail, Lock, Building2, User, ArrowRight } from 'lucide-react';
-import '../components/Header.css'; // Re-use header styles for consistency
+import { Mail, Lock, ArrowRight } from 'lucide-react';
+import { login } from '../lib/api/auth';
+import { toast } from 'sonner';
+import '../components/Header.css';
 
 export function SignIn() {
     const navigate = useNavigate();
-    const [role, setRole] = useState<'student' | 'company'>('student');
     const [loading, setLoading] = useState(false);
+    const [email, setEmail] = useState('');
+    const [password, setPassword] = useState('');
 
-    const handleLogin = (e: React.FormEvent) => {
+    const handleLogin = async (e: React.FormEvent) => {
         e.preventDefault();
         setLoading(true);
-        // Simulate API call
-        setTimeout(() => {
+
+        try {
+            const response = await login({ email, password });
+
+            toast.success('Login Successful!', {
+                description: `Welcome back, ${response.email}`,
+            });
+
+            // Navigate based on role
+            setTimeout(() => {
+                if (response.role === 'student') {
+                    navigate('/student-home');
+                } else if (response.role === 'company') {
+                    navigate('/company-home');
+                } else {
+                    navigate('/');
+                }
+            }, 500);
+        } catch (error) {
             setLoading(false);
-            navigate(role === 'student' ? '/student-home' : '/company-home');
-        }, 1000);
+            toast.error('Login Failed', {
+                description: error instanceof Error ? error.message : 'Invalid email or password',
+            });
+        }
     };
 
     return (
@@ -26,35 +48,12 @@ export function SignIn() {
                 <div className="absolute top-[40%] -left-[10%] w-[50vw] h-[50vw] rounded-full bg-blue-500/5 blur-[100px]" />
             </div>
 
-
-
             <div className="flex-1 flex items-center justify-center p-4 relative z-10 animate-in fade-in zoom-in-95 duration-500">
                 <div className="max-w-md w-full bg-white/80 backdrop-blur-xl rounded-2xl shadow-2xl shadow-indigo-500/10 border border-white/20 ring-1 ring-slate-200/50 p-8">
 
                     <div className="text-center mb-8">
                         <h1 className="text-3xl font-extrabold text-transparent bg-clip-text bg-gradient-to-r from-slate-900 to-indigo-800 mb-2">Welcome Back</h1>
                         <p className="text-slate-500">Sign in to access your dashboard</p>
-                    </div>
-
-                    {/* Role Toggle */}
-                    <div className="flex bg-slate-100/80 p-1 rounded-xl mb-8 relative">
-                        <div
-                            className={`absolute inset-y-1 w-[calc(50%-4px)] bg-white rounded-lg shadow-sm transition-all duration-300 ease-out transform ${role === 'student' ? 'left-1' : 'translate-x-[100%] left-1'}`}
-                        />
-                        <button
-                            onClick={() => setRole('student')}
-                            className={`flex-1 relative z-10 py-2.5 text-sm font-bold flex items-center justify-center gap-2 transition-colors duration-300 ${role === 'student' ? 'text-indigo-600' : 'text-slate-500 hover:text-slate-700'}`}
-                        >
-                            <User className="w-4 h-4" />
-                            Student
-                        </button>
-                        <button
-                            onClick={() => setRole('company')}
-                            className={`flex-1 relative z-10 py-2.5 text-sm font-bold flex items-center justify-center gap-2 transition-colors duration-300 ${role === 'company' ? 'text-blue-600' : 'text-slate-500 hover:text-slate-700'}`}
-                        >
-                            <Building2 className="w-4 h-4" />
-                            Company
-                        </button>
                     </div>
 
                     <form onSubmit={handleLogin} className="space-y-5">
@@ -65,6 +64,8 @@ export function SignIn() {
                                 <input
                                     type="email"
                                     placeholder="you@example.com"
+                                    value={email}
+                                    onChange={(e) => setEmail(e.target.value)}
                                     className="w-full pl-12 pr-4 py-3 bg-white border border-slate-200 rounded-xl focus:ring-2 focus:ring-indigo-500 focus:border-transparent outline-none transition-all font-medium text-slate-900 placeholder:text-slate-400"
                                     required
                                 />
@@ -81,6 +82,8 @@ export function SignIn() {
                                 <input
                                     type="password"
                                     placeholder="••••••••"
+                                    value={password}
+                                    onChange={(e) => setPassword(e.target.value)}
                                     className="w-full pl-12 pr-4 py-3 bg-white border border-slate-200 rounded-xl focus:ring-2 focus:ring-indigo-500 focus:border-transparent outline-none transition-all font-medium text-slate-900 placeholder:text-slate-400"
                                     required
                                 />
@@ -90,12 +93,14 @@ export function SignIn() {
                         <button
                             type="submit"
                             disabled={loading}
-                            className={`w-full py-3.5 rounded-xl font-bold text-white shadow-lg shadow-indigo-200 hover:shadow-xl hover:shadow-indigo-300 hover:-translate-y-0.5 transition-all duration-300 flex items-center justify-center gap-2 ${role === 'student'
-                                ? 'bg-gradient-to-r from-indigo-600 to-violet-600'
-                                : 'bg-gradient-to-r from-blue-600 to-cyan-600'
-                                }`}
+                            className="w-full py-3.5 rounded-xl font-bold text-white bg-gradient-to-r from-indigo-600 to-violet-600 shadow-lg shadow-indigo-200 hover:shadow-xl hover:shadow-indigo-300 hover:-translate-y-0.5 transition-all duration-300 flex items-center justify-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
                         >
-                            {loading ? 'Signing in...' : (
+                            {loading ? (
+                                <>
+                                    <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin" />
+                                    Signing in...
+                                </>
+                            ) : (
                                 <>
                                     Sign In
                                     <ArrowRight className="w-5 h-5" />
@@ -103,6 +108,18 @@ export function SignIn() {
                             )}
                         </button>
                     </form>
+
+                    <div className="mt-6 text-center">
+                        <p className="text-slate-600 text-sm">
+                            Don't have an account?{' '}
+                            <button
+                                onClick={() => navigate('/signup')}
+                                className="text-indigo-600 font-bold hover:text-indigo-700 transition-colors"
+                            >
+                                Sign Up
+                            </button>
+                        </p>
+                    </div>
                 </div>
             </div>
         </div>

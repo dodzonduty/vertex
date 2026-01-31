@@ -9,6 +9,8 @@ import { StudentDashboard } from './pages/StudentDashboard';
 import { PublicStudentProfile } from './pages/PublicStudentProfile';
 import { PublicCompanyProfile } from './pages/PublicCompanyProfile';
 import Onboarding from './pages/Onboarding';
+import StudentOnboarding from './pages/StudentOnboarding';
+import CompanyOnboarding from './pages/CompanyOnboarding';
 import { NotFound } from './pages/NotFound';
 import { MainLayout } from './components/shared/MainLayout';
 import { Opportunities } from './pages/Opportunities';
@@ -23,6 +25,8 @@ function App() {
         <Route path="/signin" element={<MainLayout><SignIn /></MainLayout>} />
         <Route path="/signup" element={<MainLayout><SignUp /></MainLayout>} />
         <Route path="/onboarding" element={<MainLayout><Onboarding /></MainLayout>} />
+        <Route path="/onboarding/student" element={<MainLayout><StudentOnboarding /></MainLayout>} />
+        <Route path="/onboarding/company" element={<MainLayout><CompanyOnboarding /></MainLayout>} />
         <Route path="/home" element={<AuthenticatedLanding onLogout={() => window.location.href = '/'} userType="student" />} />
         <Route path="/student-home" element={<AuthenticatedLanding onLogout={() => window.location.href = '/'} userType="student" />} />
         <Route path="/student-dashboard" element={<StudentDashboard onLogout={() => window.location.href = '/'} />} />
