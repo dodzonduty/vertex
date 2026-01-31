@@ -1,9 +1,11 @@
 import React, { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { Header } from '../components/Header';
 import { Footer } from '../components/Footer';
 import './Opportunities.css';
 
 export const Opportunities: React.FC = () => {
+  const navigate = useNavigate();
   const [activeTab, setActiveTab] = useState<'hackathons' | 'sponsorships'>('hackathons');
   const [tags, setTags] = useState<string[]>([]);
   const [activeTag, setActiveTag] = useState<string>('#All');
@@ -354,7 +356,7 @@ export const Opportunities: React.FC = () => {
                     <div 
                         key={opp.id} 
                         className="opp-event-card"
-                        onClick={() => console.log("Clicked opportunity:", opp.id)}
+                        onClick={() => navigate(`/opportunities/${opp.id}`)}
                     >
                     <div className="opp-card-img-container">
                         <img 
@@ -386,7 +388,15 @@ export const Opportunities: React.FC = () => {
                         <span className="material-symbols-outlined text-brand-blue opp-meta-icon">public</span>
                         <span className="opp-meta-text">{opp.location}</span>
                         </div>
-                        <button className="opp-apply-btn">Apply Now</button>
+                        <button 
+                          className="opp-apply-btn"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            navigate(`/opportunities/${opp.id}`);
+                          }}
+                        >
+                          Join
+                        </button>
                     </div>
                     </div>
                 ))}
