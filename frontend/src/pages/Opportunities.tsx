@@ -20,7 +20,7 @@ export const Opportunities: React.FC = () => {
    const [oppList, setOppList] = useState<any[]>([]);
    const [totalResults, setTotalResults] = useState<number>(0);
    const [sortBy, setSortBy] = useState<string>('Most Recent');
-   const [isSortOpen, setIsSortOpen] = useState(false);
+   // const [isSortOpen, setIsSortOpen] = useState(false);
 
   // Fetch all widget data when activeTab changes
   React.useEffect(() => {

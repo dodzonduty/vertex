@@ -18,7 +18,6 @@
 .opportunity-profile {
   font-family: 'Inter', sans-serif;
   background-color: var(--background-light);
-  min-height: 100vh;
   color: #1e293b;
 }
 

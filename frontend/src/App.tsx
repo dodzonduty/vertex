@@ -28,7 +28,7 @@ function App() {
         <Route path="/student/profile/:id" element={<MainLayout><PublicStudentProfile /></MainLayout>} />
         <Route path="/company/profile/:id" element={<MainLayout><PublicCompanyProfile /></MainLayout>} />
         <Route path="/opportunities" element={<MainLayout><Opportunities /></MainLayout>} />
-        <Route path="/opportunities/:id" element={<OpportunityProfile />} />
+        <Route path="/opportunities/:id" element={<MainLayout><OpportunityProfile /></MainLayout>} />
         <Route path="*" element={<MainLayout><NotFound /></MainLayout>} />
       </Routes>
     </BrowserRouter>

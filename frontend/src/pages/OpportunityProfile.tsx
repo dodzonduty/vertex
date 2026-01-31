@@ -1,23 +1,19 @@
 import { useState } from 'react';
-import { useParams } from 'react-router-dom';
-import { Header } from '../components/Header';
-import { Footer } from '../components/Footer';
+// import { useParams } from 'react-router-dom';
 import { OpenMatchRooms } from './OpenMatchRooms';
 import './OpportunityProfile.css';
 
 export function OpportunityProfile() {
-  const { id } = useParams();
+  // const { id } = useParams();
   const [activeTab, setActiveTab] = useState<'overview' | 'rooms'>('overview');
 
   // In a real app, fetch data based on ID. For now, static content matching the design.
   
   return (
     <div className="opportunity-profile">
-      <Header />
       
-      <main>
-        <div className="hero-wrapper">
-          <div className="profile-container">
+      <div className="hero-wrapper">
+        <div className="profile-container">
             {/* Hero Image */}
             <div className="hero-image-container">
               <div 
@@ -378,9 +374,6 @@ export function OpportunityProfile() {
         ) : (
           <OpenMatchRooms />
         )}
-      </main>
-      
-      <Footer />
     </div>
   );
 }
