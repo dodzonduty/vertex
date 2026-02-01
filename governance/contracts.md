@@ -12,13 +12,13 @@ Replacement_Required: NO
 ---
 
 ## Student Profile API
-Status: REAL  
-Route: GET /api/students/{id}, GET /api/students/  
-Location: backend/app/api/routes/students.py  
+Status: REAL (GET) / MISSING (PATCH)
+Route: GET /api/students/{id}, GET /api/students/, PATCH /api/students/me (Planned)
+Location: backend/app/api/routes/students.py
 
-Implemented_By: Role B  
-Owner: DevB  
-Replacement_Required: NO  
+Implemented_By: Role B
+Owner: DevB
+Replacement_Required: NO (for GET) / YES (for PATCH)
 
 ---
 
@@ -122,6 +122,26 @@ Mock_Owner: Role D
 Replacement_Required: YES
 
 ---
+
+## Company Profile API
+Status: MISSING
+Route: GET /api/companies/me, GET /api/companies/{id}, PATCH /api/companies/me
+Location: backend/app/api/routes/companies.py (Proposed)
+
+Requested_By: Role D
+Owner: Backend Role
+Replacement_Required: YES
+
+---
+
+## Onboarding API
+Status: MISSING
+Route: POST /api/onboarding/student, POST /api/onboarding/company
+Location: backend/app/api/routes/onboarding.py (Proposed)
+
+Requested_By: Role D
+Owner: Backend Role
+Replacement_Required: YES
 
 
 

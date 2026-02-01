@@ -45,9 +45,9 @@ export const Header: React.FC = () => {
 
         {/* Auth Buttons */}
         <div className="auth-buttons">
-          <Link to="/signin" className="btn-login">Company Login</Link>
+          {/* <Link to="/signin" className="btn-login">Company Login</Link> */}
           <Link to="/signin" className="btn-student">
-            Student Login
+            Login
           </Link>
         </div>
       </div>

@@ -231,3 +231,88 @@ Notes: Aligned JSON response formats with frontend expectations (prefixing # tag
 Date: 2026-01-31
 
 ---
+
+[MOCK_REPLACED]
+Entity: Component
+Name: Opportunities Page Integration
+Role: D
+Path: frontend/src/pages/Opportunities.tsx
+Status: REAL
+Action: REPLACED
+Owner: Role D
+Notes: Replaced mock fetch calls with real API client implementations for opportunities, tags, trending, match, and connect.
+Date: 2026-02-01
+
+---
+
+[REAL_IMPLEMENTED]
+Entity: Module
+Name: Frontend API Clients
+Role: D
+Path: frontend/src/lib/api/opportunities.ts, frontend/src/lib/api/students.ts
+Status: REAL
+Action: CREATED
+Owner: Role D
+Notes: Created centralized API client library for interacting with backend routes.
+Date: 2026-02-01
+
+---
+
+[REAL_IMPLEMENTED]
+Entity: Component
+Name: Student Profile & Dashboard Integration
+Role: D
+Path: frontend/src/components/student/StudentProfile.tsx, frontend/src/pages/StudentDashboard.tsx
+Status: REAL
+Action: IMPLEMENTED
+Owner: Role D
+Notes: Integrated real student profile fetching and dynamic user data (e.g., initials) in the dashboard. Corrected API port to 8000.
+Date: 2026-02-01
+
+---
+
+[API_REQUESTED]
+Entity: API
+Name: Onboarding & Registration
+Role: B/A
+Path: backend/app/api/routes/onboarding.py (PROPOSED)
+Status: MISSING
+Action: REQUESTED
+Owner: Backend Role
+Notes: Frontend requires unified onboarding endpoints for both students and companies. 
+Requirements:
+- POST /api/onboarding/student: Create User + Student + SocialLinks + Projects in one transaction.
+- POST /api/onboarding/company: Create User + Company in one transaction.
+Date: 2026-02-01
+
+---
+
+[API_REQUESTED]
+Entity: API
+Name: Company Profile API
+Role: B
+Path: backend/app/api/routes/companies.py (PROPOSED)
+Status: MISSING
+Action: REQUESTED
+Owner: Backend Role
+Notes: Frontend requires endpoints to manage company profiles.
+Requirements:
+- GET /api/companies/me: Fetch details of the current logged-in company.
+- GET /api/companies/{company_id}: Fetch public details of any company.
+- PATCH /api/companies/me: Update company details (industry, description, etc.).
+Date: 2026-02-01
+
+---
+
+[API_REQUESTED]
+Entity: API
+Name: Profile Update Endpoints
+Role: B
+Path: backend/app/api/routes/students.py, backend/app/api/routes/companies.py
+Status: PARTIAL
+Action: REQUESTED
+Owner: Backend Role
+Notes: Existing student API only has GET. Need PATCH for mutation.
+Requirements:
+- PATCH /api/students/me: Update student details (full_name, university, degree_level, etc.).
+Date: 2026-02-01

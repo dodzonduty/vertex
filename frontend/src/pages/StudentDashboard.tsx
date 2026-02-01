@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { User, Users, Building2, Sparkles, FolderGit2 } from 'lucide-react';
 import { StudentProfile } from '../components/student/StudentProfile';
@@ -6,6 +6,7 @@ import { StudentProjects } from '../components/student/StudentProjects';
 import { StudentOpenMatch } from '../components/student/StudentOpenMatch';
 import { BrowseProfiles } from '../components/student/BrowseProfiles';
 import { OpportunitiesContent } from '../components/OpportunitiesContent';
+import { getUserData } from '../lib/api/config';
 import '../components/Header.css';
 
 interface StudentDashboardProps {
@@ -16,6 +17,13 @@ type Tab = 'profile' | 'projects' | 'opportunities' | 'openmatch' | 'browse' | '
 
 export function StudentDashboard({ onLogout }: StudentDashboardProps) {
   const [activeTab, setActiveTab] = useState<Tab>('profile');
+  const [userData, setUserData] = useState<any>(null);
+
+  useEffect(() => {
+    setUserData(getUserData());
+  }, []);
+
+  const initials = userData?.email ? userData.email[0].toUpperCase() : 'U';
 
   return (
     <div className="min-h-screen bg-white font-sans text-slate-900">
@@ -48,7 +56,7 @@ export function StudentDashboard({ onLogout }: StudentDashboardProps) {
               className="w-10 h-10 rounded-2xl flex items-center justify-center text-white font-black text-sm shadow-lg ring-2 ring-white transition-all hover:scale-105 cursor-pointer bg-indigo-600 shadow-indigo-200"
               title="View Profile"
             >
-              AJ
+              {initials}
             </button>
           </div>
         </div>

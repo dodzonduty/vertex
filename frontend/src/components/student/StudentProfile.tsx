@@ -1,5 +1,5 @@
-import { useState } from 'react';
-import { Github, Linkedin, Award, Sparkles, CheckCircle2, Edit, Mail, Phone, MapPin, Save, X, Plus, ExternalLink } from 'lucide-react';
+import { useState, useEffect } from 'react';
+import { Github, Linkedin, Award, Sparkles, CheckCircle2, Edit, Mail, Phone, MapPin, Save, X, Plus, ExternalLink, Loader2 } from 'lucide-react';
 import { Button } from '../ui/button';
 import { Card, CardContent } from '../ui/card';
 import { Badge } from '../ui/badge';
@@ -7,37 +7,76 @@ import { Input } from '../ui/input';
 import { Label } from '../ui/label';
 import { Textarea } from '../ui/textarea';
 import { toast } from 'sonner';
+import { getStudentProfile } from '../../lib/api/students';
+import { getUserData, apiRequest } from '../../lib/api/config';
 
 type ProfileMode = 'view' | 'edit';
 
 export function StudentProfile() {
   const [profileMode, setProfileMode] = useState<ProfileMode>('view');
-  const [profileData] = useState<any>({
-    name: 'Alex Johnson',
-    email: 'alex.johnson@university.edu',
-    phone: '+1 (555) 123-4567',
-    university: 'Stanford University',
-    year: 'Junior',
-    description: 'Computer Science student passionate about AI and full-stack development. I love building products that make a real impact on people\'s lives. Currently exploring the intersection of AI and web technologies.',
-    jobTitle: 'Full-Stack Developer',
-    githubLink: 'https://github.com/alexjohnson',
-    linkedinLink: 'https://linkedin.com/in/alexjohnson',
-    atsScore: 85,
-    certificates: [
-      { name: 'AWS Certified Developer', issuer: 'Amazon Web Services', date: 'Jan 2026' },
-      { name: 'React Professional Certificate', issuer: 'Meta', date: 'Dec 2025' }
-    ],
-    skills: ['React', 'Node.js', 'TypeScript', 'Python', 'AI/ML'],
-    strengths: [
-      'Strong technical skills in modern frameworks',
-      'Diverse project portfolio',
-      'Clear career focus'
-    ],
-    weaknesses: [
-      'Limited work experience mentioned',
-      'Could highlight soft skills more'
-    ]
+  const [loading, setLoading] = useState(true);
+  const [profileData, setProfileData] = useState<any>({
+    name: 'Loading...',
+    email: '',
+    phone: '',
+    university: '',
+    year: '',
+    description: '',
+    jobTitle: '',
+    githubLink: '',
+    linkedinLink: '',
+    atsScore: 0,
+    certificates: [],
+    skills: [],
+    strengths: [],
+    weaknesses: []
   });
+
+  useEffect(() => {
+    const fetchProfile = async () => {
+      try {
+        const userData = getUserData();
+        if (!userData || !userData.user_id) {
+          toast.error("User not logged in");
+          setLoading(false);
+          return;
+        }
+
+        // Fetch student list to find the student record for this user
+        // Note: Realistically, the backend should have a /students/me endpoint
+        const students = await apiRequest<any[]>('/api/students/');
+        const student = students.find((s: any) => s.user_id === userData.user_id);
+
+        if (student) {
+          // Fetch detailed profile
+          const detailed = await getStudentProfile(student.student_id);
+          setProfileData({
+            name: detailed.full_name,
+            email: detailed.email,
+            phone: detailed.Email_Address || '', // Map to match frontend state
+            university: detailed.university || '',
+            year: detailed.degree_level || '',
+            description: '', // Desc and other fields might need to be fetched from somewhere else or mocked if not in DB
+            jobTitle: 'Student', // Default or fetch if available
+            githubLink: '',
+            linkedinLink: '',
+            atsScore: 85, // Mocked for now
+            certificates: [],
+            skills: ['AI/ML'], // Mocked for now
+            strengths: [],
+            weaknesses: []
+          });
+        }
+      } catch (error) {
+        console.error("Failed to fetch profile", error);
+        toast.error("Failed to load profile");
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchProfile();
+  }, []);
 
   const handleSaveProfile = (e: React.FormEvent) => {
     e.preventDefault();
@@ -46,6 +85,15 @@ export function StudentProfile() {
       description: 'Your changes have been saved successfully.',
     });
   };
+
+  if (loading) {
+    return (
+      <div className="flex flex-col items-center justify-center min-h-[60vh] gap-4">
+        <Loader2 className="w-12 h-12 text-indigo-600 animate-spin" />
+        <p className="text-slate-500 font-medium animate-pulse">Syncing with Vertex AI...</p>
+      </div>
+    );
+  }
 
   if (profileMode === 'view') {
     return (
