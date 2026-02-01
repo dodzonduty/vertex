@@ -1,11 +1,36 @@
 import { useState } from 'react';
 // import { useParams } from 'react-router-dom';
 import { OpenMatchRooms } from './OpenMatchRooms';
+import { OpportunityRules } from './OpportunityRules';
+import { OpportunityJudging } from './OpportunityJudging';
+import { AIEligibility } from './AIEligibility';
 import './OpportunityProfile.css';
 
 export function OpportunityProfile() {
   // const { id } = useParams();
-  const [activeTab, setActiveTab] = useState<'overview' | 'rooms'>('overview');
+  const [activeTab, setActiveTab] = useState<'overview' | 'rooms' | 'rules' | 'judging' | 'eligibility_ai'>('overview');
+
+  const handleTabClick = (tab: string) => {
+    if (tab === 'submission' || tab === 'prizes') {
+      setActiveTab('overview');
+      // Use setTimeout to allow render if switching from another tab
+      setTimeout(() => {
+        const element = document.getElementById(tab);
+        if (element) {
+          element.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        }
+      }, 50);
+    } else {
+      setActiveTab(tab as any);
+      // Wait for state update then scroll to nav-bar so content is in view
+      setTimeout(() => {
+        const navBar = document.querySelector('.nav-bar');
+        if (navBar) {
+          navBar.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        }
+      }, 0);
+    }
+  };
 
   // In a real app, fetch data based on ID. For now, static content matching the design.
   
@@ -63,31 +88,60 @@ export function OpportunityProfile() {
             <div className="nav-scroll no-scrollbar">
               <button 
                 className={`nav-link ${activeTab === 'overview' ? 'active' : ''}`}
-                onClick={() => setActiveTab('overview')}
+                onClick={() => handleTabClick('overview')}
                 style={{ background: 'none', borderTop: 'none', borderLeft: 'none', borderRight: 'none', cursor: 'pointer' }}
               >
                 Overview
               </button>
-              <button className="nav-link" style={{ background: 'none', border: 'none', cursor: 'pointer' }}>
-                <span className="material-symbols-outlined" style={{ fontSize: '18px' }}>auto_awesome</span> Eligibility AI
+              <button 
+                className="nav-link" 
+                onClick={() => handleTabClick('submission')}
+                style={{ background: 'none', border: 'none', cursor: 'pointer' }}
+              >
+                Submission
               </button>
-              <button className="nav-link" style={{ background: 'none', border: 'none', cursor: 'pointer' }}>Submission</button>
-              <button className="nav-link" style={{ background: 'none', border: 'none', cursor: 'pointer' }}>Judging</button>
-              <button className="nav-link" style={{ background: 'none', border: 'none', cursor: 'pointer' }}>Rules</button>
+              <button 
+                className="nav-link" 
+                onClick={() => handleTabClick('prizes')}
+                style={{ background: 'none', border: 'none', cursor: 'pointer' }}
+              >
+                Prizes
+              </button>
+              <button 
+                className={`nav-link ${activeTab === 'rules' ? 'active' : ''}`}
+                onClick={() => handleTabClick('rules')}
+                style={{ background: 'none', border: 'none', cursor: 'pointer', borderBottom: activeTab === 'rules' ? '2px solid var(--primary)' : '2px solid transparent' }}
+              >
+                Rules
+              </button>
+              <button 
+                className={`nav-link ${activeTab === 'judging' ? 'active' : ''}`}
+                onClick={() => handleTabClick('judging')}
+                style={{ background: 'none', border: 'none', cursor: 'pointer', borderBottom: activeTab === 'judging' ? '2px solid var(--primary)' : '2px solid transparent' }}
+              >
+                Judging
+              </button>
               <button 
                 className={`nav-link ${activeTab === 'rooms' ? 'active' : ''}`}
-                onClick={() => setActiveTab('rooms')}
+                onClick={() => handleTabClick('rooms')}
                 style={{ background: 'none', border: 'none', cursor: 'pointer', borderBottom: activeTab === 'rooms' ? '2px solid var(--primary)' : '2px solid transparent' }}
               >
                 Open Match Rooms 
                 <span style={{ display: 'flex', width: '8px', height: '8px', backgroundColor: '#22c55e', borderRadius: '50%', marginLeft: '4px' }}></span>
+              </button>
+              <button 
+                className="nav-link" 
+                onClick={() => handleTabClick('eligibility_ai')}
+                style={{ background: 'none', border: 'none', cursor: 'pointer' }}
+              >
+                <span className="material-symbols-outlined" style={{ fontSize: '18px' }}>auto_awesome</span> Eligibility AI
               </button>
             </div>
           </div>
         </div>
 
         {/* Main Content Grid */}
-        {activeTab === 'overview' ? (
+        {activeTab === 'overview' && (
           <div className="content-grid">
             {/* Left Column (Main) */}
             <div className="main-column">
@@ -371,9 +425,12 @@ export function OpportunityProfile() {
 
             </div>
           </div>
-        ) : (
-          <OpenMatchRooms />
         )}
+        
+        {activeTab === 'rooms' && <OpenMatchRooms />}
+        {activeTab === 'rules' && <OpportunityRules />}
+        {activeTab === 'judging' && <OpportunityJudging />}
+        {activeTab === 'eligibility_ai' && <AIEligibility />}
     </div>
   );
 }
