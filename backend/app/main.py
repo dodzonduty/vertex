@@ -31,6 +31,8 @@ app.add_middleware(
 # Include routers
 app.include_router(auth.router)
 app.include_router(students.router)
+from app.api.routes.companies import profiles as company_profiles
+app.include_router(company_profiles.router, prefix="/api/companies", tags=["companies"])
 app.include_router(opportunities.router)
 app.include_router(tags.router)
 app.include_router(match.router)

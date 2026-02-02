@@ -1,22 +1,68 @@
-import { useState } from 'react';
-import { Mail, Phone, MapPin, Building2, Link as LinkIcon, Users, Edit, Sparkles, CheckCircle2 } from 'lucide-react';
+import { useState, useEffect } from 'react';
+import { Mail, Phone, MapPin, Building2, Link as LinkIcon, Users, Edit, Sparkles, CheckCircle2, Loader2 } from 'lucide-react';
+import { getCompanyProfile, updateCompanyProfile } from '../../lib/api/companies';
+import { toast } from 'sonner';
 
 export function CompanyProfile() {
   const [profileMode, setProfileMode] = useState<'view' | 'edit'>('view');
+
+  const [loading, setLoading] = useState(true);
   const [companyData, setCompanyData] = useState({
-    name: 'TechCorp',
-    email: 'contact@techcorp.com',
-    size: 'Enterprise (1000+ employees)',
-    address: '123 Innovation Drive, San Francisco, CA 94105',
-    phone: '+1 (555) 987-6543',
-    description: 'Leading technology company focused on AI innovation and cutting-edge software solutions. We are passionate about creating products that make a difference in people\'s lives.',
-    tags: ['AI/ML', 'Software Development', 'Innovation', 'Tech'],
-    socialLinks: [
-      { type: 'Website', url: 'https://techcorp.com' },
-      { type: 'LinkedIn', url: 'https://linkedin.com/company/techcorp' },
-      { type: 'Twitter', url: 'https://twitter.com/techcorp' }
-    ]
+    name: '',
+    email: '',
+    industry: '',
+    size: 'Start-up',
+    address: 'Remote',
+    phone: '',
+    description: '',
+    tags: [] as string[],
+    socialLinks: [] as { type: string; url: string }[]
   });
+
+  useEffect(() => {
+    loadProfile();
+  }, []);
+
+  const loadProfile = async () => {
+    try {
+      const data = await getCompanyProfile();
+      setCompanyData({
+        ...data,
+        // Ensure required fields have defaults
+        industry: data.industry || '',
+        description: data.description || '',
+        // Default values for fields not in DB yet
+        size: data.size || 'Growth Stage',
+        address: data.address || 'Remote / Hybrid',
+        phone: data.phone || '',
+        tags: data.tags || [],
+        socialLinks: data.socialLinks || []
+      });
+    } catch (error) {
+      console.error('Failed to load profile:', error);
+      toast.error('Could not load profile');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleSave = async () => {
+    try {
+      await updateCompanyProfile({
+        name: companyData.name,
+        industry: companyData.industry,
+        description: companyData.description,
+        // Add other fields when backend supports them
+      });
+      toast.success('Profile updated!');
+      setProfileMode('view');
+    } catch (error) {
+      toast.error('Failed to update profile');
+      console.error(error);
+    }
+  };
+
+  if (loading) return <div className="flex justify-center p-12"><Loader2 className="animate-spin w-8 h-8 text-blue-600" /></div>;
 
   return (
     <div className="max-w-5xl mx-auto font-sans animate-in fade-in duration-700">
@@ -42,7 +88,16 @@ export function CompanyProfile() {
 
             <div className="flex-1 text-center md:text-left mb-2">
               <div className="flex items-center justify-center md:justify-start gap-3 mb-2">
-                <h1 className="text-3xl font-black text-slate-900 tracking-tight">{companyData.name}</h1>
+                {profileMode === 'edit' ? (
+                  <input
+                    className="text-3xl font-black text-slate-900 tracking-tight bg-slate-50 border p-1 rounded"
+                    value={companyData.name}
+                    onChange={(e) => setCompanyData({ ...companyData, name: e.target.value })}
+                  />
+                ) : (
+                  <h1 className="text-3xl font-black text-slate-900 tracking-tight">{companyData.name}</h1>
+                )}
+
                 <div className="px-2 py-0.5 bg-blue-50 text-blue-700 text-[10px] font-bold uppercase tracking-widest rounded-full border border-blue-100 flex items-center gap-1">
                   <CheckCircle2 className="w-3 h-3" />
                   Verified
@@ -56,7 +111,7 @@ export function CompanyProfile() {
                 </div>
                 <div className="flex items-center gap-1.5 px-3 py-1 bg-slate-50 rounded-full border border-slate-100">
                   <MapPin className="w-4 h-4 text-slate-400" />
-                  SF, California
+                  {companyData.address}
                 </div>
               </div>
             </div>
@@ -65,10 +120,10 @@ export function CompanyProfile() {
               <button
                 onClick={() => {
                   if (profileMode === 'edit') {
-                    // Logic to save changes would go here
-                    setCompanyData({ ...companyData });
+                    handleSave();
+                  } else {
+                    setProfileMode('edit');
                   }
-                  setProfileMode(profileMode === 'view' ? 'edit' : 'view');
                 }}
                 className="px-6 py-3 bg-blue-600 text-white rounded-xl font-bold shadow-lg shadow-blue-200 hover:shadow-xl hover:shadow-blue-300 hover:-translate-y-0.5 transition-all flex items-center gap-2 group/action"
               >
@@ -106,7 +161,7 @@ export function CompanyProfile() {
                 <label className="block text-xs font-semibold text-slate-500 mb-1">Phone</label>
                 <div className="flex items-center gap-2 text-slate-900 text-sm">
                   <Phone className="w-4 h-4 text-slate-400" />
-                  {companyData.phone}
+                  {companyData.phone || 'N/A'}
                 </div>
               </div>
               <div>
@@ -122,7 +177,7 @@ export function CompanyProfile() {
           <div className="bg-white border border-slate-200 rounded-lg p-6">
             <h3 className="font-semibold text-slate-900 text-sm uppercase tracking-wider mb-4">Social</h3>
             <div className="space-y-3">
-              {companyData.socialLinks.map((link: any, idx: number) => (
+              {companyData.socialLinks && companyData.socialLinks.map((link: any, idx: number) => (
                 <div key={idx} className="flex items-center gap-2 text-sm">
                   <LinkIcon className="w-4 h-4 text-slate-400" />
                   <a href={link.url} className="text-blue-600 hover:underline truncate">{link.url}</a>
@@ -141,11 +196,12 @@ export function CompanyProfile() {
             <label className="block text-sm font-bold text-slate-900 mb-2">Company Description</label>
             <textarea
               rows={6}
-              defaultValue={companyData.description}
+              value={companyData.description || ''}
               readOnly={profileMode === 'view'}
+              onChange={(e) => setCompanyData({ ...companyData, description: e.target.value })}
               className={`w-full px-4 py-3 border rounded-lg transition-all ${profileMode === 'edit'
-                  ? 'border-blue-500 ring-2 ring-blue-500/20 bg-white text-slate-900 cursor-text'
-                  : 'border-slate-100 bg-slate-50 text-slate-600 cursor-default outline-none'
+                ? 'border-blue-500 ring-2 ring-blue-500/20 bg-white text-slate-900 cursor-text'
+                : 'border-slate-100 bg-slate-50 text-slate-600 cursor-default outline-none'
                 }`}
             />
           </section>
@@ -154,14 +210,18 @@ export function CompanyProfile() {
             <label className="block text-sm font-bold text-slate-900 mb-3">Industry Tags</label>
             <div className="bg-white border border-slate-200 rounded-lg p-6">
               <div className="flex flex-wrap gap-2 mb-4">
-                {companyData.tags.map((tag: string, idx: number) => (
-                  <span key={idx} className="px-3 py-1 bg-slate-100 text-slate-700 rounded border border-slate-200 text-sm font-medium flex items-center gap-2 group">
-                    {tag}
-                    {profileMode === 'edit' && (
-                      <button className="text-slate-400 hover:text-red-500 group-hover:text-red-500">×</button>
-                    )}
-                  </span>
-                ))}
+                {companyData.tags?.length > 0 ? (
+                  companyData.tags.map((tag: string, idx: number) => (
+                    <span key={idx} className="px-3 py-1 bg-slate-100 text-slate-700 rounded border border-slate-200 text-sm font-medium flex items-center gap-2 group">
+                      {tag}
+                      {profileMode === 'edit' && (
+                        <button className="text-slate-400 hover:text-red-500 group-hover:text-red-500">×</button>
+                      )}
+                    </span>
+                  ))
+                ) : (
+                  <span className="text-slate-400 text-sm italic">No tags added yet</span>
+                )}
               </div>
               {profileMode === 'edit' && (
                 <button className="text-blue-600 font-medium text-sm hover:underline">+ Add Industry Tag</button>

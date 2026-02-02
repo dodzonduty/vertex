@@ -8,6 +8,7 @@ import { Input } from '../components/ui/input';
 import { Label } from '../components/ui/label';
 import { Textarea } from '../components/ui/textarea';
 import { toast } from 'sonner';
+import { signupCompany } from '../lib/api/companies';
 
 type OnboardingStep = 'form' | 'review' | 'success';
 
@@ -39,7 +40,7 @@ export default function CompanyOnboarding() {
         setStep('review');
     };
 
-    const finalizeOnboarding = () => {
+    const finalizeOnboarding = async () => {
         setLoading(true);
 
         // Prepare data for backend
@@ -47,7 +48,7 @@ export default function CompanyOnboarding() {
             // User creation
             email: companyData.email,
             password: companyData.password,
-            role: 'company',
+            // role: 'company', // Removed as it's not in the Pydantic schema
 
             // Company profile
             name: companyData.name,
@@ -57,16 +58,18 @@ export default function CompanyOnboarding() {
 
         console.log('Data to send to backend:', backendData);
 
-        // TODO: Replace with real API call
-        // await fetch('/api/companies/onboarding', { method: 'POST', body: JSON.stringify(backendData) })
-
-        setTimeout(() => {
+        try {
+            await signupCompany(backendData);
             setLoading(false);
             setStep('success');
             toast.success('Company Profile Created!', {
                 description: 'Welcome to Vertex. Start finding talented students.',
             });
-        }, 1500);
+        } catch (error: any) {
+            console.error('Signup failed:', error);
+            setLoading(false);
+            toast.error('Signup Failed', { description: error.message || 'Please check your information and try again.' });
+        }
     };
 
     return (
