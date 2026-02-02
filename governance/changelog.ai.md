@@ -211,10 +211,10 @@ Entity: API
 Name: Vertex Connect API
 Role: B
 Path: backend/app/api/routes/match.py
-Status: REAL
+Status: PARTIAL
 Action: IMPLEMENTED
 Owner: DevB
-Notes: Implemented real-feeling network data endpoint for university/connection context.
+Notes: Implemented endpoint structure matching frontend, but logic is simplified/mocked until full graph data is available. returns real-feeling static data.
 Date: 2026-01-31
 
 ---
@@ -316,3 +316,20 @@ Notes: Existing student API only has GET. Need PATCH for mutation.
 Requirements:
 - PATCH /api/students/me: Update student details (full_name, university, degree_level, etc.).
 Date: 2026-02-01
+
+---
+
+[REAL_IMPLEMENTED]
+Entity: API & Feature
+Name: Company Profile Persistence & Onboarding
+Role: B/D
+Path: backend/app/api/routes/companies/profiles.py, frontend/src/pages/CompanyOnboarding.tsx, frontend/src/components/company/CompanyProfile.tsx
+Status: REAL
+Action: IMPLEMENTED
+Owner: Antigravity
+Notes: Fully implemented Company persistence foundation.
+- Created `signup` endpoint (creates User + Company).
+- Created `/me` endpoint (GET/PATCH) for profile management.
+- Connected Frontend Onboarding to real API (fixed 422 error by removing `role` payload and aligning schema).
+- Connected Company Profile UI to real data (support for editing Name, Description, Industry).
+Date: 2026-02-02
