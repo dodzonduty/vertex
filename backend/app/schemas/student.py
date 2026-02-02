@@ -3,8 +3,19 @@ Pydantic schemas for student endpoints
 """
 from pydantic import BaseModel, EmailStr
 from datetime import datetime
-from typing import Optional, List
+from typing import Optional, List, Any
 from app.schemas.project import ProjectResponse
+
+
+class CertificateResponse(BaseModel):
+    """Minimal certificate for profile display"""
+    certificate_id: str
+    certificate_name: str
+    issuer: str
+    obtained_at: Optional[datetime] = None
+
+    class Config:
+        from_attributes = True
 
 
 class StudentBase(BaseModel):
@@ -63,7 +74,8 @@ class StudentDetailResponse(BaseModel):
     
     # Enhanced data
     projects: List[ProjectResponse] = []
-    
+    certificates: List[CertificateResponse] = []
+
     class Config:
         from_attributes = True
 

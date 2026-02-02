@@ -6,18 +6,17 @@ export interface CompanyProfile {
     name: string;
     industry?: string;
     description?: string;
-    email: string; // From User model
+    email: string;
     verified: boolean;
-    // Helper fields not in DB but useful for UI state
-    size?: string;
-    address?: string;
     phone?: string;
+    address?: string;
+    size?: string;
     tags?: string[];
     socialLinks?: { type: string; url: string }[];
 }
 
 export async function signupCompany(data: any): Promise<CompanyProfile> {
-    return apiRequest<CompanyProfile>('/api/companies/signup', {
+    return apiRequest<CompanyProfile>('/api/onboarding/company', {
         method: 'POST',
         body: JSON.stringify(data),
     });

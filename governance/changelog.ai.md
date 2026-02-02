@@ -320,6 +320,22 @@ Date: 2026-02-01
 ---
 
 [REAL_IMPLEMENTED]
+Entity: API
+Name: Onboarding API
+Role: B
+Path: backend/app/api/routes/onboarding.py
+Status: REAL
+Action: IMPLEMENTED
+Owner: DevB
+Notes: Implemented unified onboarding endpoints for both students and companies. Creates User + Student/Company + SocialLinks + Projects in atomic transactions. Returns JWT token upon successful registration.
+Requirements fulfilled:
+- POST /api/onboarding/student: Create User + Student + SocialLinks + Projects in one transaction
+- POST /api/onboarding/company: Create User + Company in one transaction
+Date: 2026-02-02
+
+---
+
+[REAL_IMPLEMENTED]
 Entity: API & Feature
 Name: Company Profile Persistence & Onboarding
 Role: B/D
@@ -332,4 +348,150 @@ Notes: Fully implemented Company persistence foundation.
 - Created `/me` endpoint (GET/PATCH) for profile management.
 - Connected Frontend Onboarding to real API (fixed 422 error by removing `role` payload and aligning schema).
 - Connected Company Profile UI to real data (support for editing Name, Description, Industry).
+Date: 2026-02-02
+---
+
+[REAL_REFINED]
+Entity: Database & Models
+Name: Student Model Property-Based Refactoring
+Role: A/B
+Path: backend/app/models/student.py, backend/app/api/routes/students.py
+Status: REAL
+Action: REFINED
+Owner: Antigravity
+Notes: Refactored Student model to remove redundant columns (bio, ats_score, skills_json, github_url, linkedin_url) in favor of derived properties. 
+- bio and ats_score are now derived from the latest parsed CV.
+- github_url and linkedin_url are derived from SocialLink records.
+- Updated API routes to stop direct saves to these columns, fixing the UndefinedColumn error.
+- Removed deprecated SQLite migration scripts.
+Date: 2026-02-02
+
+---
+
+[REAL_REFINED]
+Entity: Module
+Name: Config & Database
+Role: B
+Path: backend/app/core/config.py
+Status: REAL
+Action: REFINED
+Owner: Antigravity
+Notes: Fixed config to load .env from project root (Vertex/.env) instead of backend/; changed default DATABASE_URL from SQLite to PostgreSQL; added .vscode/settings.json for Python interpreter (fixes pydantic_settings import).
+Date: 2026-02-02
+
+---
+
+[REAL_REFINED]
+Entity: Module
+Name: API Error Formatting
+Role: D
+Path: frontend/src/lib/api/config.ts
+Status: REAL
+Action: REFINED
+Owner: Antigravity
+Notes: Added formatApiErrorDetail() to convert FastAPI 422 validation errors (array of objects) into readable strings; fixes "[object Object]" in toast messages.
+Date: 2026-02-02
+
+---
+
+[REAL_REFINED]
+Entity: Component
+Name: Student Onboarding Flow
+Role: D
+Path: frontend/src/pages/StudentOnboarding.tsx
+Status: REAL
+Action: REFINED
+Owner: Antigravity
+Notes: Fixed onboarding flow: only treat "Email already registered" as account-exists (then try login); persist token from signup response on success; align signupPayload with backend schema (email, password, full_name, university, degree_level, social_links, projects).
+Date: 2026-02-02
+
+---
+
+[REAL_REFINED]
+Entity: API
+Name: Student Profile GET /me
+Role: B
+Path: backend/app/api/routes/students.py
+Status: REAL
+Action: REFINED
+Owner: Antigravity
+Notes: Fixed route ordering: GET /me must be defined BEFORE GET /{student_id} so /me is not matched as student_id="me"; added certificates to StudentDetailResponse and joinedload; frontend profile page now loads correctly.
+Date: 2026-02-02
+
+---
+
+[REAL_REFINED]
+Entity: API
+Name: Student Profile PATCH /me
+Role: B
+Path: backend/app/api/routes/students.py
+Status: REAL
+Action: REFINED
+Owner: Antigravity
+Notes: Fixed PATCH to persist bio, ats_score, skills via CV.parsed_json (Student model has read-only properties); persist github_url, linkedin_url via SocialLink; updated Student.skills property to read from CV.parsed_json.
+Date: 2026-02-02
+
+---
+
+[REAL_IMPLEMENTED]
+Entity: Database & Models
+Name: Company Contact Fields
+Role: A
+Path: backend/app/models/company.py, alembic/versions/20260202_add_company_contact_fields.py
+Status: REAL
+Action: IMPLEMENTED
+Owner: Antigravity
+Notes: Added phone, address, size columns to Company model; migration add_company_contact.
+Date: 2026-02-02
+
+---
+
+[REAL_REFINED]
+Entity: API
+Name: Onboarding API (Company)
+Role: B
+Path: backend/app/api/routes/onboarding.py
+Status: REAL
+Action: REFINED
+Owner: Antigravity
+Notes: Extended CompanyOnboardingRequest with phone, address, size, social_links; onboarding creates SocialLink records; returns JWT on success.
+Date: 2026-02-02
+
+---
+
+[REAL_REFINED]
+Entity: API
+Name: Company Profile API
+Role: B
+Path: backend/app/api/routes/companies/profiles.py, backend/app/schemas/company.py
+Status: REAL
+Action: REFINED
+Owner: Antigravity
+Notes: GET /me and PATCH /me now support phone, address, size, social_links; joinedload user.social_links; infer link type from URL; full CRUD for company profile.
+Date: 2026-02-02
+
+---
+
+[REAL_REFINED]
+Entity: Component
+Name: Company Onboarding Page
+Role: D
+Path: frontend/src/pages/CompanyOnboarding.tsx
+Status: REAL
+Action: REFINED
+Owner: Antigravity
+Notes: Added form fields for phone, address, size, social links (type + URL); set auth token from signup response; aligns with backend CompanyOnboardingRequest.
+Date: 2026-02-02
+
+---
+
+[REAL_REFINED]
+Entity: Component
+Name: Company Profile Page
+Role: D
+Path: frontend/src/components/company/CompanyProfile.tsx
+Status: REAL
+Action: REFINED
+Owner: Antigravity
+Notes: Load and display phone, address, size, social_links; edit mode for phone, address, social links (add/remove); handle API response (social_links camelCase mapping); save sends all fields to PATCH /me.
 Date: 2026-02-02

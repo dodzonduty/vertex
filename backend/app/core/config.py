@@ -1,15 +1,21 @@
 """
 Application configuration settings
 """
+from pathlib import Path
 from pydantic_settings import BaseSettings, SettingsConfigDict
 from typing import Optional
+
+# Project root = Vertex (parent of backend); .env lives there
+_BACKEND_DIR = Path(__file__).resolve().parent.parent.parent
+_PROJECT_ROOT = _BACKEND_DIR.parent
+_ENV_FILE = _PROJECT_ROOT / ".env"
 
 
 class Settings(BaseSettings):
     """Application settings loaded from environment variables"""
     
-    # Database
-    DATABASE_URL: str = "sqlite:///./vertex.db"
+    # Database (PostgreSQL only; set in .env at project root)
+    DATABASE_URL: str = "postgresql+psycopg://vertex_user:vertex_pass@localhost:5432/vertex_db"
     
     # Environment
     ENVIRONMENT: str = "development"
@@ -28,7 +34,8 @@ class Settings(BaseSettings):
     GITHUB_TOKEN: Optional[str] = None
     
     model_config = SettingsConfigDict(
-        env_file=".env",
+        env_file=str(_ENV_FILE) if _ENV_FILE.exists() else ".env",
+        env_file_encoding="utf-8",
         case_sensitive=True,
         extra="ignore"
     )

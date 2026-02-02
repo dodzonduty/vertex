@@ -20,11 +20,12 @@ export interface StudentProfile {
 }
 
 export async function getStudentProfile(studentId: string): Promise<StudentProfile> {
-    return apiRequest<StudentProfile>(`/api/students/${studentId}`);
+    const endpoint = studentId === 'me' ? '/api/students/me' : `/api/students/${studentId}`;
+    return apiRequest<StudentProfile>(endpoint);
 }
 
 export async function signupStudent(data: any): Promise<StudentProfile> {
-    return apiRequest<StudentProfile>('/api/students/signup', {
+    return apiRequest<StudentProfile>('/api/onboarding/student', {
         method: 'POST',
         body: JSON.stringify(data),
     });

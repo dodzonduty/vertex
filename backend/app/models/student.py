@@ -1,3 +1,4 @@
+from typing import Optional
 from sqlalchemy import String, ForeignKey, Text
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 from .base import Base, TimestampMixin
@@ -14,26 +15,63 @@ class Student(Base, TimestampMixin):
     university: Mapped[str] = mapped_column(String(255), nullable=True)
     degree_level: Mapped[str] = mapped_column(String(100), nullable=True)
     Email_Address: Mapped[str] = mapped_column(String(255), nullable=True)
-    bio: Mapped[str] = mapped_column(Text, nullable=True)
-    ats_score: Mapped[int] = mapped_column(nullable=True, default=0)
-    skills_json: Mapped[str] = mapped_column(Text, nullable=True)
-    github_url: Mapped[str] = mapped_column(String(500), nullable=True)
-    linkedin_url: Mapped[str] = mapped_column(String(500), nullable=True)
+    
+    @property
+    def github_url(self) -> Optional[str]:
+        if not self.user or not self.user.social_links:
+            return None
+        for link in self.user.social_links:
+            if link.url and "github.com" in link.url.lower():
+                return link.url
+        return None
+
+    @property
+    def linkedin_url(self) -> Optional[str]:
+        if not self.user or not self.user.social_links:
+            return None
+        for link in self.user.social_links:
+            if link.url and "linkedin.com" in link.url.lower():
+                return link.url
+        return None
+
+    @property
+    def bio(self) -> Optional[str]:
+        if not self.cvs or len(self.cvs) == 0:
+            return None
+        # Robust sorting by updated_at
+        ordered_cvs = sorted([cv for cv in self.cvs if cv.updated_at], key=lambda x: x.updated_at, reverse=True)
+        if not ordered_cvs:
+            return None
+        latest_cv = ordered_cvs[0]
+        if latest_cv.parsed_json:
+            return latest_cv.parsed_json.get("professional_bio")
+        return None
+
+    @property
+    def ats_score(self) -> int:
+        if not self.cvs or len(self.cvs) == 0:
+            return 0
+        ordered_cvs = sorted([cv for cv in self.cvs if cv.updated_at], key=lambda x: x.updated_at, reverse=True)
+        if not ordered_cvs:
+            return 0
+        latest_cv = ordered_cvs[0]
+        if latest_cv.parsed_json:
+            score = latest_cv.parsed_json.get("ats_compatibility", 0)
+            try:
+                return int(score)
+            except (TypeError, ValueError):
+                return 0
+        return 0
 
     @property
     def skills(self) -> list[str]:
-        import json
-        if self.skills_json:
-            try:
-                return json.loads(self.skills_json)
-            except:
-                return []
+        """Skills from CV parsed_json or TagAssignment; fallback to empty list."""
+        if self.cvs:
+            ordered = sorted([c for c in self.cvs if c.updated_at], key=lambda x: x.updated_at, reverse=True)
+            if ordered and ordered[0].parsed_json:
+                s = ordered[0].parsed_json.get("skills", [])
+                return s if isinstance(s, list) else []
         return []
-
-    @skills.setter
-    def skills(self, value: list[str]):
-        import json
-        self.skills_json = json.dumps(value) if value else "[]"
     
     # Relationships
     user: Mapped["User"] = relationship("User", back_populates="student")

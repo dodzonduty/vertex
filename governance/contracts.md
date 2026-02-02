@@ -12,13 +12,14 @@ Replacement_Required: NO
 ---
 
 ## Student Profile API
-Status: REAL (GET) / MISSING (PATCH)
-Route: GET /api/students/{id}, GET /api/students/, PATCH /api/students/me (Planned)
+Status: REAL
+Route: GET /api/students/me, GET /api/students/{id}, GET /api/students/, PATCH /api/students/me, POST /api/students/me/projects
 Location: backend/app/api/routes/students.py
 
 Implemented_By: Role B
 Owner: DevB
-Replacement_Required: NO (for GET) / YES (for PATCH)
+Replacement_Required: NO
+Notes: GET /me must be declared before GET /{id}. PATCH persists bio/ats_score/skills via CV, github/linkedin via SocialLink.
 
 ---
 
@@ -124,24 +125,26 @@ Replacement_Required: YES
 ---
 
 ## Company Profile API
-Status: MISSING
-Route: GET /api/companies/me, GET /api/companies/{id}, PATCH /api/companies/me
-Location: backend/app/api/routes/companies.py (Proposed)
+Status: REAL
+Route: GET /api/companies/me, PATCH /api/companies/me, POST /api/companies/signup
+Location: backend/app/api/routes/companies/profiles.py
 
-Requested_By: Role D
-Owner: Backend Role
-Replacement_Required: YES
+Implemented_By: Role B
+Owner: DevB
+Replacement_Required: NO
+Notes: Returns phone, address, size, social_links. Company model has phone, address, size columns. Social links via User.social_links.
 
 ---
 
 ## Onboarding API
-Status: MISSING
+Status: REAL
 Route: POST /api/onboarding/student, POST /api/onboarding/company
-Location: backend/app/api/routes/onboarding.py (Proposed)
+Location: backend/app/api/routes/onboarding.py
 
-Requested_By: Role D
-Owner: Backend Role
-Replacement_Required: YES
+Implemented_By: Role B
+Owner: DevB
+Replacement_Required: NO
+Notes: Student: email, password, full_name, university, degree_level, social_links, projects. Company: email, password, name, industry, description, phone, address, size, social_links. Returns JWT.
 
 
 

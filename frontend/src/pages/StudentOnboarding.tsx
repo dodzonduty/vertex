@@ -1,7 +1,7 @@
 import { useState, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Upload, Sparkles, CheckCircle2, ArrowRight, Loader2, Github, Linkedin, Plus, X, Mail, Lock, User as UserIcon } from 'lucide-react';
-import { apiRequest } from '../lib/api/config';
+import { apiRequest, setAuthToken, setUserData } from '../lib/api/config';
 import { signupStudent, analyzeCV, analyzeGitHub, updateStudentProfile } from '../lib/api/students';
 import { login } from '../lib/api/auth';
 import { Button } from '../components/ui/button';
@@ -228,22 +228,52 @@ export default function StudentOnboarding() {
 
         try {
             console.log('Attempting signup...', signupData);
+            const signupPayload = {
+                email: signupData.email,
+                password: signupData.password,
+                full_name: signupData.full_name,
+                university: signupData.university || undefined,
+                degree_level: signupData.degree_level || undefined,
+                social_links: (studentData.github_url || studentData.linkedin_url) ? [
+                    ...(studentData.github_url ? [{ url: studentData.github_url, username: undefined }] : []),
+                    ...(studentData.linkedin_url ? [{ url: studentData.linkedin_url, username: undefined }] : [])
+                ] : undefined,
+                projects: studentData.projects?.length ? studentData.projects.map((p: Project) => ({ title: p.title, repo_url: p.repo_url || undefined })) : undefined
+            };
+
+            let signupSucceeded = false;
             try {
-                await signupStudent(signupData);
+                const signupResponse = await signupStudent(signupPayload) as { access_token?: string; user_id?: string; email?: string; role?: string };
+                if (signupResponse?.access_token) {
+                    setAuthToken(signupResponse.access_token);
+                    setUserData({
+                        user_id: signupResponse.user_id,
+                        email: signupResponse.email,
+                        role: signupResponse.role
+                    });
+                }
+                signupSucceeded = true;
                 console.log('Signup successful');
             } catch (signupError: any) {
-                console.warn('Signup error:', signupError);
-                // If user already exists, we might be retrying a failed onboarding
-                // Proceed to login if the error is 400 (which usually means user exists)
-                toast.info('Account already exists, proceeding to login...');
+                const msg = signupError?.message ?? String(signupError);
+                // Only "account exists" → try login; any other error → show and stop
+                if (msg.includes('Email already registered') || msg.includes('already registered')) {
+                    toast.info('Account already exists, signing you in...');
+                } else {
+                    setLoading(false);
+                    toast.error('Registration failed', { description: msg });
+                    return;
+                }
             }
 
-            console.log('Attempting login...');
-            await login({
-                email: signupData.email,
-                password: signupData.password
-            });
-            console.log('Login successful');
+            if (!signupSucceeded) {
+                console.log('Attempting login...');
+                await login({
+                    email: signupData.email,
+                    password: signupData.password
+                });
+                console.log('Login successful');
+            }
 
             // FORCE UPDATE PROFILE DATA (Double-Tap) to ensure AI fields are saved
             try {
@@ -292,8 +322,9 @@ export default function StudentOnboarding() {
         } catch (error) {
             console.error('Finalization error:', error);
             setLoading(false);
+            const message = error instanceof Error ? error.message : 'Please check your credentials or try again later.';
             toast.error('Onboarding Failed', {
-                description: 'Please check your credentials or try again later.'
+                description: message
             });
         }
     };

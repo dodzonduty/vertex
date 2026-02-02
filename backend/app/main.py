@@ -6,7 +6,7 @@ from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
 from app.core.config import settings
-from app.api.routes import auth, students, opportunities, tags, match
+from app.api.routes import auth, students, opportunities, tags, match, onboarding
 
 
 # Create FastAPI application
@@ -30,6 +30,7 @@ app.add_middleware(
 
 # Include routers
 app.include_router(auth.router)
+app.include_router(onboarding.router)
 app.include_router(students.router)
 from app.api.routes.companies import profiles as company_profiles
 app.include_router(company_profiles.router, prefix="/api/companies", tags=["companies"])

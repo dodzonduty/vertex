@@ -11,7 +11,7 @@ import { Label } from '../ui/label';
 import { Textarea } from '../ui/textarea';
 import { toast } from 'sonner';
 import { getStudentProfile, updateStudentProfile, addProject, analyzeCV } from '../../lib/api/students';
-import { getUserData, apiRequest } from '../../lib/api/config';
+import { getUserData } from '../../lib/api/config';
 
 type ProfileMode = 'view' | 'edit';
 
@@ -116,14 +116,10 @@ export function StudentProfile() {
           return;
         }
 
-        // Fetch student list to find the student record for this user
-        // Note: Realistically, the backend should have a /students/me endpoint
-        const students = await apiRequest<any[]>('/api/students/');
-        const student = students.find((s: any) => s.user_id === userData.user_id);
+        // Directly fetch the logged-in student's profile
+        const detailed = await getStudentProfile('me');
 
-        if (student) {
-          // Fetch detailed profile
-          const detailed = await getStudentProfile(student.student_id);
+        if (detailed) {
           setProfileData({
             name: detailed.full_name,
             email: detailed.email,

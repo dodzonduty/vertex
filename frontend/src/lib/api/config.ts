@@ -31,6 +31,19 @@ export const removeUserData = (): void => {
     localStorage.removeItem('user_data');
 };
 
+/** Turn FastAPI error detail (string or array of { msg, loc? }) into a single readable string */
+function formatApiErrorDetail(detail: unknown, fallbackStatus: number): string {
+    if (detail == null) return `Request failed (${fallbackStatus})`;
+    if (typeof detail === 'string') return detail;
+    if (Array.isArray(detail) && detail.length > 0) {
+        const first = detail[0];
+        const msg = typeof first?.msg === 'string' ? first.msg : first?.msg;
+        const loc = Array.isArray(first?.loc) ? first.loc.filter((x: unknown) => typeof x === 'string').join('.') : '';
+        return loc ? `${msg} (${loc})` : String(msg ?? JSON.stringify(first));
+    }
+    return typeof detail === 'object' ? JSON.stringify(detail) : String(detail);
+}
+
 // Generic API request helper
 export async function apiRequest<T>(
     endpoint: string,
@@ -58,7 +71,8 @@ export async function apiRequest<T>(
 
     if (!response.ok) {
         const error = await response.json().catch(() => ({ detail: 'An error occurred' }));
-        throw new Error(error.detail || `HTTP ${response.status}: ${response.statusText}`);
+        const message = formatApiErrorDetail(error?.detail, response.status);
+        throw new Error(message);
     }
 
     return response.json();

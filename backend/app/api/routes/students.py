@@ -6,7 +6,7 @@ import logging
 from app.db.session import get_db
 from app.schemas.student import StudentResponse, StudentDetailResponse, StudentCreate, StudentUpdate
 from app.schemas.project import ProjectResponse, ProjectCreate
-from app.models import Student, User, Project
+from app.models import Student, User, Project, AIAnalysis, AITask, AIPrompt, CV, SocialLink
 from app.api.deps import get_current_user
 from app.core.security import get_password_hash
 from app.services.ai.cv_parser import cv_parser
@@ -73,43 +73,6 @@ async def analyze_github(
         raise HTTPException(status_code=500, detail=str(e))
 
 
-@router.get("/{student_id}", response_model=StudentDetailResponse)
-def get_student_profile(
-    student_id: str,
-    db: Session = Depends(get_db),
-    current_user: User = Depends(get_current_user)
-):
-    """
-    Get student profile by ID
-    
-    Args:
-        student_id: Student ID (S- prefix)
-        db: Database session
-        current_user: Current authenticated user
-        
-    Returns:
-        Student profile with user information
-        
-    Raises:
-        HTTPException: If student not found
-    """
-    # Query student with user relationship and projects
-    student = db.query(Student).options(joinedload(Student.projects)).filter(Student.student_id == student_id).first()
-    
-    if not student:
-        raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND,
-            detail=f"Student with ID {student_id} not found"
-        )
-    
-    # Map User fields to Student object for schema compatibility
-    student.email = student.user.email
-    student.role = student.user.role
-    student.status = student.user.status
-    
-    return student
-
-
 @router.get("/me", response_model=StudentDetailResponse)
 def get_my_profile(
     db: Session = Depends(get_db),
@@ -124,7 +87,13 @@ def get_my_profile(
             detail="Only students have student profiles"
         )
     
-    student = db.query(Student).options(joinedload(Student.projects)).filter(Student.user_id == current_user.user_id).first()
+    student = db.query(Student).options(
+        joinedload(Student.projects).joinedload(Project.ai_analyses),
+        joinedload(Student.user).joinedload(User.social_links),
+        joinedload(Student.cvs),
+        joinedload(Student.certificates)
+    ).filter(Student.user_id == current_user.user_id).first()
+    
     if not student:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,
@@ -132,10 +101,41 @@ def get_my_profile(
         )
     
     # Map User fields to Student object for schema compatibility
+    if student.user:
+        student.email = student.user.email
+        student.role = student.user.role
+        student.status = student.user.status
+    else:
+        # Fallback if connection is weird
+        student.email = current_user.email
+        student.role = current_user.role
+        student.status = current_user.status
+    
+    return student
+
+
+@router.get("/{student_id}", response_model=StudentDetailResponse)
+def get_student_profile(
+    student_id: str,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user)
+):
+    """
+    Get student profile by ID
+    """
+    student = db.query(Student).options(
+        joinedload(Student.projects).joinedload(Project.ai_analyses),
+        joinedload(Student.user).joinedload(User.social_links),
+        joinedload(Student.cvs),
+        joinedload(Student.certificates)
+    ).filter(Student.student_id == student_id).first()
+    if not student:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=f"Student with ID {student_id} not found")
+    if not student.user:
+        raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail="Student user record missing")
     student.email = student.user.email
     student.role = student.user.role
     student.status = student.user.status
-    
     return student
 
 
@@ -197,15 +197,29 @@ def signup_student(
         full_name=student_in.full_name,
         university=student_in.university,
         degree_level=student_in.degree_level,
-        Email_Address=student_in.Email_Address or student_in.email,
-        bio=student_in.bio,
-        ats_score=student_in.ats_score or 0,
-        github_url=student_in.github_url,
-        linkedin_url=student_in.linkedin_url
+        Email_Address=student_in.Email_Address or student_in.email
     )
-    # Set skills using the property setter (which handles json.dumps internally)
-    new_student.skills = student_in.skills or []
     db.add(new_student)
+
+    # Create Social Links if provided
+    from app.models import SocialLink
+    if student_in.github_url:
+        gh_link = SocialLink(
+            social_link=f"SL-{uuid.uuid4().hex[:8]}",
+            user_id=user_id,
+            url=student_in.github_url,
+            username=student_in.github_url.split('/')[-1]
+        )
+        db.add(gh_link)
+    
+    if student_in.linkedin_url:
+        li_link = SocialLink(
+            social_link=f"SL-{uuid.uuid4().hex[:8]}",
+            user_id=user_id,
+            url=student_in.linkedin_url,
+            username=student_in.linkedin_url.split('/')[-1]
+        )
+        db.add(li_link)
     
     db.commit()
     db.refresh(new_student)
@@ -227,24 +241,67 @@ def update_my_profile(
             detail="Only students can update student profiles"
         )
     
-    student = db.query(Student).filter(Student.user_id == current_user.user_id).first()
+    student = db.query(Student).options(
+        joinedload(Student.user).joinedload(User.social_links)
+    ).filter(Student.user_id == current_user.user_id).first()
     if not student:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,
             detail="Student profile not found"
         )
-    
+
     # Update fields
     update_data = student_update.model_dump(exclude_unset=True)
     logger.info(f"Updating profile for {current_user.email} with data: {update_data}")
-    
-    for field, value in update_data.items():
-        if hasattr(student, field):
-            setattr(student, field, value)
-            logger.info(f"Set {field} to {value}")
-        else:
-            logger.warning(f"Field {field} not found in Student model")
-            
+
+    # DB columns (can be set directly)
+    db_columns = {"full_name", "university", "degree_level", "Email_Address"}
+    for field in db_columns:
+        if field in update_data:
+            setattr(student, field, update_data[field])
+
+    # bio, ats_score, skills: persist via CV.parsed_json (Student reads them from there)
+    cv_fields = {"bio", "ats_score", "skills"}
+    if any(f in update_data for f in cv_fields):
+        import uuid
+        cv = db.query(CV).filter(CV.student_id == student.student_id).first()
+        if not cv:
+            cv = CV(cv_id=f"cv_{uuid.uuid4().hex[:12]}", student_id=student.student_id, parsed_json={})
+            db.add(cv)
+        j = cv.parsed_json or {}
+        if "bio" in update_data:
+            j["professional_bio"] = update_data["bio"]
+        if "ats_score" in update_data:
+            j["ats_compatibility"] = update_data["ats_score"]
+        if "skills" in update_data:
+            j["skills"] = update_data["skills"] or []
+        cv.parsed_json = j
+
+    # github_url, linkedin_url: persist via SocialLink
+    for key, url_key in [("github_url", "github.com"), ("linkedin_url", "linkedin.com")]:
+        if key not in update_data:
+            continue
+        url = update_data[key]
+        existing = next(
+            (s for s in (student.user.social_links or []) if url_key in (s.url or "").lower()),
+            None
+        )
+        if url:
+            import uuid
+            if existing:
+                existing.url = url
+                existing.username = url.rstrip("/").split("/")[-1] if "/" in url else None
+            else:
+                sl = SocialLink(
+                    social_link=f"social_{uuid.uuid4().hex[:12]}",
+                    user_id=student.user_id,
+                    url=url,
+                    username=url.rstrip("/").split("/")[-1] if "/" in url else None
+                )
+                db.add(sl)
+        elif existing:
+            db.delete(existing)
+
     try:
         db.commit()
         db.refresh(student)
@@ -304,18 +361,40 @@ async def add_project_to_me(
         project_id=project_id,
         owner_id=student.student_id,
         title=title,
-        description=description,
-        repo_url=repo_url,
-        tags_json=json.dumps(tags),
-        strengths_json=json.dumps(project_in.strengths or []),
-        weaknesses_json=json.dumps(project_in.weaknesses or [])
+        repo_url=repo_url
     )
-    
     db.add(new_project)
+
+    # Persist the rich data (description, tags, etc) as an AIAnalysis record
+    # This keeps the 'project' table clean as per governance
+    # 1. Get or create manual task/prompt
+    task = db.query(AITask).filter(AITask.task_code == "MANUAL_ENTRY").first()
+    if not task:
+        task = AITask(task_id="T-MANUAL", task_code="MANUAL_ENTRY", description="Manually entered data")
+        db.add(task)
+    
+    prompt = db.query(AIPrompt).filter(AIPrompt.prompt_id == "P-MANUAL").first()
+    if not prompt:
+        prompt = AIPrompt(prompt_id="P-MANUAL", task_id="T-MANUAL", prompt_text="User manual input")
+        db.add(prompt)
+
+    # 2. Store the data
+    analysis = AIAnalysis(
+        analysis_id=f"A-{uuid.uuid4().hex[:8]}",
+        task_id=task.task_id,
+        prompt_id=prompt.prompt_id,
+        entity_type="project",
+        entity_id=project_id,
+        output_json={
+            "description": description,
+            "tags": tags,
+            "strengths": project_in.strengths or [],
+            "weaknesses": project_in.weaknesses or []
+        }
+    )
+    db.add(analysis)
     db.commit()
     db.refresh(new_project)
     
-    # Map tags_json back to tags for the response model
-    response_data = ProjectResponse.model_validate(new_project)
-    response_data.tags = tags
-    return response_data
+    # Return response model (it will use the properties on new_project)
+    return new_project

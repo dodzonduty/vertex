@@ -26,17 +26,17 @@ export function CompanyProfile() {
   const loadProfile = async () => {
     try {
       const data = await getCompanyProfile();
+      const links = (data as any).social_links ?? data.socialLinks ?? [];
       setCompanyData({
-        ...data,
-        // Ensure required fields have defaults
+        name: data.name || '',
+        email: data.email || '',
         industry: data.industry || '',
-        description: data.description || '',
-        // Default values for fields not in DB yet
-        size: data.size || 'Growth Stage',
-        address: data.address || 'Remote / Hybrid',
+        size: data.size || 'Start-up',
+        address: data.address || 'Remote',
         phone: data.phone || '',
+        description: data.description || '',
         tags: data.tags || [],
-        socialLinks: data.socialLinks || []
+        socialLinks: Array.isArray(links) ? links : []
       });
     } catch (error) {
       console.error('Failed to load profile:', error);
@@ -52,7 +52,10 @@ export function CompanyProfile() {
         name: companyData.name,
         industry: companyData.industry,
         description: companyData.description,
-        // Add other fields when backend supports them
+        phone: companyData.phone || undefined,
+        address: companyData.address || undefined,
+        size: companyData.size || undefined,
+        social_links: companyData.socialLinks.filter((l) => l.url.trim()).map((l) => ({ type: l.type, url: l.url }))
       });
       toast.success('Profile updated!');
       setProfileMode('view');
@@ -60,6 +63,26 @@ export function CompanyProfile() {
       toast.error('Failed to update profile');
       console.error(error);
     }
+  };
+
+  const addSocialLink = () => {
+    setCompanyData({
+      ...companyData,
+      socialLinks: [...companyData.socialLinks, { type: 'website', url: '' }]
+    });
+  };
+
+  const updateSocialLink = (idx: number, field: 'type' | 'url', value: string) => {
+    const next = [...companyData.socialLinks];
+    next[idx] = { ...next[idx], [field]: value };
+    setCompanyData({ ...companyData, socialLinks: next });
+  };
+
+  const removeSocialLink = (idx: number) => {
+    setCompanyData({
+      ...companyData,
+      socialLinks: companyData.socialLinks.filter((_, i) => i !== idx)
+    });
   };
 
   if (loading) return <div className="flex justify-center p-12"><Loader2 className="animate-spin w-8 h-8 text-blue-600" /></div>;
@@ -159,17 +182,36 @@ export function CompanyProfile() {
               </div>
               <div>
                 <label className="block text-xs font-semibold text-slate-500 mb-1">Phone</label>
-                <div className="flex items-center gap-2 text-slate-900 text-sm">
-                  <Phone className="w-4 h-4 text-slate-400" />
-                  {companyData.phone || 'N/A'}
-                </div>
+                {profileMode === 'edit' ? (
+                  <input
+                    type="tel"
+                    value={companyData.phone}
+                    onChange={(e) => setCompanyData({ ...companyData, phone: e.target.value })}
+                    placeholder="+1 (555) 000-0000"
+                    className="w-full px-3 py-2 border rounded-lg text-sm"
+                  />
+                ) : (
+                  <div className="flex items-center gap-2 text-slate-900 text-sm">
+                    <Phone className="w-4 h-4 text-slate-400" />
+                    {companyData.phone || 'N/A'}
+                  </div>
+                )}
               </div>
               <div>
                 <label className="block text-xs font-semibold text-slate-500 mb-1">Address</label>
-                <div className="flex items-center gap-2 text-slate-900 text-sm">
-                  <MapPin className="w-4 h-4 text-slate-400" />
-                  {companyData.address}
-                </div>
+                {profileMode === 'edit' ? (
+                  <input
+                    value={companyData.address}
+                    onChange={(e) => setCompanyData({ ...companyData, address: e.target.value })}
+                    placeholder="City, Country or Remote"
+                    className="w-full px-3 py-2 border rounded-lg text-sm"
+                  />
+                ) : (
+                  <div className="flex items-center gap-2 text-slate-900 text-sm">
+                    <MapPin className="w-4 h-4 text-slate-400" />
+                    {companyData.address || 'N/A'}
+                  </div>
+                )}
               </div>
             </div>
           </div>
@@ -177,15 +219,40 @@ export function CompanyProfile() {
           <div className="bg-white border border-slate-200 rounded-lg p-6">
             <h3 className="font-semibold text-slate-900 text-sm uppercase tracking-wider mb-4">Social</h3>
             <div className="space-y-3">
-              {companyData.socialLinks && companyData.socialLinks.map((link: any, idx: number) => (
-                <div key={idx} className="flex items-center gap-2 text-sm">
-                  <LinkIcon className="w-4 h-4 text-slate-400" />
-                  <a href={link.url} className="text-blue-600 hover:underline truncate">{link.url}</a>
+              {(profileMode === 'edit' ? companyData.socialLinks : companyData.socialLinks?.filter((l) => l.url) ?? []).map((link: { type: string; url: string }, idx: number) => (
+                <div key={idx} className="flex items-center justify-between gap-2 text-sm">
+                  {profileMode === 'edit' ? (
+                    <div className="flex gap-2 flex-1">
+                      <select
+                        value={link.type}
+                        onChange={(e) => updateSocialLink(idx, 'type', e.target.value)}
+                        className="w-24 px-2 py-1 border rounded text-sm"
+                      >
+                        <option value="website">Website</option>
+                        <option value="linkedin">LinkedIn</option>
+                        <option value="twitter">Twitter</option>
+                        <option value="github">GitHub</option>
+                      </select>
+                      <input
+                        value={link.url}
+                        onChange={(e) => updateSocialLink(idx, 'url', e.target.value)}
+                        placeholder="https://..."
+                        className="flex-1 px-2 py-1 border rounded text-sm"
+                      />
+                      <button type="button" onClick={() => removeSocialLink(idx)} className="text-red-500 hover:text-red-700">×</button>
+                    </div>
+                  ) : (
+                    <>
+                      <a href={link.url} className="text-blue-600 hover:underline truncate">{link.url}</a>
+                    </>
+                  )}
                 </div>
               ))}
-              <button className="text-sm text-slate-500 hover:text-slate-900 font-medium mt-2 flex items-center gap-1">
-                + Add Link
-              </button>
+              {profileMode === 'edit' && (
+                <button type="button" onClick={addSocialLink} className="text-sm text-blue-600 hover:text-blue-700 font-medium mt-2 flex items-center gap-1">
+                  + Add Link
+                </button>
+              )}
             </div>
           </div>
         </div>
