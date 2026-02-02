@@ -9,7 +9,7 @@ class Settings(BaseSettings):
     """Application settings loaded from environment variables"""
     
     # Database
-    DATABASE_URL: str = "postgresql+psycopg://vertex_user:vertex_pass@localhost:5432/vertex_db"
+    DATABASE_URL: str = "sqlite:///./vertex.db"
     
     # Environment
     ENVIRONMENT: str = "development"

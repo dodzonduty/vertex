@@ -11,8 +11,57 @@ class Project(Base, TimestampMixin):
     project_id: Mapped[str] = mapped_column(String(50), primary_key=True)
     owner_id: Mapped[str] = mapped_column(ForeignKey("student.student_id", ondelete="CASCADE"))
     title: Mapped[str] = mapped_column(String(255), nullable=False)
+    description: Mapped[str] = mapped_column(Text, nullable=True)
     repo_url: Mapped[str] = mapped_column(String(500), nullable=True)
+    tags_json: Mapped[str] = mapped_column(Text, nullable=True) # JSON string of tags
+    strengths_json: Mapped[str] = mapped_column(Text, nullable=True)
+    weaknesses_json: Mapped[str] = mapped_column(Text, nullable=True)
     repo_fingerprint: Mapped[str] = mapped_column(String(255), nullable=True) # sha256_hash
+    
+    @property
+    def tags(self) -> list[str]:
+        import json
+        if self.tags_json:
+            try:
+                return json.loads(self.tags_json)
+            except:
+                return []
+        return []
+    
+    @tags.setter
+    def tags(self, value: list[str]):
+        import json
+        self.tags_json = json.dumps(value) if value else "[]"
+
+    @property
+    def strengths(self) -> list[str]:
+        import json
+        if self.strengths_json:
+            try:
+                return json.loads(self.strengths_json)
+            except:
+                return []
+        return []
+
+    @strengths.setter
+    def strengths(self, value: list[str]):
+        import json
+        self.strengths_json = json.dumps(value) if value else "[]"
+
+    @property
+    def weaknesses(self) -> list[str]:
+        import json
+        if self.weaknesses_json:
+            try:
+                return json.loads(self.weaknesses_json)
+            except:
+                return []
+        return []
+
+    @weaknesses.setter
+    def weaknesses(self, value: list[str]):
+        import json
+        self.weaknesses_json = json.dumps(value) if value else "[]"
     
     # Relationships
     owner: Mapped["Student"] = relationship("Student", back_populates="projects")

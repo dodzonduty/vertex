@@ -7,17 +7,19 @@ from dotenv import load_dotenv
 # Load environment variables
 load_dotenv()
 
-# Get database URL from environment
-DATABASE_URL = os.getenv("DATABASE_URL", "postgresql+psycopg://vertex_user:vertex_pass@localhost:5432/vertex_db")
+from app.core.config import settings
 
-# Create engine with connection pooling
+# Get database URL from settings
+DATABASE_URL = settings.DATABASE_URL
+
+# Create engine
+connect_args = {"check_same_thread": False} if DATABASE_URL.startswith("sqlite") else {}
+
 engine = create_engine(
     DATABASE_URL,
-    poolclass=QueuePool,
-    pool_size=5,
-    max_overflow=10,
-    pool_pre_ping=True,  # Verify connections before using
-    echo=False,  # Set to True for SQL query logging during development
+    connect_args=connect_args,
+    pool_pre_ping=True,
+    echo=False,
 )
 
 # Create session factory

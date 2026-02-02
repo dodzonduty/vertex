@@ -62,3 +62,9 @@ export async function getPerfectMatch(type: string): Promise<PerfectMatch[]> {
 export async function getVertexConnect(type: string): Promise<VertexConnect[]> {
     return apiRequest<VertexConnect[]>(`/api/vertex-connect?type=${type}`);
 }
+
+export async function getOpportunityDetail(id: string): Promise<OpportunityListing | null> {
+    // Currently no single-item endpoint, so fetch list and filter
+    const response = await apiRequest<OpportunityListing[]>(`/api/opportunities/`);
+    return response.find(opp => opp.id === id) || null;
+}

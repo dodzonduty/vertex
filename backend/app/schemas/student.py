@@ -4,6 +4,7 @@ Pydantic schemas for student endpoints
 from pydantic import BaseModel, EmailStr
 from datetime import datetime
 from typing import Optional, List
+from app.schemas.project import ProjectResponse
 
 
 class StudentBase(BaseModel):
@@ -11,7 +12,12 @@ class StudentBase(BaseModel):
     full_name: str
     university: Optional[str] = None
     degree_level: Optional[str] = None
-    Email_Address: Optional[EmailStr] = None
+    Email_Address: Optional[str] = None
+    bio: Optional[str] = None
+    ats_score: Optional[int] = 0
+    skills: Optional[List[str]] = []
+    github_url: Optional[str] = None
+    linkedin_url: Optional[str] = None
 
 
 class StudentResponse(BaseModel):
@@ -22,6 +28,11 @@ class StudentResponse(BaseModel):
     university: Optional[str] = None
     degree_level: Optional[str] = None
     Email_Address: Optional[str] = None
+    bio: Optional[str] = None
+    ats_score: Optional[int] = 0
+    skills: Optional[List[str]] = []
+    github_url: Optional[str] = None
+    linkedin_url: Optional[str] = None
     created_at: datetime
     updated_at: datetime
     
@@ -37,6 +48,11 @@ class StudentDetailResponse(BaseModel):
     university: Optional[str] = None
     degree_level: Optional[str] = None
     Email_Address: Optional[str] = None
+    bio: Optional[str] = None
+    ats_score: Optional[int] = 0
+    skills: Optional[List[str]] = []
+    github_url: Optional[str] = None
+    linkedin_url: Optional[str] = None
     created_at: datetime
     updated_at: datetime
     
@@ -44,6 +60,9 @@ class StudentDetailResponse(BaseModel):
     email: str
     role: str
     status: Optional[str] = None
+    
+    # Enhanced data
+    projects: List[ProjectResponse] = []
     
     class Config:
         from_attributes = True
@@ -60,4 +79,9 @@ class StudentUpdate(BaseModel):
     full_name: Optional[str] = None
     university: Optional[str] = None
     degree_level: Optional[str] = None
-    Email_Address: Optional[EmailStr] = None
+    Email_Address: Optional[str] = None
+    bio: Optional[str] = None
+    ats_score: Optional[int] = None
+    skills: Optional[List[str]] = None
+    github_url: Optional[str] = None
+    linkedin_url: Optional[str] = None

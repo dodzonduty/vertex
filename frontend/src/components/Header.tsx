@@ -40,7 +40,7 @@ export const Header: React.FC = () => {
               NEW
             </span>
           </a>
-          <a href="#" className="nav-link">Professors</a>
+          <Link to="/profiles" className="nav-link">Profiles</Link>
         </nav>
 
         {/* Auth Buttons */}

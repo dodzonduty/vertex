@@ -11,6 +11,7 @@ import { PublicCompanyProfile } from './pages/PublicCompanyProfile';
 import Onboarding from './pages/Onboarding';
 import StudentOnboarding from './pages/StudentOnboarding';
 import CompanyOnboarding from './pages/CompanyOnboarding';
+import StudentDirectory from './pages/StudentDirectory';
 import { NotFound } from './pages/NotFound';
 import { MainLayout } from './components/shared/MainLayout';
 import { Opportunities } from './pages/Opportunities';
@@ -35,6 +36,7 @@ function App() {
         <Route path="/company/profile/:id" element={<MainLayout><PublicCompanyProfile /></MainLayout>} />
         <Route path="/opportunities" element={<MainLayout><Opportunities /></MainLayout>} />
         <Route path="/opportunities/:id" element={<MainLayout><OpportunityProfile /></MainLayout>} />
+        <Route path="/profiles" element={<MainLayout><StudentDirectory /></MainLayout>} />
         <Route path="*" element={<MainLayout><NotFound /></MainLayout>} />
       </Routes>
     </BrowserRouter>

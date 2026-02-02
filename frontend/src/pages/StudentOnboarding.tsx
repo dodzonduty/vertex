@@ -1,6 +1,9 @@
-import { useState } from 'react';
+import { useState, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Upload, Sparkles, CheckCircle2, ArrowRight, Loader2, Github, Linkedin, Plus, X, Mail, Lock, User as UserIcon } from 'lucide-react';
+import { apiRequest } from '../lib/api/config';
+import { signupStudent, analyzeCV, analyzeGitHub, updateStudentProfile } from '../lib/api/students';
+import { login } from '../lib/api/auth';
 import { Button } from '../components/ui/button';
 import { Card, CardHeader, CardTitle, CardDescription, CardContent, CardFooter } from '../components/ui/card';
 import { Badge } from '../components/ui/badge';
@@ -26,60 +29,135 @@ interface StudentData {
 
     // Projects
     projects: Project[];
+
+    // AI analytics
+    bio: string;
+    ats_score: number;
+    skills: string[];
 }
 
 interface Project {
     id: string;
     title: string;
+    description: string;
+    tags: string[];
     repo_url: string;
+    strengths: string[];
+    weaknesses: string[];
 }
 
 export default function StudentOnboarding() {
     const navigate = useNavigate();
+    const fileInputRef = useRef<HTMLInputElement>(null);
     const [step, setStep] = useState<OnboardingStep>('choice');
     const [loading, setLoading] = useState(false);
+    const [isParsingGitHub, setIsParsingGitHub] = useState(false);
     const [studentData, setStudentData] = useState<StudentData>({
+        full_name: '',
         email: '',
         password: '',
-        full_name: '',
         university: '',
         degree_level: 'Junior',
         github_url: '',
         linkedin_url: '',
-        projects: []
+        projects: [],
+        bio: '',
+        ats_score: 0,
+        skills: []
     });
 
+    const [confirmPassword, setConfirmPassword] = useState('');
     const [currentProject, setCurrentProject] = useState<Partial<Project>>({
         title: '',
-        repo_url: ''
+        description: '',
+        tags: [],
+        repo_url: '',
+        strengths: [],
+        weaknesses: []
     });
 
-    const handleCVUpload = () => {
+    const handleCVUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+        const file = e.target.files?.[0];
+        console.log('File selected:', file?.name, file?.type, file?.size);
+        if (!file) return;
+
+        toast.info('Uploading and analyzing your CV...');
         setStep('processing');
-        // Simulate AI parsing
-        setTimeout(() => {
-            const data: StudentData = {
-                email: 'alex.johnson@university.edu',
-                password: '', // Will need to set
-                full_name: 'Alex Johnson',
-                university: 'Stanford University',
-                degree_level: 'Junior',
-                github_url: 'https://github.com/alexjohnson',
-                linkedin_url: 'https://linkedin.com/in/alexjohnson',
-                projects: [
-                    {
-                        id: '1',
-                        title: 'AI Task Manager',
-                        repo_url: 'https://github.com/alexjohnson/ai-task-manager'
-                    }
-                ]
-            };
-            setStudentData(data);
+
+        try {
+            console.log('Starting AI analysis...');
+            const data = await analyzeCV(file);
+            console.log('AI Analysis Received:', data);
+
+            setStudentData(prev => ({
+                ...prev,
+                full_name: data.full_name || prev.full_name,
+                email: data.email || prev.email,
+                university: data.university || prev.university,
+                degree_level: data.degree_level || prev.degree_level,
+                github_url: data.github_url || prev.github_url,
+                linkedin_url: data.linkedin_url || prev.linkedin_url,
+                bio: data.professional_bio || data.bio || prev.bio,
+                ats_score: typeof data.ats_compatibility === 'string'
+                    ? parseInt(data.ats_compatibility.replace(/[^0-9]/g, ''))
+                    : (data.ats_compatibility || data.ats_score || prev.ats_score),
+                skills: data.skills || prev.skills,
+                projects: data.projects ? data.projects.map((p: any) => ({
+                    id: Math.random().toString(36).substr(2, 9),
+                    title: p.title,
+                    description: p.description || "Synthesized from your CV",
+                    tags: p.tags || [],
+                    repo_url: p.repo_url || '',
+                    strengths: p.strengths || [],
+                    weaknesses: p.improvements || p.weaknesses || []
+                })) : prev.projects
+            }));
+
             setStep('review');
             toast.success('CV Parsed Successfully!', {
                 description: 'AI has extracted your professional details.',
             });
-        }, 2500);
+        } catch (error) {
+            console.error('CV Parsing error:', error);
+            setStep('choice');
+            toast.error('AI Analysis Failed', {
+                description: error instanceof Error ? error.message : 'Please try manual setup or another file.',
+            });
+        } finally {
+            // Reset input so the same file can be uploaded again
+            if (e.target) e.target.value = '';
+        }
+    };
+
+    const handleGitHubExtraction = async () => {
+        if (!studentData.github_url) {
+            toast.error('Please enter a GitHub URL first');
+            return;
+        }
+        setIsParsingGitHub(true);
+        try {
+            const project = await analyzeGitHub(studentData.github_url);
+            setStudentData(prev => ({
+                ...prev,
+                projects: [...prev.projects, {
+                    id: Date.now().toString(),
+                    title: project.title,
+                    description: project.description,
+                    tags: project.tags || [],
+                    repo_url: project.repo_url,
+                    strengths: project.strengths || [],
+                    weaknesses: project.improvements || project.weaknesses || []
+                }]
+            }));
+            toast.success('Project Synced!', {
+                description: `Extracted ${project.title} from GitHub.`,
+            });
+        } catch (error) {
+            console.error('GitHub extraction error:', error);
+            toast.error('Failed to extract GitHub project');
+        } finally {
+            setIsParsingGitHub(false);
+        }
     };
 
     const handleManualEntry = () => {
@@ -96,7 +174,11 @@ export default function StudentOnboarding() {
             const newProject: Project = {
                 id: Date.now().toString(),
                 title: currentProject.title,
-                repo_url: currentProject.repo_url || ''
+                description: currentProject.description || '',
+                tags: currentProject.tags || [],
+                repo_url: currentProject.repo_url || '',
+                strengths: currentProject.strengths || [],
+                weaknesses: currentProject.weaknesses || []
             };
             setStudentData({
                 ...studentData,
@@ -104,7 +186,11 @@ export default function StudentOnboarding() {
             });
             setCurrentProject({
                 title: '',
-                repo_url: ''
+                description: '',
+                tags: [],
+                repo_url: '',
+                strengths: [],
+                weaknesses: []
             });
             toast.success('Project added!');
         }
@@ -117,51 +203,112 @@ export default function StudentOnboarding() {
         });
     };
 
-    const finalizeOnboarding = () => {
+    const finalizeOnboarding = async () => {
+        if (!studentData.email || !studentData.full_name) {
+            toast.error('Name and Email are required');
+            return;
+        }
+        if (!studentData.password || studentData.password !== confirmPassword) {
+            toast.error('Passwords do not match or are empty');
+            return;
+        }
         setLoading(true);
 
-        // Prepare data for backend
-        const backendData = {
-            // User creation
+        const signupData = {
             email: studentData.email,
             password: studentData.password,
-            role: 'student',
-
-            // Student profile
             full_name: studentData.full_name,
             university: studentData.university,
             degree_level: studentData.degree_level,
-
-            // Social links
-            social_links: [
-                studentData.github_url && { platform: 'github', url: studentData.github_url },
-                studentData.linkedin_url && { platform: 'linkedin', url: studentData.linkedin_url }
-            ].filter(Boolean),
-
-            // Projects
-            projects: studentData.projects.map(p => ({
-                title: p.title,
-                repo_url: p.repo_url
-            }))
+            Email_Address: studentData.email,
+            bio: studentData.bio,
+            ats_score: studentData.ats_score,
+            skills: studentData.skills
         };
 
-        console.log('Data to send to backend:', backendData);
+        try {
+            console.log('Attempting signup...', signupData);
+            try {
+                await signupStudent(signupData);
+                console.log('Signup successful');
+            } catch (signupError: any) {
+                console.warn('Signup error:', signupError);
+                // If user already exists, we might be retrying a failed onboarding
+                // Proceed to login if the error is 400 (which usually means user exists)
+                toast.info('Account already exists, proceeding to login...');
+            }
 
-        // TODO: Replace with real API call
-        // await fetch('/api/students/onboarding', { method: 'POST', body: JSON.stringify(backendData) })
+            console.log('Attempting login...');
+            await login({
+                email: signupData.email,
+                password: signupData.password
+            });
+            console.log('Login successful');
 
-        setTimeout(() => {
+            // FORCE UPDATE PROFILE DATA (Double-Tap) to ensure AI fields are saved
+            try {
+                console.log('Force updating profile with AI data...');
+                await updateStudentProfile('me', {
+                    bio: studentData.bio,
+                    ats_score: typeof studentData.ats_score === 'string'
+                        ? parseInt(String(studentData.ats_score).replace(/[^0-9]/g, ''))
+                        : (Number(studentData.ats_score) || 0),
+                    skills: studentData.skills,
+                    github_url: studentData.github_url,
+                    linkedin_url: studentData.linkedin_url,
+                    full_name: studentData.full_name,
+                    university: studentData.university,
+                    degree_level: studentData.degree_level
+                });
+                console.log('Profile force update successful');
+            } catch (updErr) {
+                console.error("Profile update failed:", updErr);
+            }
+
+            // If there are projects, add them after signup
+            console.log('Adding projects...', studentData.projects);
+            for (const project of studentData.projects) {
+                try {
+                    await apiRequest('/api/students/me/projects', {
+                        method: 'POST',
+                        body: JSON.stringify({
+                            title: project.title,
+                            description: project.description || "Synthesized from your CV/GitHub",
+                            repo_url: project.repo_url,
+                            tags: project.tags,
+                            strengths: project.strengths,
+                            weaknesses: project.weaknesses
+                        })
+                    });
+                    console.log(`Project ${project.title} added successfully`);
+                } catch (e) {
+                    console.error('Failed to add project during onboarding:', e);
+                }
+            }
+
             setLoading(false);
             setStep('success');
-            toast.success('Onboarding Complete!', {
-                description: 'Your profile is ready. Welcome to Vertex.',
+            toast.success('Profile Completed Successfully!');
+        } catch (error) {
+            console.error('Finalization error:', error);
+            setLoading(false);
+            toast.error('Onboarding Failed', {
+                description: 'Please check your credentials or try again later.'
             });
-        }, 1500);
+        }
     };
 
     return (
         <div className="min-h-screen flex flex-col items-center justify-center p-4 relative overflow-hidden font-sans bg-gradient-to-br from-slate-50 to-indigo-50">
-            {/* Ambient background patterns */}
+            {/* Hidden File Input */}
+            <input
+                type="file"
+                ref={fileInputRef}
+                onChange={handleCVUpload}
+                className="hidden"
+                accept=".pdf"
+            />
+
             <div className="absolute top-0 left-0 w-full h-full overflow-hidden pointer-events-none z-0">
                 <div className="absolute top-1/4 -left-20 w-[60vw] h-[60vw] rounded-full bg-indigo-500/5 blur-[120px]" />
                 <div className="absolute bottom-1/4 -right-20 w-[50vw] h-[50vw] rounded-full bg-blue-500/5 blur-[120px]" />
@@ -169,7 +316,6 @@ export default function StudentOnboarding() {
 
             <div className="w-full max-w-4xl relative z-10 animate-in fade-in zoom-in-95 duration-700 py-12">
 
-                {/* STEP: CHOICE */}
                 {step === 'choice' && (
                     <div className="text-center space-y-8">
                         <div className="space-y-3">
@@ -193,7 +339,13 @@ export default function StudentOnboarding() {
                                 </CardFooter>
                             </Card>
 
-                            <Card className="group cursor-pointer border-indigo-200 bg-white ring-2 ring-indigo-500/5 hover:border-indigo-500 hover:shadow-2xl hover:shadow-indigo-500/20 transition-all duration-300 transform hover:-translate-y-1 relative overflow-hidden" onClick={handleCVUpload}>
+                            <Card
+                                className="group cursor-pointer border-indigo-200 bg-white ring-2 ring-indigo-500/5 hover:border-indigo-500 hover:shadow-2xl hover:shadow-indigo-500/20 transition-all duration-300 transform hover:-translate-y-1 relative overflow-hidden"
+                                onClick={() => {
+                                    console.log('Card clicked, triggering file input');
+                                    fileInputRef.current?.click();
+                                }}
+                            >
                                 <div className="absolute top-0 right-0 p-4">
                                     <div className="flex items-center gap-1.5 px-3 py-1 bg-indigo-600 text-white rounded-full">
                                         <Sparkles className="w-3.5 h-3.5" />
@@ -208,7 +360,14 @@ export default function StudentOnboarding() {
                                     <CardDescription className="text-base px-4">Let AI parse your CV and auto-fill your profile in seconds. Recommended.</CardDescription>
                                 </CardHeader>
                                 <CardFooter className="justify-center border-t bg-indigo-50/30 py-4 group-hover:bg-indigo-100/40 transition-colors">
-                                    <span className="text-sm font-bold text-indigo-600 flex items-center gap-2">
+                                    <span
+                                        className="text-sm font-bold text-indigo-600 flex items-center gap-2"
+                                        onClick={(e) => {
+                                            e.stopPropagation();
+                                            console.log('Footer clicked, triggering file input');
+                                            fileInputRef.current?.click();
+                                        }}
+                                    >
                                         Scan CV Now <ArrowRight className="w-4 h-4" />
                                     </span>
                                 </CardFooter>
@@ -217,23 +376,31 @@ export default function StudentOnboarding() {
                     </div>
                 )}
 
-                {/* STEP: PROCESSING */}
                 {step === 'processing' && (
                     <Card className="text-center p-20 space-y-8 border-none bg-transparent shadow-none">
-                        <div className="relative">
-                            <div className="w-32 h-32 border-4 border-indigo-100 border-t-indigo-600 rounded-full animate-spin mx-auto" />
-                            <div className="absolute inset-0 flex items-center justify-center scale-150 opacity-20">
-                                <Sparkles className="w-12 h-12 text-indigo-600 animate-pulse" />
-                            </div>
+                        <div className="relative w-32 h-32 mx-auto">
+                            <div className="absolute inset-0 border-4 border-slate-100 rounded-full"></div>
+                            <div className="absolute inset-0 border-4 border-indigo-600 rounded-full border-t-transparent animate-spin"></div>
+                            <Sparkles className="absolute inset-0 m-auto w-10 h-10 text-indigo-600 animate-pulse" />
                         </div>
-                        <div className="space-y-3">
+                        <div className="space-y-4">
                             <h2 className="text-4xl font-black text-slate-900 tracking-tight">AI is Analyzing...</h2>
-                            <p className="text-slate-500 text-lg">Extracting your skills, experience, and projects.</p>
+                            <p className="text-slate-500 text-lg font-medium">Extracting your skills, experience, and projects from your CV.</p>
+
+                            {/* Progress Bar Simulation */}
+                            <div className="w-64 mx-auto bg-slate-200 rounded-full h-2 overflow-hidden relative mt-8">
+                                <div className="absolute inset-0 bg-indigo-600/20 w-full animate-pulse" />
+                                <div className="bg-indigo-600 h-full rounded-full animate-[shimmer_2s_infinite] w-2/3" />
+                            </div>
+                            <div className="flex justify-between text-xs text-slate-400 font-bold uppercase tracking-widest w-64 mx-auto mt-2">
+                                <span>Scanning</span>
+                                <span className="text-indigo-600">Extracting</span>
+                                <span>Finalizing</span>
+                            </div>
                         </div>
                     </Card>
                 )}
 
-                {/* STEP: MANUAL FORM */}
                 {step === 'manual-form' && (
                     <Card className="shadow-2xl border-slate-100">
                         <CardHeader className="border-b bg-slate-50/50 py-8">
@@ -242,7 +409,6 @@ export default function StudentOnboarding() {
                         </CardHeader>
                         <CardContent className="py-8">
                             <form id="manual-form" onSubmit={handleFormSubmit} className="space-y-8">
-                                {/* Account Information */}
                                 <div className="space-y-6">
                                     <h3 className="text-xl font-bold text-slate-900">Account Information</h3>
                                     <div className="grid md:grid-cols-2 gap-6">
@@ -277,7 +443,6 @@ export default function StudentOnboarding() {
                                     </div>
                                 </div>
 
-                                {/* Basic Information */}
                                 <div className="space-y-6">
                                     <h3 className="text-xl font-bold text-slate-900">Basic Information</h3>
                                     <div className="space-y-6">
@@ -321,7 +486,6 @@ export default function StudentOnboarding() {
                                     </div>
                                 </div>
 
-                                {/* Social Links */}
                                 <div className="space-y-4">
                                     <h3 className="text-xl font-bold text-slate-900">Social Links (Optional)</h3>
                                     <div className="grid md:grid-cols-2 gap-6">
@@ -329,12 +493,23 @@ export default function StudentOnboarding() {
                                             <Label className="text-xs font-black uppercase tracking-widest text-slate-400 flex items-center gap-2">
                                                 <Github className="w-4 h-4" /> GitHub Profile
                                             </Label>
-                                            <Input
-                                                placeholder="https://github.com/username"
-                                                value={studentData.github_url}
-                                                onChange={(e) => setStudentData({ ...studentData, github_url: e.target.value })}
-                                                className="py-6 rounded-xl border-slate-200"
-                                            />
+                                            <div className="relative">
+                                                <Input
+                                                    placeholder="https://github.com/username"
+                                                    value={studentData.github_url}
+                                                    onChange={(e) => setStudentData({ ...studentData, github_url: e.target.value })}
+                                                    className="py-6 rounded-xl border-slate-200 pr-32"
+                                                />
+                                                <Button
+                                                    type="button"
+                                                    size="sm"
+                                                    disabled={isParsingGitHub || !studentData.github_url}
+                                                    onClick={handleGitHubExtraction}
+                                                    className="absolute right-2 top-1/2 -translate-y-1/2 bg-indigo-100 text-indigo-700 hover:bg-indigo-200 border-none"
+                                                >
+                                                    {isParsingGitHub ? <Loader2 className="w-4 h-4 animate-spin" /> : "Magic Sync"}
+                                                </Button>
+                                            </div>
                                         </div>
                                         <div className="space-y-2">
                                             <Label className="text-xs font-black uppercase tracking-widest text-slate-400 flex items-center gap-2">
@@ -350,7 +525,6 @@ export default function StudentOnboarding() {
                                     </div>
                                 </div>
 
-                                {/* Projects */}
                                 <div className="space-y-4">
                                     <h3 className="text-xl font-bold text-slate-900">Projects (Optional)</h3>
                                     <div className="space-y-4 p-6 bg-slate-50 rounded-xl border border-slate-200">
@@ -377,7 +551,6 @@ export default function StudentOnboarding() {
                                         </Button>
                                     </div>
 
-                                    {/* Added Projects List */}
                                     {studentData.projects.length > 0 && (
                                         <div className="space-y-3">
                                             <h4 className="text-sm font-bold text-slate-500 uppercase tracking-wider">Your Projects</h4>
@@ -409,7 +582,6 @@ export default function StudentOnboarding() {
                     </Card>
                 )}
 
-                {/* STEP: REVIEW */}
                 {step === 'review' && (
                     <div className="space-y-8">
                         <div className="flex items-center justify-between">
@@ -432,10 +604,75 @@ export default function StudentOnboarding() {
                             </div>
                             <CardContent className="pt-20 pb-12 px-12">
                                 <div className="space-y-8">
-                                    <div>
-                                        <h3 className="text-3xl font-black text-slate-900 mb-2">{studentData.full_name || "Student Name"}</h3>
-                                        <p className="text-indigo-600 font-bold text-xl">{studentData.university || "University"} • {studentData.degree_level}</p>
-                                        <p className="text-slate-600 mt-2">{studentData.email}</p>
+                                    <div className="space-y-6 bg-indigo-50/50 p-6 rounded-2xl border border-indigo-100">
+                                        <h4 className="text-sm font-black text-indigo-900 uppercase tracking-widest flex items-center gap-2">
+                                            <Lock className="w-4 h-4" /> Secure Your Account
+                                        </h4>
+                                        <div className="grid md:grid-cols-2 gap-4">
+                                            <div className="space-y-2">
+                                                <Label className="text-xs font-bold text-slate-500">Create Password</Label>
+                                                <Input
+                                                    type="password"
+                                                    placeholder="••••••••"
+                                                    value={studentData.password}
+                                                    onChange={(e) => setStudentData({ ...studentData, password: e.target.value })}
+                                                    className="bg-white border-slate-200"
+                                                />
+                                            </div>
+                                            <div className="space-y-2">
+                                                <Label className="text-xs font-bold text-slate-500">Confirm Password</Label>
+                                                <Input
+                                                    type="password"
+                                                    placeholder="••••••••"
+                                                    value={confirmPassword}
+                                                    onChange={(e) => setConfirmPassword(e.target.value)}
+                                                    className="bg-white border-slate-200"
+                                                />
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <div className="grid md:grid-cols-2 gap-6">
+                                        <div className="space-y-2">
+                                            <Label className="text-xs font-black uppercase tracking-widest text-slate-400">Full Name</Label>
+                                            <Input
+                                                value={studentData.full_name}
+                                                onChange={(e) => setStudentData({ ...studentData, full_name: e.target.value })}
+                                                className="py-6 rounded-xl border-slate-200"
+                                            />
+                                        </div>
+                                        <div className="space-y-2">
+                                            <Label className="text-xs font-black uppercase tracking-widest text-slate-400">Email Address</Label>
+                                            <Input
+                                                type="email"
+                                                value={studentData.email}
+                                                onChange={(e) => setStudentData({ ...studentData, email: e.target.value })}
+                                                className="py-6 rounded-xl border-slate-200"
+                                                required
+                                            />
+                                        </div>
+                                        <div className="space-y-2">
+                                            <Label className="text-xs font-black uppercase tracking-widest text-slate-400">University</Label>
+                                            <Input
+                                                value={studentData.university}
+                                                onChange={(e) => setStudentData({ ...studentData, university: e.target.value })}
+                                                className="py-6 rounded-xl border-slate-200"
+                                            />
+                                        </div>
+                                        <div className="space-y-2">
+                                            <Label className="text-xs font-black uppercase tracking-widest text-slate-400">Degree Level</Label>
+                                            <select
+                                                value={studentData.degree_level}
+                                                onChange={(e) => setStudentData({ ...studentData, degree_level: e.target.value })}
+                                                className="w-full h-12 px-4 rounded-xl border border-slate-200 outline-none focus:ring-2 focus:ring-indigo-500 font-medium text-sm bg-white"
+                                            >
+                                                <option>Freshman</option>
+                                                <option>Sophomore</option>
+                                                <option>Junior</option>
+                                                <option>Senior</option>
+                                                <option>Graduate</option>
+                                            </select>
+                                        </div>
                                     </div>
 
                                     {studentData.projects.length > 0 && (
@@ -443,12 +680,24 @@ export default function StudentOnboarding() {
                                             <h4 className="text-sm font-black text-slate-400 uppercase tracking-wider mb-3">Projects</h4>
                                             <div className="space-y-4">
                                                 {studentData.projects.map((project) => (
-                                                    <div key={project.id} className="p-4 bg-slate-50 rounded-xl border border-slate-200">
-                                                        <h5 className="font-bold text-slate-900">{project.title}</h5>
-                                                        {project.repo_url && (
-                                                            <a href={project.repo_url} target="_blank" rel="noopener noreferrer" className="text-sm text-indigo-600 hover:underline mt-1 block">
-                                                                {project.repo_url}
-                                                            </a>
+                                                    <div key={project.id} className="p-5 bg-slate-50 rounded-xl border border-slate-200 space-y-3">
+                                                        <div className="flex justify-between items-start">
+                                                            <h5 className="font-bold text-slate-900 text-lg">{project.title}</h5>
+                                                            {project.repo_url && (
+                                                                <a href={project.repo_url} target="_blank" rel="noopener noreferrer" className="text-indigo-600 hover:text-indigo-700">
+                                                                    <Github className="w-5 h-5" />
+                                                                </a>
+                                                            )}
+                                                        </div>
+                                                        <p className="text-slate-600 text-sm leading-relaxed">{project.description}</p>
+                                                        {project.tags && project.tags.length > 0 && (
+                                                            <div className="flex flex-wrap gap-2">
+                                                                {project.tags.map(tag => (
+                                                                    <Badge key={tag} variant="outline" className="bg-white text-indigo-600 border-indigo-100 text-[10px] font-bold uppercase transition-all hover:bg-indigo-50">
+                                                                        {tag}
+                                                                    </Badge>
+                                                                ))}
+                                                            </div>
                                                         )}
                                                     </div>
                                                 ))}
@@ -476,7 +725,7 @@ export default function StudentOnboarding() {
                                 <p className="text-slate-400 text-sm font-medium">Looking good? Complete your onboarding.</p>
                                 <div className="flex gap-4">
                                     <Button variant="ghost" onClick={() => setStep('choice')} className="text-white hover:text-indigo-400 hover:bg-slate-800 font-bold">Edit</Button>
-                                    <Button onClick={finalizeOnboarding} className="bg-indigo-600 hover:bg-indigo-700 text-white font-bold px-8 py-6 rounded-xl shadow-xl shadow-indigo-500/20" disabled={loading}>
+                                    <Button onClick={finalizeOnboarding} className="bg-indigo-600 hover:bg-indigo-700 text-white font-bold px-8 py-6 rounded-xl shadow-xl shadow-indigo-200" disabled={loading}>
                                         {loading ? <Loader2 className="w-5 h-5 animate-spin mr-2" /> : "Complete Profile"}
                                     </Button>
                                 </div>
@@ -485,7 +734,6 @@ export default function StudentOnboarding() {
                     </div>
                 )}
 
-                {/* STEP: SUCCESS */}
                 {step === 'success' && (
                     <div className="text-center space-y-12 py-10">
                         <div className="relative inline-block">

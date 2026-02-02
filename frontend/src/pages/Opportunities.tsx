@@ -159,12 +159,22 @@ export const Opportunities: React.FC = () => {
 
   const getSortedOppList = () => {
     return [...oppList].sort((a, b) => {
+      if (!a || !b) return 0;
       if (sortBy === 'Prize Pool') {
-        const getPrice = (p: string) => parseInt(p.replace(/[^0-9]/g, '')) || 0;
+        const getPrice = (p: any) => {
+          if (typeof p !== 'string') return 0;
+          return parseInt(p.replace(/[^0-9]/g, '')) || 0;
+        };
         return getPrice(b.price) - getPrice(a.price);
       }
-      if (sortBy === 'Deadline') return a.date.localeCompare(b.date);
-      return b.id.localeCompare(a.id);
+      if (sortBy === 'Deadline') {
+        const dateA = a.date || '';
+        const dateB = b.date || '';
+        return dateA.localeCompare(dateB);
+      }
+      const idA = String(a.id || '');
+      const idB = String(b.id || '');
+      return idB.localeCompare(idA);
     });
   };
 

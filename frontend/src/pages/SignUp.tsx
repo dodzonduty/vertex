@@ -1,6 +1,9 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Building2, User, ArrowRight, GraduationCap, Briefcase } from 'lucide-react';
+
+import { ArrowRight } from 'lucide-react';
+import { GraduationCap } from 'lucide-react';
+import { Briefcase } from 'lucide-react';
 import '../components/Header.css';
 
 export function SignUp() {
