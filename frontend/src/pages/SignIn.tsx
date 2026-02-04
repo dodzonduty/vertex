@@ -5,6 +5,28 @@ import { login } from '../lib/api/auth';
 import { toast } from 'sonner';
 import '../components/Header.css';
 
+interface InputProps {
+    type: string;
+    placeholder: string;
+    icon: React.ReactNode;
+    value: string;
+    onChange: (e: React.ChangeEvent<HTMLInputElement>) => void;
+}
+
+const InputField = ({ type, placeholder, icon, value, onChange }: InputProps) => (
+    <div className="flex items-center gap-3 border border-slate-200 rounded-xl px-4 py-2 focus-within:ring-2 focus-within:ring-indigo-500 transition-all bg-white">
+        <span className="text-slate-400">{icon}</span>
+        <input
+            type={type}
+            placeholder={placeholder}
+            value={value}
+            onChange={onChange}
+            className="w-full outline-none font-medium text-slate-900 placeholder:text-slate-400 bg-transparent"
+            required
+        />
+    </div>
+);
+
 export function SignIn() {
     const navigate = useNavigate();
     const [loading, setLoading] = useState(false);
@@ -23,104 +45,88 @@ export function SignIn() {
             });
 
             // Navigate based on role
-            setTimeout(() => {
-                if (response.role === 'student') {
-                    navigate('/student-home');
-                } else if (response.role === 'company') {
-                    navigate('/company-home');
-                } else {
-                    navigate('/');
-                }
-            }, 500);
+            if (response.role === 'student') navigate('/student-home');
+            else if (response.role === 'company') navigate('/company-home');
+            else navigate('/');
         } catch (error) {
-            setLoading(false);
             toast.error('Login Failed', {
                 description: error instanceof Error ? error.message : 'Invalid email or password',
             });
+        } finally {
+            setLoading(false);
         }
     };
 
-
     return (
-        <div className="min-h-screen bg-white font-sans text-slate-900 flex flex-col relative overflow-hidden">
+        <div className="min-h-screen bg-white flex items-center justify-center relative overflow-hidden font-sans text-slate-900">
             {/* Background Gradients */}
             <div className="absolute top-0 left-0 w-full h-full overflow-hidden pointer-events-none z-0">
                 <div className="absolute -top-[20%] -right-[10%] w-[70vw] h-[70vw] rounded-full bg-indigo-600/5 blur-[120px]" />
                 <div className="absolute top-[40%] -left-[10%] w-[50vw] h-[50vw] rounded-full bg-blue-500/5 blur-[100px]" />
             </div>
 
-            <div className="flex-1 flex items-center justify-center p-4 relative z-10 animate-in fade-in zoom-in-95 duration-500">
-                <div className="max-w-md w-full bg-white/80 backdrop-blur-xl rounded-2xl shadow-2xl shadow-indigo-500/10 border border-white/20 ring-1 ring-slate-200/50 p-8">
+            <div className="max-w-md w-full bg-white/80 backdrop-blur-xl rounded-2xl shadow-2xl shadow-indigo-500/10 border border-white/20 ring-1 ring-slate-200/50 p-8 relative z-10 animate-in fade-in zoom-in-95 duration-500">
+                <div className="text-center mb-8">
+                    <h1 className="text-3xl font-extrabold text-transparent bg-clip-text bg-gradient-to-r from-slate-900 to-indigo-800 mb-2">
+                        Welcome Back
+                    </h1>
+                    <p className="text-slate-1000">Sign in to access your dashboard</p>
+                </div>
 
-                    <div className="text-center mb-8">
-                        <h1 className="text-3xl font-extrabold text-transparent bg-clip-text bg-gradient-to-r from-slate-900 to-indigo-800 mb-2">Welcome Back</h1>
-                        <p className="text-slate-500">Sign in to access your dashboard</p>
+                <form onSubmit={handleLogin} className="space-y-5">
+                    <div className="flex items-center justify-between">
+                        <label className="text-xs font-bold text-slate-900 uppercase tracking-wide">Email Address</label>
+                    </div>
+                    <InputField
+                        type="email"
+                        placeholder="you@example.com"
+                        icon={<Mail className="w-5 h-5" />}
+                        value={email}
+                        onChange={(e) => setEmail(e.target.value)}
+                    />
+
+                    <div className="space-y-1">
+                        <div className="flex items-center justify-between">
+                            <label className="text-xs font-bold text-slate-900 uppercase tracking-wide">Password</label>
+                        </div>
+                        <InputField
+                            type="password"
+                            placeholder="••••••••"
+                            icon={<Lock className="w-5 h-5" />}
+                            value={password}
+                            onChange={(e) => setPassword(e.target.value)}
+                        />
                     </div>
 
-                    <form onSubmit={handleLogin} className="space-y-5">
-                        <div>
-                            <label className="block text-xs font-bold text-slate-500 uppercase tracking-wide mb-2">Email Address</label>
-                            <div className="relative">
-                                <Mail className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-slate-400" />
-                                <input
-                                    type="email"
-                                    placeholder="you@example.com"
-                                    value={email}
-                                    onChange={(e) => setEmail(e.target.value)}
-                                    className="w-full pl-12 pr-4 py-3 bg-white border border-slate-200 rounded-xl focus:ring-2 focus:ring-indigo-500 focus:border-transparent outline-none transition-all font-medium text-slate-900 placeholder:text-slate-400"
-                                    required
-                                />
-                            </div>
-                        </div>
+                    <button
+                        type="submit"
+                        disabled={loading}
+                        className="w-full py-3.5 rounded-xl font-bold text-white bg-gradient-to-r from-indigo-600 to-violet-600 shadow-lg hover:shadow-xl flex items-center justify-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-300"
+                    >
+                        {loading ? (
+                            <>
+                                <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin" />
+                                Signing in...
+                            </>
+                        ) : (
+                            <>
+                                Sign In
+                                <ArrowRight className="w-5 h-5" />
+                            </>
+                        )}
+                    </button>
+                </form>
 
-                        <div>
-                            <div className="flex items-center justify-between mb-2">
-                                <label className="block text-xs font-bold text-slate-500 uppercase tracking-wide">Password</label>
-                                <a href="#" className="text-xs font-bold text-indigo-600 hover:text-indigo-700">Forgot password?</a>
-                            </div>
-                            <div className="relative">
-                                <Lock className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-slate-400" />
-                                <input
-                                    type="password"
-                                    placeholder="••••••••"
-                                    value={password}
-                                    onChange={(e) => setPassword(e.target.value)}
-                                    className="w-full pl-12 pr-4 py-3 bg-white border border-slate-200 rounded-xl focus:ring-2 focus:ring-indigo-500 focus:border-transparent outline-none transition-all font-medium text-slate-900 placeholder:text-slate-400"
-                                    required
-                                />
-                            </div>
-                        </div>
-
+                <div className="mt-6 text-center">
+                    <p className="text-slate-600 text-sm">
+                        Don't have an account?{'  '}
                         <button
-                            type="submit"
-                            disabled={loading}
-                            className="w-full py-3.5 rounded-xl font-bold text-white bg-gradient-to-r from-indigo-600 to-violet-600 shadow-lg shadow-indigo-200 hover:shadow-xl hover:shadow-indigo-300 hover:-translate-y-0.5 transition-all duration-300 flex items-center justify-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
+                            onClick={() => navigate('/signup')}
+                            className="text-indigo-900 font-bold hover:text-indigo-100 transition-colors"
                         >
-                            {loading ? (
-                                <>
-                                    <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin" />
-                                    Signing in...
-                                </>
-                            ) : (
-                                <>
-                                    Sign In
-                                    <ArrowRight className="w-5 h-5" />
-                                </>
-                            )}
+                            Sign Up
                         </button>
-                    </form>
-
-                    <div className="mt-6 text-center">
-                        <p className="text-slate-600 text-sm">
-                            Don't have an account?{' '}
-                            <button
-                                onClick={() => navigate('/signup')}
-                                className="text-indigo-600 font-bold hover:text-indigo-700 transition-colors"
-                            >
-                                Sign Up
-                            </button>
-                        </p>
-                    </div>
+                    </p>
                 </div>
             </div>
         </div>

@@ -1,23 +1,33 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
-import { User, Users, Building2, GraduationCap, Sparkles } from 'lucide-react';
+import { User, Users, Building2, Sparkles } from 'lucide-react';
 import { OpportunitiesContent } from '../components/OpportunitiesContent';
 import { BrowseProfiles } from '../components/student/BrowseProfiles';
-import { StudentOpenMatch } from '../components/student/StudentOpenMatch';
 import { BrowseStudents } from '../components/company/BrowseStudents';
 import { StudentProfile } from '../components/student/StudentProfile';
 import { CompanyProfile } from '../components/company/CompanyProfile';
+import { CompanyOpportunities } from '../components/company/CompanyOpportunities';
+import { StatePreservation } from '../lib/utils/statePreservation';
 import '../components/Header.css';
+import '../components/Footer.css';
 
 interface AuthenticatedLandingProps {
     onLogout: () => void;
     userType: 'student' | 'company';
 }
 
-type Tab = 'profile' | 'opportunities' | 'profiles' | 'professors' | 'openmatch' | 'companies';
+type Tab = 'profile' | 'opportunities' | 'profiles';
 
 export function AuthenticatedLanding({ onLogout, userType }: AuthenticatedLandingProps) {
-    const [activeTab, setActiveTab] = useState<Tab>('profile');
+    // Preserve active tab state when navigating
+    const storageKey = `${userType}_landing_tab`;
+    const savedTab = StatePreservation.loadSession<Tab>(storageKey);
+    const [activeTab, setActiveTab] = useState<Tab>(savedTab || 'profile');
+
+    // Save tab state when it changes
+    useEffect(() => {
+        StatePreservation.saveSession(storageKey, activeTab);
+    }, [activeTab, storageKey]);
 
     return (
         <div className="min-h-screen bg-white font-sans text-slate-900">
@@ -49,38 +59,37 @@ export function AuthenticatedLanding({ onLogout, userType }: AuthenticatedLandin
                                     active={activeTab === 'profile'}
                                     onClick={() => setActiveTab('profile')}
                                 />
-                                <TabButton
-                                    icon={<Sparkles className="w-4 h-4" />}
-                                    label="Opportunities"
-                                    active={activeTab === 'opportunities'}
-                                    onClick={() => setActiveTab('opportunities')}
-                                />
-                                <TabButton
-                                    icon={<Users className="w-4 h-4" />}
-                                    label="Profiles"
-                                    active={activeTab === 'profiles'}
-                                    onClick={() => setActiveTab('profiles')}
-                                />
-                                <TabButton
-                                    icon={<GraduationCap className="w-4 h-4" />}
-                                    label="Professors"
-                                    active={activeTab === 'professors'}
-                                    onClick={() => setActiveTab('professors')}
-                                />
-                                {userType === 'student' && (
-                                    <TabButton
-                                        icon={<Users className="w-4 h-4" />}
-                                        label="Open Match"
-                                        active={activeTab === 'openmatch'}
-                                        onClick={() => setActiveTab('openmatch')}
-                                    />
+                                {userType === 'company' ? (
+                                    <>
+                                        <TabButton
+                                            icon={<Sparkles className="w-4 h-4" />}
+                                            label="Events"
+                                            active={activeTab === 'opportunities'}
+                                            onClick={() => setActiveTab('opportunities')}
+                                        />
+                                        <TabButton
+                                            icon={<Users className="w-4 h-4" />}
+                                            label="Hiring"
+                                            active={activeTab === 'profiles'}
+                                            onClick={() => setActiveTab('profiles')}
+                                        />
+                                    </>
+                                ) : (
+                                    <>
+                                        <TabButton
+                                            icon={<Sparkles className="w-4 h-4" />}
+                                            label="Opportunities"
+                                            active={activeTab === 'opportunities'}
+                                            onClick={() => setActiveTab('opportunities')}
+                                        />
+                                        <TabButton
+                                            icon={<Users className="w-4 h-4" />}
+                                            label="Profiles"
+                                            active={activeTab === 'profiles'}
+                                            onClick={() => setActiveTab('profiles')}
+                                        />
+                                    </>
                                 )}
-                                <TabButton
-                                    icon={<Building2 className="w-4 h-4" />}
-                                    label="Companies"
-                                    active={activeTab === 'companies'}
-                                    onClick={() => setActiveTab('companies')}
-                                />
                             </div>
                         </div>
                     </div>
@@ -104,7 +113,7 @@ export function AuthenticatedLanding({ onLogout, userType }: AuthenticatedLandin
             </header>
 
             {/* Main Content */}
-            <main className="pt-24">
+            <main className="pt-20">
                 {/* Hero Section */}
                 <div className="bg-gradient-to-b from-indigo-50/50 to-white py-16">
                     <div className="max-w-7xl mx-auto px-4 text-center">
@@ -123,32 +132,20 @@ export function AuthenticatedLanding({ onLogout, userType }: AuthenticatedLandin
 
 
                 {/* Content */}
-                <div className="max-w-7xl mx-auto px-4 py-8">
+                <div className="max-w-7xl mx-auto px-6 py-1">
                     {activeTab === 'profile' && (
                         userType === 'student' ? <StudentProfile /> : <CompanyProfile />
                     )}
-                    {activeTab === 'opportunities' && <OpportunitiesContent />}
+                    {activeTab === 'opportunities' && (
+                        userType === 'student' ? <OpportunitiesContent /> : <CompanyOpportunities />
+                    )}
                     {activeTab === 'profiles' && (
                         userType === 'student' ? <BrowseProfiles /> : <BrowseStudents />
-                    )}
-                    {activeTab === 'professors' && (
-                        <div className="text-center py-20">
-                            <GraduationCap className="w-16 h-16 text-slate-300 mx-auto mb-4" />
-                            <h3 className="text-2xl font-bold text-slate-900 mb-2">Professors Coming Soon</h3>
-                            <p className="text-slate-500">Connect with professors and mentors</p>
-                        </div>
-                    )}
-                    {activeTab === 'openmatch' && userType === 'student' && <StudentOpenMatch />}
-                    {activeTab === 'companies' && (
-                        <div className="text-center py-20">
-                            <Building2 className="w-16 h-16 text-slate-300 mx-auto mb-4" />
-                            <h3 className="text-2xl font-bold text-slate-900 mb-2">Companies Directory</h3>
-                            <p className="text-slate-500">Browse partner companies and opportunities</p>
-                        </div>
                     )}
                 </div>
             </main>
         </div>
+
     );
 }
 
@@ -172,4 +169,5 @@ function TabButton({ icon, label, active, onClick }: TabButtonProps) {
             {label}
         </button>
     );
+
 }

@@ -641,23 +641,23 @@ export default function StudentOnboarding() {
                                         </h4>
                                         <div className="grid md:grid-cols-2 gap-4">
                                             <div className="space-y-2">
-                                                <Label className="text-xs font-bold text-slate-500">Create Password</Label>
+                                                <Label className="text-xs font-bold text-slate-2500">Create Password</Label>
                                                 <Input
                                                     type="password"
                                                     placeholder="••••••••"
                                                     value={studentData.password}
                                                     onChange={(e) => setStudentData({ ...studentData, password: e.target.value })}
-                                                    className="bg-white border-slate-200"
+                                                    className="bg-white border-slate-50"
                                                 />
                                             </div>
                                             <div className="space-y-2">
-                                                <Label className="text-xs font-bold text-slate-500">Confirm Password</Label>
+                                                <Label className="text-xs font-bold text-slate-2500">Confirm Password</Label>
                                                 <Input
                                                     type="password"
-                                                    placeholder="••••••••"
+                                                    placeholder=""
                                                     value={confirmPassword}
                                                     onChange={(e) => setConfirmPassword(e.target.value)}
-                                                    className="bg-white border-slate-200"
+                                                    className="bg-white border-slate-"
                                                 />
                                             </div>
                                         </div>
@@ -752,10 +752,10 @@ export default function StudentOnboarding() {
                                     )}
                                 </div>
                             </CardContent>
-                            <CardFooter className="bg-slate-900 p-8 flex justify-between items-center">
-                                <p className="text-slate-400 text-sm font-medium">Looking good? Complete your onboarding.</p>
+                            <CardFooter className="bg-slate-500 p-8 flex justify-between items-center">
+                                <p className="text-slate-900 text-sm font-medium">Looking good? Complete your onboarding.</p>
                                 <div className="flex gap-4">
-                                    <Button variant="ghost" onClick={() => setStep('choice')} className="text-white hover:text-indigo-400 hover:bg-slate-800 font-bold">Edit</Button>
+                                    <Button variant="ghost" onClick={() => setStep('choice')} className="text-slate-400 text-sm font-medium">Edit</Button>
                                     <Button onClick={finalizeOnboarding} className="bg-indigo-600 hover:bg-indigo-700 text-white font-bold px-8 py-6 rounded-xl shadow-xl shadow-indigo-200" disabled={loading}>
                                         {loading ? <Loader2 className="w-5 h-5 animate-spin mr-2" /> : "Complete Profile"}
                                     </Button>

@@ -34,12 +34,12 @@ export const Header: React.FC = () => {
               {count > 100 ? '+100' : count}
             </span>
           </Link>
-          <a href="#" className="nav-link">
+          <Link to="/companies" className="nav-link">
             Companies
             <span className="header-badge header-badge-purple">
               NEW
             </span>
-          </a>
+          </Link>
           <Link to="/profiles" className="nav-link">Profiles</Link>
         </nav>
 

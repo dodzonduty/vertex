@@ -254,49 +254,71 @@ export function StudentProfile() {
         {/* Profile Header - Premium */}
         <div className="bg-white rounded-3xl border border-slate-200 shadow-xl shadow-slate-200/50 overflow-hidden mb-10 group">
           {/* Banner */}
-          <div className="h-40 bg-gradient-to-r from-indigo-600 via-violet-600 to-purple-600 relative overflow-hidden">
-            <div className="absolute inset-0 opacity-20 bg-[radial-gradient(circle_at_center,_var(--tw-gradient-stops))] from-white via-transparent to-transparent animate-pulse" />
+          <div className="h-20 bg-gradient-to-r from-indigo-600 via-violet-600 to-purple-600 relative overflow-hidden">
+            <div className="absolute inset-0 opacity-20 bg-[radial-gradient(circle_at_center,_var(--tw-gradient-stops))] from-white via-transparent to-transparent" />
             <div className="absolute -bottom-12 -right-12 w-64 h-64 bg-white/10 rounded-full blur-3xl" />
           </div>
 
-          <div className="px-8 pb-8">
-            <div className="flex flex-col md:flex-row items-center md:items-end gap-6 -mt-12 relative z-10">
-              <div className="w-32 h-32 bg-white rounded-2xl border-4 border-white shadow-2xl flex items-center justify-center text-4xl font-extrabold text-indigo-600 relative overflow-hidden group/avatar">
-                <div className="absolute inset-0 bg-indigo-50 transition-colors group-hover/avatar:bg-indigo-100" />
-                <span className="relative z-10">{profileData.name[0]}</span>
-              </div>
-
-              <div className="flex-1 text-center md:text-left mb-2">
-                <div className="flex items-center justify-center md:justify-start gap-3 mb-2">
-                  <h1 className="text-3xl font-black text-slate-900 tracking-tight">{profileData.name}</h1>
-                  <Badge className="bg-green-50 text-green-700 border-green-100 flex items-center gap-1 hover:bg-green-100 transition-colors">
-                    <CheckCircle2 className="w-3 h-3" />
+          <div className="px-8 pb-8 pt-10">
+            <div className="flex flex-col md:flex-row items-start md:items-center gap-6">
+              {/* Avatar Section */}
+              <div className="relative">
+                <div className="w-36 h-36 bg-white rounded-2xl border-4 border-white shadow-2xl flex items-center justify-center text-5xl font-extrabold text-indigo-600 relative overflow-hidden group/avatar">
+                  <div className="absolute inset-0 bg-indigo-50 transition-colors group-hover/avatar:bg-indigo-100" />
+                  <span className="relative z-10">{profileData.name[0] || "H"}</span>
+                </div>
+                <div className="absolute -bottom-2 -right-2">
+                  <Badge className="bg-green-500 text-white border-none px-3 py-1 text-xs font-bold shadow-lg">
+                    <CheckCircle2 className="w-3 h-3 mr-1" />
                     Verified
                   </Badge>
                 </div>
+              </div>
 
-                <p className="text-lg font-semibold text-indigo-600 mb-2">{profileData.jobTitle}</p>
+              {/* Profile Info Section */}
+              <div className="flex-1 space-y-3">
+                {/* Name & Verification */}
+                <div className="flex items-center gap-3 mb-1">
+                  <h1 className="text-3xl font-bold text-slate-900">{profileData.name || "Habeba Mostafa Desoky"}</h1>
+                </div>
 
-                <div className="flex flex-wrap items-center justify-center md:justify-start gap-4 text-slate-500 text-sm font-medium">
-                  <div className="flex items-center gap-1.5">
-                    <MapPin className="w-4 h-4 text-slate-400" />
-                    {profileData.university}
+                {/* Job Titles */}
+                <div className="space-y-2">
+                  <div className="flex flex-wrap items-center gap-2">
+                    <Badge variant="outline" className="bg-blue-50 text-blue-700 border-blue-200 font-semibold py-1 px-3">
+                      {profileData.jobTitle || "Undergraduate Student Engineer Student"}
+                    </Badge>
+                    <div className="w-1 h-1 bg-slate-300 rounded-full"></div>
+                    <Badge variant="outline" className="bg-indigo-50 text-indigo-700 border-indigo-200 font-semibold py-1 px-3">
+                      Student
+                    </Badge>
                   </div>
-                  <div className="w-1 h-1 bg-slate-300 rounded-full hidden md:block" />
+
+                  {/* University & Faculty */}
+                  <div className="flex flex-wrap items-center gap-3 text-slate-700">
+                    <div className="flex items-center gap-1.5">
+                      <MapPin className="w-4 h-4 text-slate-500" />
+                      <span className="font-medium">{profileData.university || "Helwan University"}</span>
+                      <span className="text-slate-500">,</span>
+                      <span className="text-slate-600">{profileData.faculty || "Faculty of Engineering"}</span>
+                    </div>
+                  </div>
+
+                  {/* Degree Level */}
                   <div className="flex items-center gap-1.5">
-                    <Award className="w-4 h-4 text-slate-400" />
-                    {profileData.year}
+                    <Award className="w-4 h-4 text-slate-500" />
+                    <span className="text-slate-700 font-medium">{profileData.year || "Undergraduate Student Engineer"}</span>
                   </div>
                 </div>
               </div>
 
-              <div className="pb-2">
+              {/* Edit Button */}
+              <div className="md:self-start">
                 <Button
                   onClick={() => setProfileMode('edit')}
-                  variant="outline"
-                  className="px-6 py-6 rounded-xl font-bold border-slate-200 hover:border-indigo-200 hover:bg-indigo-50 transition-all flex items-center gap-2 group/edit"
+                  className="bg-indigo-600 hover:bg-indigo-700 text-white font-semibold px-6 py-3 rounded-xl shadow-lg shadow-indigo-200 transition-all flex items-center gap-2 group/edit"
                 >
-                  <Edit className="w-4 h-4 text-slate-500 group-hover/edit:text-indigo-600 transition-colors" />
+                  <Edit className="w-4 h-4 text-white/90 group-hover/edit:text-white transition-colors" />
                   Edit Profile
                 </Button>
               </div>

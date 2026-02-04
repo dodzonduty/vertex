@@ -3,21 +3,28 @@ import { Link } from 'react-router-dom';
 import { User, Users, Building2, Sparkles, FolderGit2 } from 'lucide-react';
 import { StudentProfile } from '../components/student/StudentProfile';
 import { StudentProjects } from '../components/student/StudentProjects';
-import { StudentOpenMatch } from '../components/student/StudentOpenMatch';
 import { BrowseProfiles } from '../components/student/BrowseProfiles';
 import { OpportunitiesContent } from '../components/OpportunitiesContent';
 import { getUserData } from '../lib/api/config';
+import { StatePreservation } from '../lib/utils/statePreservation';
 import '../components/Header.css';
 
 interface StudentDashboardProps {
   onLogout: () => void;
 }
 
-type Tab = 'profile' | 'projects' | 'opportunities' | 'openmatch' | 'browse' | 'companies';
+type Tab = 'profile' | 'projects' | 'opportunities' | 'browse' | 'companies';
 
 export function StudentDashboard({ onLogout }: StudentDashboardProps) {
-  const [activeTab, setActiveTab] = useState<Tab>('profile');
+  // Preserve active tab state when navigating
+  const savedTab = StatePreservation.loadSession<Tab>('student_dashboard_tab');
+  const [activeTab, setActiveTab] = useState<Tab>(savedTab || 'profile');
   const [userData, setUserData] = useState<any>(null);
+
+  // Save tab state when it changes
+  useEffect(() => {
+    StatePreservation.saveSession('student_dashboard_tab', activeTab);
+  }, [activeTab]);
 
   useEffect(() => {
     setUserData(getUserData());
@@ -100,12 +107,6 @@ export function StudentDashboard({ onLogout }: StudentDashboardProps) {
               />
               <TabButton
                 icon={<Users className="w-4 h-4" />}
-                label="Open Match"
-                active={activeTab === 'openmatch'}
-                onClick={() => setActiveTab('openmatch')}
-              />
-              <TabButton
-                icon={<Users className="w-4 h-4" />}
                 label="Browse Profiles"
                 active={activeTab === 'browse'}
                 onClick={() => setActiveTab('browse')}
@@ -125,7 +126,6 @@ export function StudentDashboard({ onLogout }: StudentDashboardProps) {
           {activeTab === 'profile' && <StudentProfile />}
           {activeTab === 'projects' && <StudentProjects />}
           {activeTab === 'opportunities' && <OpportunitiesContent />}
-          {activeTab === 'openmatch' && <StudentOpenMatch />}
           {activeTab === 'browse' && <BrowseProfiles />}
           {activeTab === 'companies' && (
             <div className="text-center py-20">

@@ -151,18 +151,23 @@
 }
 
 .opp-search-icon {
-  margin-left: 1.5rem;
+  position: absolute;
+  left: 1.5rem;
   font-size: 1.5rem;
   color: #9CA3AF; /* text-gray-400 */
+  pointer-events: none;
+  z-index: 1;
 }
 
 .opp-search-input {
   flex: 1;
   border: none;
   font-size: 1.25rem; /* text-xl */
-  padding: 1rem;
+  padding: 1rem 1rem 1rem 3.5rem; /* Left padding to prevent icon overlap with placeholder */
   color: var(--text-primary);
   outline: none;
+  background: transparent;
+  width: 100%;
 }
 
 .opp-search-input::placeholder {

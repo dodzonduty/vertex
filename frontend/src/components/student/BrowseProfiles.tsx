@@ -67,7 +67,7 @@ export function BrowseProfiles() {
             : 'bg-white text-slate-500 border border-slate-200/50 hover:bg-slate-50 hover:border-indigo-100'
             }`}
         >
-          <User className="w-4 h-4" />
+          <User className="w-8 h-8" />
           Students
         </button>
         <button
@@ -77,21 +77,21 @@ export function BrowseProfiles() {
             : 'bg-white text-slate-500 border border-slate-200/50 hover:bg-slate-50 hover:border-indigo-100'
             }`}
         >
-          <Building2 className="w-4 h-4" />
+          <Building2 className="w-8 h-8" />
           Companies
         </button>
       </div>
 
       {/* Search Input - Premium */}
       <div className="bg-white rounded-3xl shadow-xl shadow-slate-200/50 border border-slate-100 p-2 mb-10 group transition-all hover:border-indigo-100">
-        <div className="relative">
-          <Search className="absolute left-5 top-1/2 -translate-y-1/2 w-5 h-5 text-slate-400 group-hover:text-indigo-500 transition-colors" />
+        <div className="relative flex items-center">
+          <Search className="w-6 h-6 text-slate-400 group-hover:text-indigo-500 transition-colors mr-3 ml-4" />
           <input
             type="text"
             placeholder={`Search for ${browseTarget === 'students' ? 'peers and collaborators' : 'innovative companies'}...`}
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
-            className="w-full pl-14 pr-4 py-4 bg-transparent outline-none text-slate-900 font-medium placeholder:text-slate-400"
+            className="w-full py-4 bg-transparent outline-none text-slate-900 font-medium placeholder:text-slate-400"
           />
         </div>
       </div>
@@ -172,7 +172,7 @@ export function BrowseProfiles() {
 
               <div className="flex items-center justify-between mb-8 px-2 text-[11px] font-black text-slate-400 uppercase tracking-widest">
                 <span className="flex items-center gap-2"><Sparkles className="w-4 h-4 text-blue-500" />{company.eventCount} Active Events</span>
-                <span className="text-blue-600">Premium Partner</span>
+                {/* <span className="text-blue-600">Premium Partner</span> */}
               </div>
 
               <button className="w-full py-4 bg-blue-600 text-white rounded-2xl font-bold flex items-center justify-center gap-2 group/btn shadow-xl shadow-blue-200 hover:shadow-blue-300 transition-all hover:-translate-y-0.5">

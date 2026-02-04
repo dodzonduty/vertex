@@ -1,19 +1,28 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
-import { Building2, Search, Compass } from 'lucide-react';
+import { Building2, Search, Compass, Calendar } from 'lucide-react';
 import { CompanyProfile } from '../components/company/CompanyProfile';
 import { CompanyHiring } from '../components/company/CompanyHiring';
 import { BrowseStudents } from '../components/company/BrowseStudents';
+import { CompanyEvents } from '../components/company/CompanyEvents';
+import { StatePreservation } from '../lib/utils/statePreservation';
 import '../components/Header.css'; // Import global header styles
 
 interface CompanyDashboardProps {
   onLogout: () => void;
 }
 
-type Tab = 'profile' | 'hiring' | 'browse';
+type Tab = 'profile' | 'hiring' | 'browse' | 'events';
 
 export function CompanyDashboard({ onLogout }: CompanyDashboardProps) {
-  const [activeTab, setActiveTab] = useState<Tab>('profile');
+  // Preserve active tab state when navigating
+  const savedTab = StatePreservation.loadSession<Tab>('company_dashboard_tab');
+  const [activeTab, setActiveTab] = useState<Tab>(savedTab || 'profile');
+
+  // Save tab state when it changes
+  useEffect(() => {
+    StatePreservation.saveSession('company_dashboard_tab', activeTab);
+  }, [activeTab]);
 
   return (
     <div className="min-h-screen bg-white font-sans text-slate-900 pt-24">
@@ -70,6 +79,12 @@ export function CompanyDashboard({ onLogout }: CompanyDashboardProps) {
               active={activeTab === 'browse'}
               onClick={() => setActiveTab('browse')}
             />
+            <TabButton
+              icon={<Calendar className="w-4 h-4" />}
+              label="Create Events"
+              active={activeTab === 'events'}
+              onClick={() => setActiveTab('events')}
+            />
           </div>
         </div>
 
@@ -78,6 +93,7 @@ export function CompanyDashboard({ onLogout }: CompanyDashboardProps) {
           {activeTab === 'profile' && <CompanyProfile />}
           {activeTab === 'hiring' && <CompanyHiring />}
           {activeTab === 'browse' && <BrowseStudents />}
+          {activeTab === 'events' && <CompanyEvents />}
         </div>
       </main>
     </div>

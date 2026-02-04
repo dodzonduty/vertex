@@ -487,7 +487,7 @@ export const Opportunities: React.FC = () => {
         </section>
       </main>
 
-      <Footer />
+      {/* <Footer /> */}
     </div>
   );
 };

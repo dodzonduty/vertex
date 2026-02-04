@@ -84,7 +84,7 @@ export function SignUp() {
                                         <span className="font-medium">Join project teams</span>
                                     </li>
                                 </ul>
-
+                                <br />
                                 {/* CTA */}
                                 <button className="w-full py-4 bg-gradient-to-r from-indigo-600 to-purple-600 text-white rounded-2xl font-bold text-lg shadow-xl shadow-indigo-200 hover:shadow-2xl hover:shadow-indigo-300 transition-all flex items-center justify-center gap-2 group-hover:gap-4">
                                     Continue as Student
@@ -135,7 +135,7 @@ export function SignUp() {
                                         <span className="font-medium">Connect with universities</span>
                                     </li>
                                 </ul>
-
+                                <br />
                                 {/* CTA */}
                                 <button className="w-full py-4 bg-gradient-to-r from-blue-600 to-cyan-600 text-white rounded-2xl font-bold text-lg shadow-xl shadow-blue-200 hover:shadow-2xl hover:shadow-blue-300 transition-all flex items-center justify-center gap-2 group-hover:gap-4">
                                     Continue as Company
