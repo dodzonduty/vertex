@@ -1,42 +1,14 @@
-import { useState, useEffect } from 'react';
-import { useParams } from 'react-router-dom';
+import { useState } from 'react';
+// import { useParams } from 'react-router-dom';
 import { OpenMatchRooms } from './OpenMatchRooms';
 import { OpportunityRules } from './OpportunityRules';
 import { OpportunityJudging } from './OpportunityJudging';
 import { AIEligibility } from './AIEligibility';
-import { getOpportunityDetail } from '../lib/api/opportunities';
-import type { OpportunityListing } from '../lib/api/opportunities';
-import { Loader2 } from 'lucide-react';
-import { toast } from 'sonner';
 import './OpportunityProfile.css';
 
 export function OpportunityProfile() {
-  const { id } = useParams<{ id: string }>();
-  const [opportunity, setOpportunity] = useState<OpportunityListing | null>(null);
-  const [loading, setLoading] = useState(true);
+  // const { id } = useParams();
   const [activeTab, setActiveTab] = useState<'overview' | 'rooms' | 'rules' | 'judging' | 'eligibility_ai'>('overview');
-
-  useEffect(() => {
-    const fetchOpportunity = async () => {
-      if (!id) return;
-      try {
-        setLoading(true);
-        const data = await getOpportunityDetail(id);
-        if (data) {
-          setOpportunity(data);
-        } else {
-          toast.error("Opportunity not found");
-        }
-      } catch (error) {
-        console.error("Failed to fetch opportunity", error);
-        toast.error("Failed to load opportunity data");
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    fetchOpportunity();
-  }, [id]);
 
   const handleTabClick = (tab: string) => {
     if (tab === 'submission' || tab === 'prizes') {
@@ -60,24 +32,7 @@ export function OpportunityProfile() {
     }
   };
 
-  if (loading) {
-    return (
-      <div className="flex flex-col items-center justify-center min-h-[60vh] gap-4">
-        <Loader2 className="w-12 h-12 text-indigo-600 animate-spin" />
-        <p className="text-slate-500 font-medium animate-pulse">Loading event details...</p>
-      </div>
-    );
-  }
-
-  if (!opportunity) {
-    return (
-      <div className="max-w-5xl mx-auto py-20 text-center">
-        <h2 className="text-2xl font-bold text-slate-900">Opportunity not found</h2>
-        <p className="text-slate-500 mt-2">The event you're looking for might have been removed or doesn't exist.</p>
-        <button onClick={() => window.history.back()} className="mt-6 text-indigo-600 font-bold">Go Back</button>
-      </div>
-    );
-  }
+  // In a real app, fetch data based on ID. For now, static content matching the design.
 
   return (
     <div className="opportunity-profile">
@@ -88,7 +43,7 @@ export function OpportunityProfile() {
           <div className="hero-image-container">
             <div
               className="hero-image"
-              style={{ backgroundImage: `url("${opportunity.image || 'https://images.unsplash.com/photo-1517245386807-bb43f82c33c4?auto=format&fit=crop&q=80'}")` }}
+              style={{ backgroundImage: `url("https://lh3.googleusercontent.com/aida-public/AB6AXuBU55NNo_2EK95iIVEslKU2wLu3cOw5TYqftYx7zpHMqKUElWxw0eeWAKLU0cXzyo6deD9ulB-9ckAwuWAp9gs3LnFQGfcXMcW9FZLmyExjYCNwcf0niAU-LWQrvYNKmJOzwH4lGHK7WGvQ8a7deM2raiKN45vNxEkxIM0Ay0xPAi08-wHjkc4xDHls4FLGC3NrGjZlWZ3E2-En3kJ3yRy2l7ooA1FIHfe-elBuX8TSarJxY-vxwoRPcNg0D816EMZosPCtR11OklE")` }}
             ></div>
             <div className="hero-overlay"></div>
           </div>
@@ -103,21 +58,18 @@ export function OpportunityProfile() {
               </div>
               <div>
                 <div className="hero-badges">
-                  {opportunity.badges.map((badge, idx) => (
-                    <span key={idx} className={`badge ${badge.style === 'blue-soft' ? 'badge-primary' : 'badge-green'}`}>
-                      {badge.text}
-                    </span>
-                  ))}
+                  <span className="badge badge-primary">Featured Event</span>
+                  <span className="badge badge-green">Open for Registration</span>
                 </div>
-                <h2 className="hero-title">{opportunity.title}</h2>
+                <h2 className="hero-title">Global AI Innovation 2026</h2>
                 <div className="hero-meta">
                   <div className="meta-item">
                     <span className="material-symbols-outlined">calendar_today</span>
-                    <span className="meta-text">{opportunity.date}</span>
+                    <span className="meta-text">Oct 15 - Oct 17, 2026</span>
                   </div>
                   <div className="meta-item">
                     <span className="material-symbols-outlined">location_on</span>
-                    <span className="meta-text">{opportunity.location}</span>
+                    <span className="meta-text">San Francisco / Hybrid</span>
                   </div>
                 </div>
               </div>
@@ -202,7 +154,7 @@ export function OpportunityProfile() {
                 <div>
                   <h4 className="card-subtitle">The Challenge</h4>
                   <p className="card-text">
-                    {opportunity.summary}
+                    Build the next generation of AI agents that bridge the gap between digital reasoning and real-world physical sustainability. Use generative models to optimize supply chains, reduce energy consumption, or design carbon-neutral urban infrastructures.
                   </p>
                 </div>
 
@@ -237,7 +189,7 @@ export function OpportunityProfile() {
                 <h3 className="section-title" style={{ marginBottom: 0 }}>
                   <span className="material-symbols-outlined" style={{ color: 'var(--primary)' }}>emoji_events</span> Prize Distribution
                 </h3>
-                <span style={{ fontSize: '1.25rem', fontWeight: 'bold' }}>{opportunity.price} Total Pool</span>
+                <span style={{ fontSize: '1.25rem', fontWeight: 'bold' }}>$50,000 Total Pool</span>
               </div>
 
               <div className="prizes-grid">
@@ -399,14 +351,14 @@ export function OpportunityProfile() {
                     <span className="material-symbols-outlined details-icon">payments</span>
                     <span>Total Prize Pool</span>
                   </div>
-                  <span className="details-val" style={{ color: 'var(--primary)' }}>{opportunity.price}</span>
+                  <span className="details-val" style={{ color: 'var(--primary)' }}>$50,000</span>
                 </div>
                 <div className="details-item">
                   <div className="details-label">
                     <span className="material-symbols-outlined details-icon">public</span>
                     <span>Location</span>
                   </div>
-                  <span className="details-val">{opportunity.location}</span>
+                  <span className="details-val">Hybrid / SF</span>
                 </div>
                 <div className="details-item">
                   <div className="details-label">
@@ -433,8 +385,8 @@ export function OpportunityProfile() {
                   <div className="host-img" style={{ backgroundImage: `url("https://lh3.googleusercontent.com/aida-public/AB6AXuAwi2bPE1U55tlZMUGpuLPWo39dq6jDPh_2WKZ0gJxeSeNPsMJBhnm6ZrV5Y4LMeS0tEv9_l8gq7H3fty3sW19IeiZ4l6ab01Gwq0TsBe49m5r7c2j7vd2uPPZU3h4PtLRFptsB2dqOdVHXdhi8LAjyg8OV-3OT1UCkHBrSARkw3ThlxoyAnODnaAtiszeigPzDiIvlKdHN3u-MU8sTuGtbRPb2g6rWy4YIX5NBjEMpNwXm5iqlLsiFrgA2IoBw93hK2olnQE6TZ3Q")` }}></div>
                 </div>
                 <div>
-                  <p style={{ fontWeight: 'bold', fontSize: '0.875rem', lineHeight: 1.25 }}>{opportunity.host}</p>
-                  <p style={{ fontSize: '0.75rem', color: '#64748b' }}>Organization/Host</p>
+                  <p style={{ fontWeight: 'bold', fontSize: '0.875rem', lineHeight: 1.25 }}>Dr. Elena Sterling</p>
+                  <p style={{ fontSize: '0.75rem', color: '#64748b' }}>Vertex AI Lead</p>
                 </div>
               </div>
               <button className="view-profile-btn">View Profile</button>

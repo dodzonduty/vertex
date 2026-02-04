@@ -37,7 +37,7 @@ export function OpportunityJudging() {
           <h3 className="section-title">
             <span className="material-symbols-outlined" style={{ color: 'var(--primary)' }}>flaky</span> Judging Criteria
           </h3>
-          
+
           <div className="judging-container" style={{ maxWidth: '800px', margin: '0 auto', paddingTop: '1rem' }}>
             {criteria.map((item, index) => (
               <div key={index} className="criteria-item mb-8">
@@ -46,7 +46,7 @@ export function OpportunityJudging() {
                   <span className="text-2xl font-bold text-indigo-600">{item.percent}%</span>
                 </div>
                 <div className="w-full bg-slate-100 rounded-full h-3 mb-3 overflow-hidden">
-                  <div 
+                  <div
                     className="bg-indigo-600 h-3 rounded-full transition-all duration-1000 ease-out"
                     style={{ width: `${item.percent}%` }}
                   ></div>

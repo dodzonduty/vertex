@@ -9,7 +9,7 @@ export function OpportunityRules() {
           <h3 className="section-title">
             <span className="material-symbols-outlined" style={{ color: 'var(--primary)' }}>gavel</span> Official Rules
           </h3>
-          
+
           <div className="typography-content" style={{ maxWidth: '800px', margin: '0 auto' }}>
             <div className="rule-block mb-8">
               <h4 className="text-4xl font-black text-transparent bg-clip-text bg-gradient-to-r from-indigo-700 to-indigo-500 drop-shadow-sm mb-4">1. General Conduct</h4>
