@@ -1,17 +1,37 @@
 import React, { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
+import { getUserData } from '../lib/api/config';
+import { logout } from '../lib/api/auth';
+import { User, LogOut, LayoutDashboard, Building2 } from 'lucide-react';
 import './Header.css';
 
 export const Header: React.FC = () => {
   const [count, setCount] = useState<number>(0);
+  const [user, setUser] = useState<any>(null);
+  const [profilePic, setProfilePic] = useState<string | null>(null);
 
   useEffect(() => {
+    const userData = getUserData();
+    setUser(userData);
+
+    if (userData?.user_id) {
+      fetch(`${import.meta.env.VITE_API_URL || 'http://localhost:8000'}/api/mocks/profile-picture/${userData.user_id}`)
+        .then(res => res.json())
+        .then(data => setProfilePic(data.profile_picture_url))
+        .catch(() => { });
+    }
+
     // Attempt API call, fallback to 101 if backend not running (mock mode)
-    fetch('/api/opportunities/count')
+    fetch(`${import.meta.env.VITE_API_URL || 'http://localhost:8000'}/api/opportunities/count`)
       .then(res => res.json())
       .then(data => setCount(data.count))
       .catch(() => setCount(101)); // Fallback for dev without backend
   }, []);
+
+  const handleLogout = () => {
+    logout();
+    window.location.href = '/';
+  };
 
   return (
     <header className="header">
@@ -41,14 +61,41 @@ export const Header: React.FC = () => {
             </span>
           </Link>
           <Link to="/profiles" className="nav-link">Profiles</Link>
+
+          {user && (
+            <>
+              <Link to={user.role === 'student' ? '/student-dashboard' : '/company-dashboard'} className="nav-link flex items-center gap-1">
+                <LayoutDashboard className="w-4 h-4" /> Dashboard
+              </Link>
+              <Link to={user.role === 'student' ? `/student/profile/${user.user_id}` : `/company/profile/${user.user_id}`} className="nav-link flex items-center gap-1">
+                {user.role === 'student' ? <User className="w-4 h-4" /> : <Building2 className="w-4 h-4" />} My Profile
+              </Link>
+            </>
+          )}
         </nav>
 
         {/* Auth Buttons */}
         <div className="auth-buttons">
-          {/* <Link to="/signin" className="btn-login">Company Login</Link> */}
-          <Link to="/signin" className="btn-student">
-            Login
-          </Link>
+          {user ? (
+            <div className="flex items-center gap-4">
+              <div className="w-10 h-10 rounded-full bg-slate-100 border-2 border-slate-200 overflow-hidden flex items-center justify-center">
+                {profilePic ? (
+                  <img src={profilePic} alt="Avatar" className="w-full h-full object-cover" />
+                ) : (
+                  <span className="text-lg font-bold text-slate-500">
+                    {user.email?.[0].toUpperCase()}
+                  </span>
+                )}
+              </div>
+              <button onClick={handleLogout} className="text-slate-500 hover:text-red-600 transition-colors">
+                <LogOut className="w-5 h-5" />
+              </button>
+            </div>
+          ) : (
+            <Link to="/signin" className="btn-student">
+              Login
+            </Link>
+          )}
         </div>
       </div>
     </header>

@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Building2, CheckCircle2, ArrowRight, Loader2, Mail, Lock, Phone, MapPin, Link as LinkIcon, Plus, X } from 'lucide-react';
+import { Building2, CheckCircle2, ArrowRight, Loader2, Mail, Lock, Phone, MapPin, Link as LinkIcon, Plus, X, Upload } from 'lucide-react';
 import { Button } from '../components/ui/button';
 import { Card, CardHeader, CardTitle, CardDescription, CardContent, CardFooter } from '../components/ui/card';
 import { Badge } from '../components/ui/badge';
@@ -34,6 +34,7 @@ export default function CompanyOnboarding() {
     const navigate = useNavigate();
     const [step, setStep] = useState<OnboardingStep>('form');
     const [loading, setLoading] = useState(false);
+    const [profilePic, setProfilePic] = useState<string | null>(null);
     const [companyData, setCompanyData] = useState<CompanyData>({
         email: '',
         password: '',
@@ -319,8 +320,34 @@ export default function CompanyOnboarding() {
                         <Card className="overflow-hidden shadow-2xl border-none">
                             <div className="h-32 bg-gradient-to-r from-blue-600 via-cyan-600 to-teal-600 relative">
                                 <div className="absolute -bottom-12 left-12">
-                                    <div className="w-32 h-32 bg-white rounded-3xl border-8 border-white shadow-2xl flex items-center justify-center">
-                                        <Building2 className="w-16 h-16 text-blue-600" />
+                                    <div className="relative group">
+                                        <div className="w-32 h-32 bg-white rounded-3xl border-8 border-white shadow-2xl flex items-center justify-center overflow-hidden">
+                                            {profilePic ? (
+                                                <img src={profilePic} alt="Company Logo" className="w-full h-full object-cover" />
+                                            ) : (
+                                                <Building2 className="w-16 h-16 text-blue-600" />
+                                            )}
+                                        </div>
+                                        <label className="absolute -bottom-2 -right-2 w-10 h-10 bg-blue-600 rounded-xl shadow-lg flex items-center justify-center cursor-pointer hover:bg-blue-700 transition-all border-4 border-white">
+                                            <Upload className="w-5 h-5 text-white" />
+                                            <input type="file" className="hidden" accept="image/*" onChange={async (e) => {
+                                                const file = e.target.files?.[0];
+                                                if (!file) return;
+                                                const formData = new FormData();
+                                                formData.append('file', file);
+                                                try {
+                                                    const res = await fetch(`${import.meta.env.VITE_API_URL || 'http://localhost:8000'}/api/mocks/profile-picture/upload/${companyData.email}`, {
+                                                        method: 'POST',
+                                                        body: formData
+                                                    });
+                                                    const data = await res.json();
+                                                    setProfilePic(data.profile_picture_url);
+                                                    toast.success("Logo uploaded!");
+                                                } catch (err) {
+                                                    toast.error("Upload failed");
+                                                }
+                                            }} />
+                                        </label>
                                     </div>
                                 </div>
                             </div>

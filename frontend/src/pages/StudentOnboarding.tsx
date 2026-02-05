@@ -52,6 +52,8 @@ export default function StudentOnboarding() {
     const [step, setStep] = useState<OnboardingStep>('choice');
     const [loading, setLoading] = useState(false);
     const [isParsingGitHub, setIsParsingGitHub] = useState(false);
+    const [profilePic, setProfilePic] = useState<string | null>(null);
+    const [rawCVResponse, setRawCVResponse] = useState<any>(null);
     const [studentData, setStudentData] = useState<StudentData>({
         full_name: '',
         email: '',
@@ -87,8 +89,7 @@ export default function StudentOnboarding() {
         try {
             console.log('Starting AI analysis...');
             const data = await analyzeCV(file);
-            console.log('AI Analysis Received:', data);
-
+            setRawCVResponse(data);
             setStudentData(prev => ({
                 ...prev,
                 full_name: data.full_name || prev.full_name,
@@ -238,7 +239,15 @@ export default function StudentOnboarding() {
                     ...(studentData.github_url ? [{ url: studentData.github_url, username: undefined }] : []),
                     ...(studentData.linkedin_url ? [{ url: studentData.linkedin_url, username: undefined }] : [])
                 ] : undefined,
-                projects: studentData.projects?.length ? studentData.projects.map((p: Project) => ({ title: p.title, repo_url: p.repo_url || undefined })) : undefined
+                projects: studentData.projects?.length ? studentData.projects.map((p: Project) => ({
+                    title: p.title,
+                    repo_url: p.repo_url || undefined,
+                    description: p.description || undefined,
+                    tags: p.tags || [],
+                    strengths: p.strengths || [],
+                    weaknesses: p.weaknesses || []
+                })) : undefined,
+                parsed_cv: rawCVResponse || undefined
             };
 
             let signupSucceeded = false;
@@ -628,16 +637,68 @@ export default function StudentOnboarding() {
                         <Card className="overflow-hidden shadow-2xl border-none">
                             <div className="h-32 bg-gradient-to-r from-indigo-600 via-violet-600 to-purple-600 relative">
                                 <div className="absolute -bottom-12 left-12">
-                                    <div className="w-32 h-32 bg-white rounded-3xl border-8 border-white shadow-2xl flex items-center justify-center text-4xl font-black text-indigo-600">
-                                        {studentData.full_name[0] || "S"}
-                                    </div>
                                 </div>
                             </div>
                             <CardContent className="pt-20 pb-12 px-12">
                                 <div className="space-y-8">
+                                    <div className="flex flex-col md:flex-row items-center gap-8 bg-white p-6 rounded-2xl shadow-sm border border-slate-100">
+                                        <div className="relative group">
+                                            <div className="w-32 h-32 bg-slate-100 rounded-3xl border-4 border-white shadow-xl flex items-center justify-center text-4xl font-extrabold text-indigo-600 overflow-hidden">
+                                                {studentData.ats_score > 0 && !profilePic && (
+                                                    <div className="absolute inset-0 bg-indigo-600/10 flex items-center justify-center">
+                                                        <Sparkles className="w-12 h-12 text-indigo-400 opacity-20" />
+                                                    </div>
+                                                )}
+                                                {profilePic ? (
+                                                    <img src={profilePic} alt="Profile" className="w-full h-full object-cover" />
+                                                ) : (
+                                                    <span>{studentData.full_name[0] || 'S'}</span>
+                                                )}
+                                            </div>
+                                            <label className="absolute -bottom-2 -right-2 w-10 h-10 bg-indigo-600 rounded-xl shadow-lg flex items-center justify-center cursor-pointer hover:bg-indigo-700 transition-all border-4 border-white">
+                                                <Upload className="w-5 h-5 text-white" />
+                                                <input type="file" className="hidden" accept="image/*" onChange={async (e) => {
+                                                    const file = e.target.files?.[0];
+                                                    if (!file) return;
+                                                    const formData = new FormData();
+                                                    formData.append('file', file);
+                                                    try {
+                                                        const res = await fetch(`${import.meta.env.VITE_API_URL || 'http://localhost:8000'}/api/mocks/profile-picture/upload/${studentData.email}`, {
+                                                            method: 'POST',
+                                                            body: formData
+                                                        });
+                                                        const data = await res.json();
+                                                        setProfilePic(data.profile_picture_url);
+                                                        toast.success("Profile picture uploaded!");
+                                                    } catch (err) {
+                                                        toast.error("Upload failed");
+                                                    }
+                                                }} />
+                                            </label>
+                                        </div>
+                                        <div className="flex-1 space-y-4">
+                                            <div className="flex items-center justify-between">
+                                                <div>
+                                                    <h3 className="text-sm font-black text-slate-400 uppercase tracking-[2px] mb-1">AI Match Rating</h3>
+                                                    <div className="flex items-end gap-2">
+                                                        <span className="text-5xl font-black text-indigo-600">{studentData.ats_score}%</span>
+                                                        <span className="text-sm font-bold text-slate-400 mb-1">ATS Compatibility</span>
+                                                    </div>
+                                                </div>
+                                                <div className="hidden md:block">
+                                                    <Sparkles className="w-12 h-12 text-indigo-200" />
+                                                </div>
+                                            </div>
+                                            <div className="w-full bg-slate-100 rounded-full h-3 overflow-hidden">
+                                                <div className="bg-indigo-600 h-full rounded-full" style={{ width: `${studentData.ats_score}%` }}></div>
+                                            </div>
+                                            <p className="text-xs text-slate-500 font-medium">Vertex AI analyzed your profile and calculated this compatibility score based on current industry standards.</p>
+                                        </div>
+                                    </div>
+
                                     <div className="space-y-6 bg-indigo-50/50 p-6 rounded-2xl border border-indigo-100">
                                         <h4 className="text-sm font-black text-indigo-900 uppercase tracking-widest flex items-center gap-2">
-                                            <Lock className="w-4 h-4" /> Secure Your Account
+                                            <Lock className="w-4 h-4" /> Account Security
                                         </h4>
                                         <div className="grid md:grid-cols-2 gap-4">
                                             <div className="space-y-2">

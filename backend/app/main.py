@@ -44,9 +44,10 @@ app.include_router(opportunity_mock.router)
 app.include_router(tags_mock.router)
 app.include_router(trending_mock.router)
 app.include_router(perfect_match_mock.router)
-from app.mocks import vertex_connect_mock, opportunity_list_mock
+from app.mocks import vertex_connect_mock, opportunity_list_mock, profile_picture_mock
 app.include_router(vertex_connect_mock.router)
 app.include_router(opportunity_list_mock.router)
+app.include_router(profile_picture_mock.router)
 
 
 @app.get("/")

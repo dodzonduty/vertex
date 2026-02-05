@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { Search, Building2, User, Sparkles, ArrowRight, MapPin, Briefcase } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
+// import { getAllStudents, type StudentProfile } from '../../lib/api/students';
 
 export function BrowseProfiles() {
   const navigate = useNavigate();
@@ -50,6 +51,11 @@ export function BrowseProfiles() {
       eventCount: 2
     }
   ];
+
+  const filteredCompanies = mockCompanies.filter(company =>
+    company.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+    company.industry.toLowerCase().includes(searchQuery.toLowerCase())
+  );
 
   return (
     <div className="max-w-6xl mx-auto py-4 animate-in fade-in duration-700">

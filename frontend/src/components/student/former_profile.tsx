@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+﻿import { useState, useEffect } from 'react';
 import {
   Mail, Phone, MapPin, Github, Linkedin,
   ExternalLink, CheckCircle2, Award, Plus, Save, X, Sparkles, FolderGit2, Loader2, Edit, Upload
@@ -34,38 +34,9 @@ export function StudentProfile() {
     certificates: [],
     skills: [],
     strengths: [],
-    weaknesses: [],
-    profilePicture: null
+    weaknesses: []
   });
   const [isAnalyzing, setIsAnalyzing] = useState(false);
-  const [isUploading, setIsUploading] = useState(false);
-
-  const handleUploadPicture = async (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (!file) return;
-
-    setIsUploading(true);
-    const userData = getUserData();
-    const userId = userData?.user_id || 'me';
-
-    const formData = new FormData();
-    formData.append('file', file);
-
-    try {
-      const response = await fetch(`${import.meta.env.VITE_API_URL || 'http://localhost:8000'}/api/mocks/profile-picture/upload/${userId}`, {
-        method: 'POST',
-        body: formData
-      });
-      const data = await response.json();
-      setProfileData((prev: any) => ({ ...prev, profilePicture: data.profile_picture_url }));
-      toast.success("Profile picture updated!");
-    } catch (error) {
-      console.error("Upload failed", error);
-      toast.error("Upload failed");
-    } finally {
-      setIsUploading(false);
-    }
-  };
 
   const handleScanCV = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
@@ -160,6 +131,7 @@ export function StudentProfile() {
             githubLink: detailed.github_url || '',
             linkedinLink: detailed.linkedin_url || '',
             atsScore: detailed.ats_score || 0,
+            certificates: detailed.certificates || [],
             skills: detailed.skills || [],
             projects: detailed.projects || [],
             strengths: [],
@@ -186,12 +158,7 @@ export function StudentProfile() {
         full_name: profileData.name,
         university: profileData.university,
         degree_level: profileData.year,
-        Email_Address: profileData.phone,
-        bio: profileData.description,
-        skills: profileData.skills,
-        github_url: profileData.githubLink,
-        linkedin_url: profileData.linkedinLink,
-        ats_score: profileData.atsScore
+        Email_Address: profileData.phone // Using phone field for the Email_Address field in DB as per manual entry
       };
 
       await updateStudentProfile('me', updateData);
@@ -287,81 +254,49 @@ export function StudentProfile() {
         {/* Profile Header - Premium */}
         <div className="bg-white rounded-3xl border border-slate-200 shadow-xl shadow-slate-200/50 overflow-hidden mb-10 group">
           {/* Banner */}
-          <div className="h-20 bg-gradient-to-r from-indigo-600 via-violet-600 to-purple-600 relative overflow-hidden">
-            <div className="absolute inset-0 opacity-20 bg-[radial-gradient(circle_at_center,_var(--tw-gradient-stops))] from-white via-transparent to-transparent" />
+          <div className="h-40 bg-gradient-to-r from-indigo-600 via-violet-600 to-purple-600 relative overflow-hidden">
+            <div className="absolute inset-0 opacity-20 bg-[radial-gradient(circle_at_center,_var(--tw-gradient-stops))] from-white via-transparent to-transparent animate-pulse" />
             <div className="absolute -bottom-12 -right-12 w-64 h-64 bg-white/10 rounded-full blur-3xl" />
           </div>
 
-          <div className="px-8 pb-8 pt-10">
-            <div className="flex flex-col md:flex-row items-start md:items-center gap-6">
-              {/* Avatar Section */}
-              <div className="relative group/avatar">
-                <div className="w-36 h-36 bg-white rounded-2xl border-4 border-white shadow-2xl flex items-center justify-center text-5xl font-extrabold text-indigo-600 relative overflow-hidden">
-                  {profileData.profilePicture ? (
-                    <img src={profileData.profilePicture} alt="Avatar" className="w-full h-full object-cover" />
-                  ) : (
-                    <>
-                      <div className="absolute inset-0 bg-indigo-50 transition-colors group-hover/avatar:bg-indigo-100" />
-                      <span className="relative z-10">{profileData.name[0] || "H"}</span>
-                    </>
-                  )}
-                  {isUploading && (
-                    <div className="absolute inset-0 bg-white/60 backdrop-blur-sm flex items-center justify-center z-20">
-                      <Loader2 className="w-8 h-8 text-indigo-600 animate-spin" />
-                    </div>
-                  )}
-                </div>
-
-                <label className="absolute -bottom-2 -right-2 w-10 h-10 bg-indigo-600 rounded-xl shadow-lg flex items-center justify-center cursor-pointer hover:bg-indigo-700 transition-all border-4 border-white z-30 opacity-0 group-hover/avatar:opacity-100 scale-90 group-hover/avatar:scale-100">
-                  <Upload className="w-5 h-5 text-white" />
-                  <input type="file" className="hidden" accept="image/*" onChange={handleUploadPicture} disabled={isUploading} />
-                </label>
+          <div className="px-8 pb-8">
+            <div className="flex flex-col md:flex-row items-center md:items-end gap-6 -mt-12 relative z-10">
+              <div className="w-32 h-32 bg-white rounded-2xl border-4 border-white shadow-2xl flex items-center justify-center text-4xl font-extrabold text-indigo-600 relative overflow-hidden group/avatar">
+                <div className="absolute inset-0 bg-indigo-50 transition-colors group-hover/avatar:bg-indigo-100" />
+                <span className="relative z-10">{profileData.name[0]}</span>
               </div>
 
-              {/* Profile Info Section */}
-              <div className="flex-1 space-y-3">
-                {/* Name & Verification */}
-                <div className="flex items-center gap-3 mb-1">
-                  <h1 className="text-3xl font-bold text-slate-900">{profileData.name || "Habeba Mostafa Desoky"}</h1>
+              <div className="flex-1 text-center md:text-left mb-2">
+                <div className="flex items-center justify-center md:justify-start gap-3 mb-2">
+                  <h1 className="text-3xl font-black text-slate-900 tracking-tight">{profileData.name}</h1>
+                  <Badge className="bg-green-50 text-green-700 border-green-100 flex items-center gap-1 hover:bg-green-100 transition-colors">
+                    <CheckCircle2 className="w-3 h-3" />
+                    Verified
+                  </Badge>
                 </div>
 
-                {/* Job Titles */}
-                <div className="space-y-2">
-                  <div className="flex flex-wrap items-center gap-2">
-                    <Badge variant="outline" className="bg-blue-50 text-blue-700 border-blue-200 font-semibold py-1 px-3">
-                      {profileData.jobTitle || "Undergraduate Student Engineer Student"}
-                    </Badge>
-                    <div className="w-1 h-1 bg-slate-300 rounded-full"></div>
-                    <Badge variant="outline" className="bg-indigo-50 text-indigo-700 border-indigo-200 font-semibold py-1 px-3">
-                      Student
-                    </Badge>
-                  </div>
+                <p className="text-lg font-semibold text-indigo-600 mb-2">{profileData.jobTitle}</p>
 
-                  {/* University & Faculty */}
-                  <div className="flex flex-wrap items-center gap-3 text-slate-700">
-                    <div className="flex items-center gap-1.5">
-                      <MapPin className="w-4 h-4 text-slate-500" />
-                      <span className="font-medium">{profileData.university || "Helwan University"}</span>
-                      <span className="text-slate-500">,</span>
-                      <span className="text-slate-600">{profileData.faculty || "Faculty of Engineering"}</span>
-                    </div>
-                  </div>
-
-                  {/* Degree Level */}
+                <div className="flex flex-wrap items-center justify-center md:justify-start gap-4 text-slate-500 text-sm font-medium">
                   <div className="flex items-center gap-1.5">
-                    <Award className="w-4 h-4 text-slate-500" />
-                    <span className="text-slate-700 font-medium">{profileData.year || "Undergraduate Student Engineer"}</span>
+                    <MapPin className="w-4 h-4 text-slate-400" />
+                    {profileData.university}
+                  </div>
+                  <div className="w-1 h-1 bg-slate-300 rounded-full hidden md:block" />
+                  <div className="flex items-center gap-1.5">
+                    <Award className="w-4 h-4 text-slate-400" />
+                    {profileData.year}
                   </div>
                 </div>
               </div>
 
-              {/* Edit Button */}
-              <div className="md:self-start">
+              <div className="pb-2">
                 <Button
                   onClick={() => setProfileMode('edit')}
-                  className="bg-indigo-600 hover:bg-indigo-700 text-white font-semibold px-6 py-3 rounded-xl shadow-lg shadow-indigo-200 transition-all flex items-center gap-2 group/edit"
+                  variant="outline"
+                  className="px-6 py-6 rounded-xl font-bold border-slate-200 hover:border-indigo-200 hover:bg-indigo-50 transition-all flex items-center gap-2 group/edit"
                 >
-                  <Edit className="w-4 h-4 text-white/90 group-hover/edit:text-white transition-colors" />
+                  <Edit className="w-4 h-4 text-slate-500 group-hover/edit:text-indigo-600 transition-colors" />
                   Edit Profile
                 </Button>
               </div>
@@ -463,6 +398,27 @@ export function StudentProfile() {
               <p className="text-slate-600 leading-relaxed text-lg italic">
                 {profileData.description || "No bio added yet. Click edit to tell us about yourself!"}
               </p>
+            </section>
+
+            <section>
+              <h3 className="text-2xl font-black text-slate-900 mb-4 tracking-tight">Certificates</h3>
+              {profileData.certificates.length > 0 ? (
+                <div className="grid gap-4">
+                  {profileData.certificates.map((cert: any, idx: number) => (
+                    <div key={idx} className="flex items-start gap-4 p-5 bg-white border border-slate-100 rounded-2xl hover:border-indigo-100 hover:shadow-lg hover:shadow-indigo-500/5 transition-all group">
+                      <div className="w-12 h-12 bg-indigo-50 rounded-xl flex items-center justify-center text-indigo-600 group-hover:bg-indigo-600 group-hover:text-white transition-colors">
+                        <Award className="w-6 h-6" />
+                      </div>
+                      <div>
+                        <h4 className="font-bold text-slate-900">{cert.name}</h4>
+                        <p className="text-sm text-slate-500 font-medium">{cert.issuer} ΓÇó {cert.date}</p>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              ) : (
+                <p className="text-slate-400 font-medium">No certificates added yet.</p>
+              )}
             </section>
 
             <section>

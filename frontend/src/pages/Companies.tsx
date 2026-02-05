@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import { MapPin, Users, Link as LinkIcon, Star } from 'lucide-react';
+import { ViewCompanyProfile } from '../components/shared/ViewCompanyProfile';
 import './Opportunities.css';
 
 interface Company {
@@ -22,6 +23,7 @@ export const Companies: React.FC = () => {
   const [searchQuery, setSearchQuery] = useState('');
   const [activeTag, setActiveTag] = useState<string>('#All');
   const [sortBy, setSortBy] = useState<string>('Most Recent');
+  const [selectedCompany, setSelectedCompany] = useState<Company | null>(null);
 
   useEffect(() => {
     // Mock data - replace with API call
@@ -101,8 +103,8 @@ export const Companies: React.FC = () => {
               <div className="opp-search-box">
                 <span className="material-symbols-outlined opp-search-icon">search</span>
                 <input
-                  className="opp-search-input"
-                  placeholder="Search companies by name, industry, or location..."
+                  className="opp-search-input pl-12" // Added padding-left to fix overlap
+                  placeholder="Search companies by name or university..."
                   type="text"
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
@@ -234,7 +236,10 @@ export const Companies: React.FC = () => {
                             <LinkIcon className="w-4 h-4" />
                           </a>
                         )}
-                        <button className="opp-apply-btn">
+                        <button
+                          className="opp-apply-btn"
+                          onClick={() => setSelectedCompany(company)}
+                        >
                           View Profile
                         </button>
                       </div>
@@ -279,6 +284,27 @@ export const Companies: React.FC = () => {
           </div>
         </section>
       </main>
+
+      {selectedCompany && (
+        <ViewCompanyProfile
+          company={{
+            id: selectedCompany.id,
+            name: selectedCompany.name,
+            email: 'contact@vertex.com', // Mock
+            phone: 'N/A', // Mock
+            address: selectedCompany.location,
+            size: selectedCompany.size,
+            description: selectedCompany.description,
+            tags: selectedCompany.tags,
+            socialLinks: [
+              ...(selectedCompany.website ? [{ type: 'Website', url: selectedCompany.website }] : []),
+              ...(selectedCompany.linkedin ? [{ type: 'LinkedIn', url: selectedCompany.linkedin }] : [])
+            ],
+            events: [] // Mock
+          }}
+          onClose={() => setSelectedCompany(null)}
+        />
+      )}
     </div>
   );
 };

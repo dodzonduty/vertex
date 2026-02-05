@@ -1,90 +1,69 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Mail, Phone, Github, Linkedin, Award, FolderGit2, Sparkles, CheckCircle2, ExternalLink, MapPin } from 'lucide-react';
 import { useParams } from 'react-router-dom';
+import { getStudentProfile } from '../lib/api/students';
 
 export function PublicStudentProfile() {
   const { id } = useParams();
-  console.log('Viewing student:', id); // Fix unused id
-  const [viewerType] = useState<'student' | 'company' | 'guest'>('guest'); // Use state to prevent TS narrowing
-
+  const [loading, setLoading] = useState(true);
+  const [studentData, setStudentData] = useState<any>(null);
+  const [profilePic, setProfilePic] = useState<string | null>(null);
   const [showContact, setShowContact] = useState(false);
+  const [viewerType] = useState<'student' | 'company' | 'guest'>('guest');
 
-  // Mock student data - in real app this would come from props or API
-  const student = {
-    id: '1',
-    name: 'Alex Johnson',
-    email: 'alex.johnson@university.edu',
-    phone: '+1 (555) 123-4567',
-    university: 'Stanford University',
-    year: 'Junior',
-    jobTitle: 'Full-Stack Developer',
-    description: 'Computer Science student passionate about AI and full-stack development. I love building products that make a real impact on people\'s lives. Currently exploring the intersection of AI and web technologies.',
-    avatar: 'AJ',
-    githubLink: 'https://github.com/alexjohnson',
-    linkedinLink: 'https://linkedin.com/in/alexjohnson',
-    atsScore: 85,
-    certificates: [
-      { name: 'AWS Certified Developer', issuer: 'Amazon Web Services', date: 'Jan 2026' },
-      { name: 'React Professional Certificate', issuer: 'Meta', date: 'Dec 2025' },
-      { name: 'Machine Learning Specialization', issuer: 'Stanford Online', date: 'Nov 2025' }
-    ],
-    projects: [
-      {
-        id: '1',
-        name: 'AI Chat Bot',
-        description: 'Built a conversational AI using NLP and machine learning. Implements context awareness and multi-turn conversations with 95% accuracy.',
-        tags: ['AI/ML', 'Python', 'NLP', 'TensorFlow', 'FastAPI'],
-        verified: true,
-        githubLink: 'https://github.com/alexjohnson/ai-chatbot',
-        strengths: [
-          'Well-documented codebase',
-          'Comprehensive test coverage',
-          'Follows industry best practices'
-        ],
-        improvements: [
-          'Could add deployment instructions',
-          'Consider adding API rate limiting'
-        ]
-      },
-      {
-        id: '2',
-        name: 'E-commerce Platform',
-        description: 'Full-stack marketplace application with payment integration, real-time inventory, and admin dashboard. Handles 1000+ concurrent users.',
-        link: 'https://demo-shop.example.com',
-        tags: ['Full-Stack', 'React', 'Node.js', 'MongoDB', 'Stripe'],
-        verified: false,
-        strengths: [
-          'Complete feature set',
-          'Modern tech stack',
-          'Scalable architecture'
-        ],
-        improvements: [
-          'Add more detailed README',
-          'Include architecture diagrams',
-          'Add unit tests'
-        ]
-      },
-      {
-        id: '3',
-        name: 'Real-Time Collaboration Tool',
-        description: 'WebSocket-based collaboration platform for teams. Features include live cursors, real-time editing, and video chat.',
-        tags: ['WebSocket', 'React', 'TypeScript', 'Redis'],
-        verified: true,
-        githubLink: 'https://github.com/alexjohnson/collab-tool'
+  useEffect(() => {
+    const fetchProfile = async () => {
+      if (!id) return;
+      try {
+        const data = await getStudentProfile(id);
+        setStudentData(data);
+
+        // Fetch profile picture
+        try {
+          const picRes = await fetch(`${import.meta.env.VITE_API_URL || 'http://localhost:8000'}/api/mocks/profile-picture/${id}`);
+          const picData = await picRes.json();
+          setProfilePic(picData.profile_picture_url);
+        } catch (e) { }
+
+      } catch (err) {
+        console.error("Failed to fetch public profile", err);
+      } finally {
+        setLoading(false);
       }
-    ],
-    skills: ['React', 'Node.js', 'TypeScript', 'Python', 'AI/ML', 'MongoDB', 'PostgreSQL', 'Docker'],
-    strengths: [
-      'Strong technical skills in modern frameworks',
-      'Diverse project portfolio demonstrating versatility',
-      'Clear career focus and direction',
-      'Excellent problem-solving abilities'
-    ],
-    improvements: [
-      'Could add more open-source contributions',
-      'Consider gaining enterprise-level experience',
-      'Expand DevOps and cloud infrastructure skills'
-    ]
+    };
+    fetchProfile();
+  }, [id]);
+
+  if (loading) return <div className="flex justify-center p-12">Loading...</div>;
+  if (!studentData) return <div className="flex justify-center p-12">Student not found</div>;
+
+  const student = {
+    id: studentData.student_id,
+    name: studentData.full_name,
+    email: studentData.email,
+    phone: studentData.Email_Address || '',
+    university: studentData.university || '',
+    year: studentData.degree_level || '',
+    jobTitle: studentData.degree_level ? `${studentData.degree_level} Student` : 'Student',
+    description: studentData.bio || '',
+    avatar: studentData.full_name?.[0] || 'S',
+    githubLink: studentData.github_url || '',
+    linkedinLink: studentData.linkedin_url || '',
+    atsScore: studentData.ats_score || 0,
+    certificates: studentData.certificates || [],
+    projects: studentData.projects?.map((p: any) => ({
+      id: p.project_id,
+      name: p.title,
+      description: p.description,
+      tags: p.tags || [],
+      verified: true,
+      githubLink: p.repo_url,
+      strengths: p.strengths || [],
+      improvements: p.weaknesses || []
+    })) || [],
+    skills: studentData.skills || [],
+    strengths: studentData.strengths || [],
+    improvements: studentData.weaknesses || []
   };
 
   return (
@@ -95,8 +74,12 @@ export function PublicStudentProfile() {
           <div className="h-48 bg-gradient-to-r from-indigo-500 to-violet-500"></div>
           <div className="px-8 pb-8">
             <div className="flex flex-col md:flex-row items-start gap-6 -mt-20 mb-6">
-              <div className="w-40 h-40 bg-white rounded-full border-4 border-white shadow-lg flex items-center justify-center text-5xl font-bold text-purple-600">
-                {student.avatar}
+              <div className="w-40 h-40 bg-white rounded-2xl border-4 border-white shadow-lg flex items-center justify-center text-5xl font-bold text-purple-600 overflow-hidden">
+                {profilePic ? (
+                  <img src={profilePic} alt="Avatar" className="w-full h-full object-cover" />
+                ) : (
+                  <span>{student.avatar}</span>
+                )}
               </div>
               <div className="flex-1 md:mt-20">
                 <h1 className="text-4xl font-bold text-gray-900 mb-2">{student.name}</h1>
@@ -190,7 +173,7 @@ export function PublicStudentProfile() {
                     Key Strengths
                   </h4>
                   <ul className="space-y-2">
-                    {student.strengths.map((strength, idx) => (
+                    {student.strengths.map((strength: string, idx: number) => (
                       <li key={idx} className="text-sm text-gray-700 flex items-start gap-2">
                         <span className="text-green-600 mt-0.5">✓</span>
                         <span>{strength}</span>
@@ -201,7 +184,7 @@ export function PublicStudentProfile() {
                 <div>
                   <h4 className="font-semibold text-orange-700 mb-3">Growth Opportunities</h4>
                   <ul className="space-y-2">
-                    {student.improvements.map((improvement, idx) => (
+                    {student.improvements.map((improvement: string, idx: number) => (
                       <li key={idx} className="text-sm text-gray-700 flex items-start gap-2">
                         <span className="text-orange-600 mt-0.5">→</span>
                         <span>{improvement}</span>
@@ -222,7 +205,7 @@ export function PublicStudentProfile() {
             <div className="mb-6">
               <h3 className="text-lg font-semibold text-gray-900 mb-3">Skills & Technologies</h3>
               <div className="flex flex-wrap gap-2">
-                {student.skills.map((skill, idx) => (
+                {student.skills.map((skill: string, idx: number) => (
                   <span key={idx} className="px-4 py-2 bg-purple-50 text-purple-700 text-sm font-medium rounded-full border border-purple-200">
                     {skill}
                   </span>
@@ -237,7 +220,7 @@ export function PublicStudentProfile() {
                 Certificates ({student.certificates.length})
               </h3>
               <div className="grid md:grid-cols-2 gap-4">
-                {student.certificates.map((cert, idx) => (
+                {student.certificates.map((cert: any, idx: number) => (
                   <div key={idx} className="flex items-start gap-3 p-4 border border-gray-200 rounded-lg hover:shadow-md transition-shadow">
                     <div className="w-12 h-12 bg-purple-100 rounded-lg flex items-center justify-center flex-shrink-0">
                       <Award className="w-6 h-6 text-purple-600" />
@@ -261,7 +244,7 @@ export function PublicStudentProfile() {
             Projects ({student.projects.length})
           </h3>
           <div className="space-y-6">
-            {student.projects.map((project) => (
+            {student.projects.map((project: any) => (
               <div key={project.id} className="border border-gray-200 rounded-lg p-6 hover:shadow-md transition-shadow">
                 <div className="flex items-start justify-between mb-3">
                   <div className="flex-1">
@@ -280,7 +263,7 @@ export function PublicStudentProfile() {
 
                 {/* Tags */}
                 <div className="flex flex-wrap gap-2 mb-4">
-                  {project.tags.map((tag, idx) => (
+                  {project.tags.map((tag: string, idx: number) => (
                     <span key={idx} className="px-3 py-1 bg-purple-50 text-purple-700 text-sm rounded-full border border-purple-200">
                       {tag}
                     </span>
@@ -326,7 +309,7 @@ export function PublicStudentProfile() {
                         <div>
                           <h6 className="text-xs font-semibold text-green-700 mb-2">Strengths</h6>
                           <ul className="space-y-1">
-                            {project.strengths.map((strength, idx) => (
+                            {project.strengths.map((strength: string, idx: number) => (
                               <li key={idx} className="text-xs text-gray-700 flex items-start gap-1">
                                 <span className="text-green-600 mt-0.5">✓</span>
                                 <span>{strength}</span>
@@ -339,7 +322,7 @@ export function PublicStudentProfile() {
                         <div>
                           <h6 className="text-xs font-semibold text-orange-700 mb-2">Improvements</h6>
                           <ul className="space-y-1">
-                            {project.improvements.map((improvement, idx) => (
+                            {project.improvements.map((improvement: string, idx: number) => (
                               <li key={idx} className="text-xs text-gray-700 flex items-start gap-1">
                                 <span className="text-orange-600 mt-0.5">→</span>
                                 <span>{improvement}</span>

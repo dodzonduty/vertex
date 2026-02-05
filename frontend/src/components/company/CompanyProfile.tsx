@@ -1,12 +1,14 @@
 import { useState, useEffect } from 'react';
-import { Mail, Phone, MapPin, Building2, Link as LinkIcon, Users, Edit, Sparkles, CheckCircle2, Loader2 } from 'lucide-react';
+import { Mail, Phone, MapPin, Building2, Link as LinkIcon, Users, Edit, Sparkles, CheckCircle2, Loader2, Upload } from 'lucide-react';
 import { getCompanyProfile, updateCompanyProfile } from '../../lib/api/companies';
+import { getUserData } from '../../lib/api/config';
 import { toast } from 'sonner';
 
 export function CompanyProfile() {
   const [profileMode, setProfileMode] = useState<'view' | 'edit'>('view');
 
   const [loading, setLoading] = useState(true);
+  const [isUploading, setIsUploading] = useState(false);
   const [companyData, setCompanyData] = useState({
     name: '',
     email: '',
@@ -16,8 +18,36 @@ export function CompanyProfile() {
     phone: '',
     description: '',
     tags: [] as string[],
-    socialLinks: [] as { type: string; url: string }[]
+    socialLinks: [] as { type: string; url: string }[],
+    profilePicture: null
   });
+
+  const handleUploadLogo = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    setIsUploading(true);
+    const userData = getUserData();
+    const userId = userData?.user_id || companyData.email || 'me';
+
+    const formData = new FormData();
+    formData.append('file', file);
+
+    try {
+      const response = await fetch(`${import.meta.env.VITE_API_URL || 'http://localhost:8000'}/api/mocks/profile-picture/upload/${userId}`, {
+        method: 'POST',
+        body: formData
+      });
+      const data = await response.json();
+      setCompanyData(prev => ({ ...prev, profilePicture: data.profile_picture_url }));
+      toast.success("Logo updated!");
+    } catch (error) {
+      console.error("Upload failed", error);
+      toast.error("Upload failed");
+    } finally {
+      setIsUploading(false);
+    }
+  };
 
   useEffect(() => {
     loadProfile();
@@ -25,7 +55,19 @@ export function CompanyProfile() {
 
   const loadProfile = async () => {
     try {
+      const userData = getUserData();
       const data = await getCompanyProfile();
+
+      // Fetch profile picture
+      let picUrl = null;
+      if (userData?.user_id || data.email) {
+        try {
+          const picRes = await fetch(`${import.meta.env.VITE_API_URL || 'http://localhost:8000'}/api/mocks/profile-picture/${userData?.user_id || data.email}`);
+          const picData = await picRes.json();
+          picUrl = picData.profile_picture_url;
+        } catch (e) { }
+      }
+
       const links = (data as any).social_links ?? data.socialLinks ?? [];
       setCompanyData({
         name: data.name || '',
@@ -36,7 +78,8 @@ export function CompanyProfile() {
         phone: data.phone || '',
         description: data.description || '',
         tags: data.tags || [],
-        socialLinks: Array.isArray(links) ? links : []
+        socialLinks: Array.isArray(links) ? links : [],
+        profilePicture: picUrl
       });
     } catch (error) {
       console.error('Failed to load profile:', error);
@@ -55,7 +98,7 @@ export function CompanyProfile() {
         phone: companyData.phone || undefined,
         address: companyData.address || undefined,
         size: companyData.size || undefined,
-        social_links: companyData.socialLinks.filter((l) => l.url.trim()).map((l) => ({ type: l.type, url: l.url }))
+        socialLinks: companyData.socialLinks.filter((l) => l.url.trim()).map((l) => ({ type: l.type, url: l.url }))
       });
       toast.success('Profile updated!');
       setProfileMode('view');
@@ -104,9 +147,26 @@ export function CompanyProfile() {
 
         <div className="px-8 pb-8">
           <div className="flex flex-col md:flex-row items-center md:items-end gap-6 -mt-12 relative z-10">
-            <div className="w-32 h-32 bg-white rounded-2xl border-4 border-white shadow-2xl flex items-center justify-center text-4xl font-extrabold text-blue-600 relative overflow-hidden group/logo">
-              <div className="absolute inset-0 bg-blue-50 transition-colors group-hover/logo:bg-blue-100" />
-              <Building2 className="w-12 h-12 relative z-10" />
+            <div className="relative group/logo">
+              <div className="w-32 h-32 bg-white rounded-2xl border-4 border-white shadow-2xl flex items-center justify-center text-4xl font-extrabold text-blue-600 relative overflow-hidden">
+                {companyData.profilePicture ? (
+                  <img src={companyData.profilePicture} alt="Logo" className="w-full h-full object-cover" />
+                ) : (
+                  <>
+                    <div className="absolute inset-0 bg-blue-50 transition-colors group-hover/logo:bg-blue-100" />
+                    <Building2 className="w-12 h-12 relative z-10" />
+                  </>
+                )}
+                {isUploading && (
+                  <div className="absolute inset-0 bg-white/60 backdrop-blur-sm flex items-center justify-center z-20">
+                    <Loader2 className="w-8 h-8 text-blue-600 animate-spin" />
+                  </div>
+                )}
+              </div>
+              <label className="absolute -bottom-2 -right-2 w-10 h-10 bg-blue-600 rounded-xl shadow-lg flex items-center justify-center cursor-pointer hover:bg-blue-700 transition-all border-4 border-white z-30 opacity-0 group-hover/logo:opacity-100 scale-90 group-hover/logo:scale-100">
+                <Upload className="w-5 h-5 text-white" />
+                <input type="file" className="hidden" accept="image/*" onChange={handleUploadLogo} disabled={isUploading} />
+              </label>
             </div>
 
             <div className="flex-1 text-center md:text-left mb-2">

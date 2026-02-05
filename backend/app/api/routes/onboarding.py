@@ -8,7 +8,7 @@ from typing import List, Optional
 from datetime import datetime
 
 from app.db.session import get_db
-from app.models import User, Student, Company, SocialLink, Project
+from app.models import User, Student, Company, SocialLink, Project, CV, AITask, AIPrompt, AIAnalysis
 from app.core.security import get_password_hash, create_access_token
 from app.schemas.auth import TokenResponse
 from pydantic import BaseModel, EmailStr
@@ -26,6 +26,10 @@ class SocialLinkCreate(BaseModel):
 class ProjectCreate(BaseModel):
     title: str
     repo_url: Optional[str] = None
+    description: Optional[str] = None
+    tags: Optional[List[str]] = None
+    strengths: Optional[List[str]] = None
+    weaknesses: Optional[List[str]] = None
 
 
 class StudentOnboardingRequest(BaseModel):
@@ -41,6 +45,7 @@ class StudentOnboardingRequest(BaseModel):
     # Optional fields
     social_links: Optional[List[SocialLinkCreate]] = None
     projects: Optional[List[ProjectCreate]] = None
+    parsed_cv: Optional[dict] = None
 
 
 class CompanySocialLinkCreate(BaseModel):
@@ -116,6 +121,15 @@ def onboard_student(
             Email_Address=request.email  # Duplicate for compatibility
         )
         db.add(student)
+
+        # Create CV record if parsed data is provided (this enables bio/ats properties)
+        if request.parsed_cv:
+            cv = CV(
+                cv_id=f"CV-{uuid.uuid4().hex[:8]}",
+                student_id=student_id,
+                parsed_json=request.parsed_cv
+            )
+            db.add(cv)
         
         # Create Social Links if provided
         if request.social_links:
@@ -130,14 +144,43 @@ def onboard_student(
         
         # Create Projects if provided
         if request.projects:
+            # Ensure task/prompt exist for onboarding projects
+            task = db.query(AITask).filter(AITask.task_code == "ONBOARDING").first()
+            if not task:
+                task = AITask(task_id="T-ONBOARD", task_code="ONBOARDING", description="Extracted during onboarding")
+                db.add(task)
+            
+            prompt = db.query(AIPrompt).filter(AIPrompt.prompt_id == "P-ONBOARD").first()
+            if not prompt:
+                prompt = AIPrompt(prompt_id="P-ONBOARD", task_id="T-ONBOARD", prompt_text="CV Parsing during signup")
+                db.add(prompt)
+
             for proj_data in request.projects:
+                p_id = f"P-{uuid.uuid4().hex[:8]}"
                 project = Project(
-                    project_id=f"P-{uuid.uuid4().hex[:8]}",
+                    project_id=p_id,
                     owner_id=student_id,
                     title=proj_data.title,
                     repo_url=proj_data.repo_url
                 )
                 db.add(project)
+
+                # Store rich project details in AIAnalysis
+                if proj_data.description or proj_data.tags:
+                    analysis = AIAnalysis(
+                        analysis_id=f"A-{uuid.uuid4().hex[:8]}",
+                        task_id=task.task_id,
+                        prompt_id=prompt.prompt_id,
+                        entity_type="project",
+                        entity_id=p_id,
+                        output_json={
+                            "description": proj_data.description,
+                            "tags": proj_data.tags or [],
+                            "strengths": proj_data.strengths or [],
+                            "weaknesses": proj_data.weaknesses or []
+                        }
+                    )
+                    db.add(analysis)
         
         # Commit transaction
         db.commit()

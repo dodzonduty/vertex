@@ -32,81 +32,86 @@ export function AuthenticatedLanding({ onLogout, userType }: AuthenticatedLandin
     return (
         <div className="min-h-screen bg-white font-sans text-slate-900">
             {/* Header */}
-            <header className="header header-solid z-50">
+            <header className="header header-solid">
                 <div className="header-container">
-                    <Link to="/" className="logo-area">
-                        <div className="logo-icon-wrapper">
-                            <img
-                                alt="Vertex Logo"
-                                className="logo-img"
-                                src="https://lh3.googleusercontent.com/aida-public/AB6AXuDruz-Z1rxJw2B99u929C03U08fcvdxSK_JROTw_OzxOSsBmN5XzbwguREzreQuwCd4E7AbD8loZK5nPz9oXGwKxDzCFurTlEI1bH3irhCJkHZzVjUE68rhJYJY98VFJbXhXkEHb3hn_iYaF1rQNa59tTo8Y3gOV6canfBt7zn-KKQHlBggral3oWAH6w6vYHO-huFlrtFDuLD9wvwmetKoYCj-3cXISGEQJDtXhFTo7pP8j1iredjzJpusDMEqGs-IVY0k2K8LxPY"
-                            />
-                        </div>
+                    {/* Logo Area */}
+                    <div
+                        className="logo-link cursor-pointer"
+                        onClick={() => setActiveTab('profile')}
+                    >
+                        <img
+                            alt="Vertex Logo"
+                            className="logo-img"
+                            src="https://lh3.googleusercontent.com/aida-public/AB6AXuDruz-Z1rxJw2B99u929C03U08fcvdxSK_JROTw_OzxOSsBmN5XzbwguREzreQuwCd4E7AbD8loZK5nPz9oXGwKxDzCFurTlEI1bH3irhCJkHZzVjUE68rhJYJY98VFJbXhXkEHb3hn_iYaF1rQNa59tTo8Y3gOV6canfBt7zn-KKQHlBggral3oWAH6w6vYHO-huFlrtFDuLD9wvwmetKoYCj-3cXISGEQJDtXhFTo7pP8j1iredjzJpusDMEqGs-IVY0k2K8LxPY"
+                        />
                         <span className="logo-text">Vertex</span>
-                        <span className={`ml-2 px-3 py-1 text-[10px] font-black uppercase tracking-widest rounded-full border backdrop-blur-sm ${userType === 'student'
-                            ? 'bg-indigo-50/50 text-indigo-600 border-indigo-100/50'
-                            : 'bg-blue-50/50 text-blue-600 border-blue-100/50'
+                        <span className={`ml-3 px-2.5 py-0.5 text-[10px] font-bold uppercase tracking-widest rounded-full border ${userType === 'student'
+                            ? 'bg-indigo-50 text-indigo-600 border-indigo-100'
+                            : 'bg-blue-50 text-blue-600 border-blue-100'
                             }`}>
                             {userType}
                         </span>
-                    </Link>
-                    <div className="border-b border-slate-200 sticky top-20 bg-white z-40">
-                        <div className="max-w-7xl mx-auto px-4">
-                            <div className="flex gap-8 overflow-x-auto no-scrollbar">
-                                <TabButton
-                                    icon={<User className="w-4 h-4" />}
-                                    label="My Profile"
-                                    active={activeTab === 'profile'}
-                                    onClick={() => setActiveTab('profile')}
-                                />
-                                {userType === 'company' ? (
-                                    <>
-                                        <TabButton
-                                            icon={<Sparkles className="w-4 h-4" />}
-                                            label="Events"
-                                            active={activeTab === 'opportunities'}
-                                            onClick={() => setActiveTab('opportunities')}
-                                        />
-                                        <TabButton
-                                            icon={<Users className="w-4 h-4" />}
-                                            label="Hiring"
-                                            active={activeTab === 'profiles'}
-                                            onClick={() => setActiveTab('profiles')}
-                                        />
-                                    </>
-                                ) : (
-                                    <>
-                                        <TabButton
-                                            icon={<Sparkles className="w-4 h-4" />}
-                                            label="Opportunities"
-                                            active={activeTab === 'opportunities'}
-                                            onClick={() => setActiveTab('opportunities')}
-                                        />
-                                        <TabButton
-                                            icon={<Users className="w-4 h-4" />}
-                                            label="Profiles"
-                                            active={activeTab === 'profiles'}
-                                            onClick={() => setActiveTab('profiles')}
-                                        />
-                                    </>
-                                )}
-                            </div>
-                        </div>
                     </div>
-                    <div className="flex items-center gap-6">
+
+                    {/* Navigation Tabs */}
+                    <nav className="desktop-nav">
+                        <button
+                            onClick={() => setActiveTab('profile')}
+                            className={`nav-link ${activeTab === 'profile' ? 'text-slate-900 after:w-full' : ''}`}
+                        >
+                            My Profile
+                        </button>
+
+                        {userType === 'company' ? (
+                            <>
+                                <button
+                                    onClick={() => setActiveTab('opportunities')}
+                                    className={`nav-link ${activeTab === 'opportunities' ? 'text-slate-900 after:w-full' : ''}`}
+                                >
+                                    Events
+                                    <span className="header-badge header-badge-purple">Active</span>
+                                </button>
+                                <button
+                                    onClick={() => setActiveTab('profiles')}
+                                    className={`nav-link ${activeTab === 'profiles' ? 'text-slate-900 after:w-full' : ''}`}
+                                >
+                                    Hiring
+                                </button>
+                            </>
+                        ) : (
+                            <>
+                                <button
+                                    onClick={() => setActiveTab('opportunities')}
+                                    className={`nav-link ${activeTab === 'opportunities' ? 'text-slate-900 after:w-full' : ''}`}
+                                >
+                                    Opportunities
+                                    <span className="header-badge header-badge-blue">New</span>
+                                </button>
+                                <button
+                                    onClick={() => setActiveTab('profiles')}
+                                    className={`nav-link ${activeTab === 'profiles' ? 'text-slate-900 after:w-full' : ''}`}
+                                >
+                                    Profiles
+                                </button>
+                            </>
+                        )}
+                    </nav>
+
+                    {/* Right Side Actions */}
+                    <div className="auth-buttons flex items-center gap-4">
                         <button
                             onClick={onLogout}
-                            className="text-sm font-bold text-slate-500 hover:text-indigo-600 transition-colors"
+                            className="text-sm font-semibold text-slate-500 hover:text-slate-800 transition-colors"
                         >
                             Log out
                         </button>
+
                         <button
                             onClick={() => setActiveTab('profile')}
-                            className={`w-10 h-10 rounded-2xl flex items-center justify-center text-white font-black text-sm shadow-lg ring-2 ring-white transition-all hover:scale-105 cursor-pointer ${userType === 'student' ? 'bg-indigo-600 shadow-indigo-200' : 'bg-blue-600 shadow-blue-200'
+                            className={`w-9 h-9 rounded-full flex items-center justify-center text-white font-bold text-xs shadow-md ring-2 ring-white transition-transform hover:scale-105 ${userType === 'student' ? 'bg-indigo-600' : 'bg-blue-600'
                                 }`}
-                            title="View Profile"
                         >
-                            {userType === 'student' ? 'AJ' : <Building2 className="w-5 h-5" />}
+                            {userType === 'student' ? 'AJ' : <Building2 className="w-4 h-4" />}
                         </button>
                     </div>
                 </div>
