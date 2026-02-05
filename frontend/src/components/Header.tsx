@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
-import { getUserData } from '../lib/api/config';
+import { apiRequest, getUserData } from '../lib/api/config';
 import { logout } from '../lib/api/auth';
 import { User, LogOut, LayoutDashboard, Building2 } from 'lucide-react';
 import './Header.css';
@@ -15,15 +15,13 @@ export const Header: React.FC = () => {
     setUser(userData);
 
     if (userData?.user_id) {
-      fetch(`${import.meta.env.VITE_API_URL || 'http://localhost:8000'}/api/mocks/profile-picture/${userData.user_id}`)
-        .then(res => res.json())
+      apiRequest<{ profile_picture_url: string }>(`/api/mocks/profile-picture/${userData.user_id}`)
         .then(data => setProfilePic(data.profile_picture_url))
         .catch(() => { });
     }
 
     // Attempt API call, fallback to 101 if backend not running (mock mode)
-    fetch(`${import.meta.env.VITE_API_URL || 'http://localhost:8000'}/api/opportunities/count`)
-      .then(res => res.json())
+    apiRequest<{ count: number }>('/api/opportunities/count')
       .then(data => setCount(data.count))
       .catch(() => setCount(101)); // Fallback for dev without backend
   }, []);

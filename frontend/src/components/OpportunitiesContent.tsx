@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { apiRequest } from '../lib/api/config';
 import './Opportunities.css';
 
 export const OpportunitiesContent: React.FC = () => {
@@ -22,8 +23,7 @@ export const OpportunitiesContent: React.FC = () => {
     // Fetch all widget data when activeTab changes
     React.useEffect(() => {
         // 1. Tags
-        fetch(`/api/tags?type=${activeTab}`)
-            .then(res => res.json())
+        apiRequest<{ tags: string[] }>(`/api/tags?type=${activeTab}`)
             .then(data => {
                 if (data.tags) {
                     setTags(data.tags);
@@ -36,8 +36,7 @@ export const OpportunitiesContent: React.FC = () => {
             });
 
         // 2. Trending
-        fetch(`/api/trending?type=${activeTab}`)
-            .then(res => res.json())
+        apiRequest<{ tag: string, count: number }[]>(`/api/trending?type=${activeTab}`)
             .then(data => setTrendingTags(data))
             .catch(err => {
                 console.error("Failed to fetch trending", err);
@@ -49,8 +48,7 @@ export const OpportunitiesContent: React.FC = () => {
             });
 
         // 3. Perfect Match
-        fetch(`/api/perfect-match?type=${activeTab}`)
-            .then(res => res.json())
+        apiRequest<{ title: string, match: string, tech: string }[]>(`/api/perfect-match?type=${activeTab}`)
             .then(data => setPerfectMatches(data))
             .catch(err => {
                 console.error("Failed to fetch perfect matches", err);
@@ -62,8 +60,7 @@ export const OpportunitiesContent: React.FC = () => {
             });
 
         // 4. Vertex Connect
-        fetch(`/api/vertex-connect?type=${activeTab}`)
-            .then(res => res.json())
+        apiRequest<{ context: string, avatars: string[], more_count: number }[]>(`/api/vertex-connect?type=${activeTab}`)
             .then(data => setNetworkData(data))
             .catch(err => {
                 console.error("Failed to fetch vertex connect", err);
@@ -94,8 +91,7 @@ export const OpportunitiesContent: React.FC = () => {
         params.append('type', activeTab);
         activeTags.forEach(tag => params.append('tags', tag));
 
-        fetch(`/api/opportunities-list?${params.toString()}`)
-            .then(res => res.json())
+        apiRequest<{ results: any[], count: number }>(`/api/opportunities-list?${params.toString()}`)
             .then(data => {
                 if (data.results) {
                     setOppList(data.results);

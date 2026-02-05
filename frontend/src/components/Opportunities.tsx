@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Calendar, MapPin, ArrowUpRight } from 'lucide-react';
+import { apiRequest } from '../lib/api/config';
 import './Opportunities.css';
 
 interface Opportunity {
@@ -56,8 +57,7 @@ export const Opportunities: React.FC = () => {
   const [opportunities, setOpportunities] = useState<Opportunity[]>(FALLBACK_OPPORTUNITIES);
 
   useEffect(() => {
-    fetch('/api/opportunities/top')
-      .then(res => res.json())
+    apiRequest<Opportunity[]>('/api/opportunities/top')
       .then(data => {
         if (Array.isArray(data) && data.length > 0) {
           setOpportunities(data);

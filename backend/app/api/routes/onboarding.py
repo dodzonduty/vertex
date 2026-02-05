@@ -3,6 +3,7 @@ Onboarding API routes
 Handles user registration and onboarding for students and companies
 """
 from fastapi import APIRouter, Depends, HTTPException, status
+from sqlalchemy import func
 from sqlalchemy.orm import Session
 from typing import List, Optional
 from datetime import datetime
@@ -76,19 +77,10 @@ def onboard_student(
     """
     Student onboarding endpoint
     Creates User + Student + SocialLinks + Projects in one transaction
-    
-    Args:
-        request: Student onboarding data
-        db: Database session
-        
-    Returns:
-        Access token and user information
-        
-    Raises:
-        HTTPException: If email already exists
     """
-    # Check if email already exists
-    existing_user = db.query(User).filter(User.email == request.email).first()
+    # Check if email already exists (Case-insensitive check)
+    search_email = request.email.lower().strip()
+    existing_user = db.query(User).filter(func.lower(User.email) == search_email).first()
     if existing_user:
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
@@ -104,7 +96,7 @@ def onboard_student(
         # Create User
         user = User(
             user_id=user_id,
-            email=request.email,
+            email=search_email, # Standardize to lowercase
             password_hash=get_password_hash(request.password),
             role="student",
             status="active"
@@ -118,7 +110,7 @@ def onboard_student(
             full_name=request.full_name,
             university=request.university,
             degree_level=request.degree_level,
-            Email_Address=request.email  # Duplicate for compatibility
+            Email_Address=search_email  # Standardize
         )
         db.add(student)
 
@@ -215,19 +207,10 @@ def onboard_company(
     """
     Company onboarding endpoint
     Creates User + Company in one transaction
-    
-    Args:
-        request: Company onboarding data
-        db: Database session
-        
-    Returns:
-        Access token and user information
-        
-    Raises:
-        HTTPException: If email already exists
     """
-    # Check if email already exists
-    existing_user = db.query(User).filter(User.email == request.email).first()
+    # Check if email already exists (Case-insensitive check)
+    search_email = request.email.lower().strip()
+    existing_user = db.query(User).filter(func.lower(User.email) == search_email).first()
     if existing_user:
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
@@ -243,7 +226,7 @@ def onboard_company(
         # Create User
         user = User(
             user_id=user_id,
-            email=request.email,
+            email=search_email, # Standardize to lowercase
             password_hash=get_password_hash(request.password),
             role="company",
             status="active"

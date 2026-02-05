@@ -2,6 +2,7 @@
 Authentication API routes
 """
 from fastapi import APIRouter, Depends, HTTPException, status
+from sqlalchemy import func
 from sqlalchemy.orm import Session
 
 from app.db.session import get_db
@@ -32,8 +33,9 @@ def login(
     Raises:
         HTTPException: If credentials are invalid
     """
-    # Find user by email
-    user = db.query(User).filter(User.email == credentials.email).first()
+    # Find user by email (Case-insensitive)
+    search_email = credentials.email.lower().strip()
+    user = db.query(User).filter(func.lower(User.email) == search_email).first()
     
     if not user:
         raise HTTPException(

@@ -1,4 +1,5 @@
 from fastapi import APIRouter, Depends, HTTPException, status
+from sqlalchemy import func
 from sqlalchemy.orm import Session, joinedload
 import uuid
 import logging
@@ -33,57 +34,6 @@ def _social_links_from_user(user: User) -> list:
         {"type": _infer_link_type(link.url), "url": link.url}
         for link in user.social_links if link.url
     ]
-
-@router.post("/signup", response_model=CompanyResponse, status_code=status.HTTP_201_CREATED)
-def signup_company(
-    company_in: CompanyCreate,
-    db: Session = Depends(get_db)
-):
-    """
-    Create a new company account and profile
-    """
-    # Check if user already exists
-    user = db.query(User).filter(User.email == company_in.email).first()
-    if user:
-        raise HTTPException(
-            status_code=status.HTTP_400_BAD_REQUEST,
-            detail="User with this email already exists."
-        )
-    
-    # Create User record
-    user_id = f"U-{uuid.uuid4().hex[:8]}"
-    company_id = f"C-{uuid.uuid4().hex[:8]}"
-    
-    new_user = User(
-        user_id=user_id,
-        email=company_in.email,
-        password_hash=get_password_hash(company_in.password),
-        role="company",
-        status="active"
-    )
-    db.add(new_user)
-    
-    # Create Company record
-    new_company = Company(
-        company_id=company_id,
-        user_id=user_id,
-        name=company_in.name,
-        industry=company_in.industry,
-        description=company_in.description,
-        verified=False
-    )
-    db.add(new_company)
-    
-    try:
-        db.commit()
-        db.refresh(new_company)
-        # Manually attach email for response model since it's on the User relationship
-        new_company.email = new_user.email
-        return new_company
-    except Exception as e:
-        db.rollback()
-        logger.error(f"Error creating company: {e}")
-        raise HTTPException(status_code=500, detail=f"Failed to create account: {str(e)}")
 
 @router.get("/me", response_model=CompanyResponse)
 def get_my_company_profile(

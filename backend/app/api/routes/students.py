@@ -1,4 +1,5 @@
 from fastapi import APIRouter, Depends, HTTPException, status, File, UploadFile
+from sqlalchemy import func
 from sqlalchemy.orm import Session, joinedload
 from typing import List
 import logging
@@ -227,71 +228,6 @@ def list_students(
     """
     students = db.query(Student).offset(skip).limit(limit).all()
     return students
-@router.post("/signup", response_model=StudentResponse, status_code=status.HTTP_201_CREATED)
-def signup_student(
-    student_in: StudentCreate,
-    db: Session = Depends(get_db)
-):
-    """
-    Create a new student user and profile
-    """
-    # Check if user already exists
-    user = db.query(User).filter(User.email == student_in.email).first()
-    if user:
-        raise HTTPException(
-            status_code=status.HTTP_400_BAD_REQUEST,
-            detail="User already exists. If you are trying to complete your profile, please use the correct password or contact support."
-        )
-    
-    # Create User record
-    import uuid
-    user_id = f"U-{uuid.uuid4().hex[:8]}"
-    student_id = f"S-{uuid.uuid4().hex[:8]}"
-    
-    new_user = User(
-        user_id=user_id,
-        email=student_in.email,
-        password_hash=get_password_hash(student_in.password),
-        role="student",
-        status="active"
-    )
-    db.add(new_user)
-    
-    # Create Student record
-    new_student = Student(
-        student_id=student_id,
-        user_id=user_id,
-        full_name=student_in.full_name,
-        university=student_in.university,
-        degree_level=student_in.degree_level,
-        Email_Address=student_in.Email_Address or student_in.email
-    )
-    db.add(new_student)
-
-    # Create Social Links if provided
-    from app.models import SocialLink
-    if student_in.github_url:
-        gh_link = SocialLink(
-            social_link=f"SL-{uuid.uuid4().hex[:8]}",
-            user_id=user_id,
-            url=student_in.github_url,
-            username=student_in.github_url.split('/')[-1]
-        )
-        db.add(gh_link)
-    
-    if student_in.linkedin_url:
-        li_link = SocialLink(
-            social_link=f"SL-{uuid.uuid4().hex[:8]}",
-            user_id=user_id,
-            url=student_in.linkedin_url,
-            username=student_in.linkedin_url.split('/')[-1]
-        )
-        db.add(li_link)
-    
-    db.commit()
-    db.refresh(new_student)
-    return new_student
-
 
 @router.patch("/me", response_model=StudentResponse)
 def update_my_profile(
