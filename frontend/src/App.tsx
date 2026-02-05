@@ -5,8 +5,8 @@ import { LandingPage } from './pages/LandingPage';
 import { SignIn } from './pages/SignIn';
 import { SignUp } from './pages/SignUp';
 import { AuthenticatedLanding } from './pages/AuthenticatedLanding';
-import { StudentDashboard } from './pages/StudentDashboard';
-import { CompanyDashboard } from './pages/CompanyDashboard';
+// import { StudentDashboard } from './pages/StudentDashboard';
+// import { CompanyDashboard } from './pages/CompanyDashboard';
 import { PublicStudentProfile } from './pages/PublicStudentProfile';
 import { PublicCompanyProfile } from './pages/PublicCompanyProfile';
 import Onboarding from './pages/Onboarding';
@@ -38,15 +38,15 @@ function App() {
         <Route path="/onboarding/company" element={<MainLayout><CompanyOnboarding /></MainLayout>} />
         <Route path="/home" element={<AuthenticatedLanding onLogout={handleLogout} userType="student" />} />
         <Route path="/student-home" element={<AuthenticatedLanding onLogout={handleLogout} userType="student" />} />
-        <Route path="/student-dashboard" element={<StudentDashboard onLogout={handleLogout} />} />
-        <Route path="/company-dashboard" element={<CompanyDashboard onLogout={handleLogout} />} />
+        {/* <Route path="/student-dashboard" element={<StudentDashboard onLogout={handleLogout} />} />
+        <Route path="/company-dashboard" element={<CompanyDashboard onLogout={handleLogout} />} /> */}
         <Route path="/company-home" element={<AuthenticatedLanding onLogout={handleLogout} userType="company" />} />
-        <Route path="/student/profile/:id" element={<MainLayout><PublicStudentProfile /></MainLayout>} />
-        <Route path="/company/profile/:id" element={<MainLayout><PublicCompanyProfile /></MainLayout>} />
-        <Route path="/opportunities" element={<MainLayout><Opportunities /></MainLayout>} />
-        <Route path="/opportunities/:id" element={<MainLayout><OpportunityProfile /></MainLayout>} />
-        <Route path="/companies" element={<MainLayout><Companies /></MainLayout>} />
-        <Route path="/profiles" element={<MainLayout><StudentDirectory /></MainLayout>} />
+        <Route path="/student/profile/:id" element={<PublicStudentProfile />} />
+        <Route path="/company/profile/:id" element={<PublicCompanyProfile />} />
+        <Route path="/opportunities" element={<Opportunities />} />
+        <Route path="/opportunities/:id" element={<OpportunityProfile />} />
+        <Route path="/companies" element={<Companies />} />
+        <Route path="/profiles" element={<StudentDirectory />} />
         <Route path="*" element={<MainLayout><NotFound /></MainLayout>} />
       </Routes>
     </BrowserRouter>
