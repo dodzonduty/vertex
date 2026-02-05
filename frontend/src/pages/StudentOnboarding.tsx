@@ -2,7 +2,7 @@ import { useState, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Upload, Sparkles, CheckCircle2, ArrowRight, Loader2, Github, Linkedin, Plus, X, Mail, Lock, User as UserIcon } from 'lucide-react';
 import { apiRequest, setAuthToken, setUserData } from '../lib/api/config';
-import { signupStudent, analyzeCV, analyzeGitHub, updateStudentProfile } from '../lib/api/students';
+import { signupStudent, analyzeCV, updateStudentProfile, listGitHubRepos, analyzeGitHubBatch } from '../lib/api/students';
 import { login } from '../lib/api/auth';
 import { Button } from '../components/ui/button';
 import { Card, CardHeader, CardTitle, CardDescription, CardContent, CardFooter } from '../components/ui/card';
@@ -52,8 +52,15 @@ export default function StudentOnboarding() {
     const [step, setStep] = useState<OnboardingStep>('choice');
     const [loading, setLoading] = useState(false);
     const [isParsingGitHub, setIsParsingGitHub] = useState(false);
+<<<<<<< HEAD
     const [profilePic, setProfilePic] = useState<string | null>(null);
     const [rawCVResponse, setRawCVResponse] = useState<any>(null);
+=======
+    const [showRepoSelector, setShowRepoSelector] = useState(false);
+    const [availableRepos, setAvailableRepos] = useState<any[]>([]);
+    const [selectedRepos, setSelectedRepos] = useState<string[]>([]);
+    const [isFetchingRepos, setIsFetchingRepos] = useState(false);
+>>>>>>> 3ac4dd978fc1c3a7e5378add24240a618aec9217
     const [studentData, setStudentData] = useState<StudentData>({
         full_name: '',
         email: '',
@@ -132,30 +139,71 @@ export default function StudentOnboarding() {
 
     const handleGitHubExtraction = async () => {
         if (!studentData.github_url) {
-            toast.error('Please enter a GitHub URL first');
+            toast.error('Please enter your GitHub profile URL first');
             return;
         }
-        setIsParsingGitHub(true);
+
+        setIsFetchingRepos(true);
         try {
-            const project = await analyzeGitHub(studentData.github_url);
-            setStudentData(prev => ({
-                ...prev,
-                projects: [...prev.projects, {
-                    id: Date.now().toString(),
-                    title: project.title,
-                    description: project.description,
-                    tags: project.tags || [],
-                    repo_url: project.repo_url,
-                    strengths: project.strengths || [],
-                    weaknesses: project.improvements || project.weaknesses || []
-                }]
-            }));
-            toast.success('Project Synced!', {
-                description: `Extracted ${project.title} from GitHub.`,
+            const response = await listGitHubRepos(studentData.github_url);
+            setAvailableRepos(response.repos);
+            setShowRepoSelector(true);
+            toast.success(`Found ${response.count} repositories!`, {
+                description: `Select which projects to import from @${response.username}`
             });
         } catch (error) {
-            console.error('GitHub extraction error:', error);
-            toast.error('Failed to extract GitHub project');
+            console.error('GitHub repos fetch error:', error);
+            toast.error('Failed to fetch repositories', {
+                description: 'Make sure you entered a valid GitHub profile URL'
+            });
+        } finally {
+            setIsFetchingRepos(false);
+        }
+    };
+
+    const handleImportSelected = async () => {
+        if (selectedRepos.length === 0) {
+            toast.error('Please select at least one repository');
+            return;
+        }
+
+        setIsParsingGitHub(true);
+        toast.info(`Analyzing ${selectedRepos.length} repositories with AI...`);
+
+        try {
+            const response = await analyzeGitHubBatch(selectedRepos);
+            const successfulProjects = response.results
+                .filter((r: any) => r.success)
+                .map((r: any) => ({
+                    id: Date.now() + Math.random(),
+                    title: r.data.title,
+                    description: r.data.description,
+                    tags: r.data.tags || [],
+                    repo_url: r.data.repo_url,
+                    strengths: r.data.strengths || [],
+                    weaknesses: r.data.improvements || r.data.weaknesses || []
+                }));
+
+            setStudentData(prev => ({
+                ...prev,
+                projects: [...prev.projects, ...successfulProjects]
+            }));
+
+            setShowRepoSelector(false);
+            setSelectedRepos([]);
+
+            if (response.successful > 0) {
+                toast.success(`Imported ${response.successful} projects!`, {
+                    description: 'AI has analyzed and added them to your profile'
+                });
+            }
+
+            if (response.successful < response.total) {
+                toast.warning(`${response.total - response.successful} repos failed to import`);
+            }
+        } catch (error) {
+            console.error('GitHub batch analysis error:', error);
+            toast.error('Failed to analyze repositories');
         } finally {
             setIsParsingGitHub(false);
         }
@@ -543,11 +591,11 @@ export default function StudentOnboarding() {
                                                 <Button
                                                     type="button"
                                                     size="sm"
-                                                    disabled={isParsingGitHub || !studentData.github_url}
+                                                    disabled={isFetchingRepos || !studentData.github_url}
                                                     onClick={handleGitHubExtraction}
                                                     className="absolute right-2 top-1/2 -translate-y-1/2 bg-indigo-100 text-indigo-700 hover:bg-indigo-200 border-none"
                                                 >
-                                                    {isParsingGitHub ? <Loader2 className="w-4 h-4 animate-spin" /> : "Magic Sync"}
+                                                    {isFetchingRepos ? <Loader2 className="w-4 h-4 animate-spin" /> : "Magic Sync"}
                                                 </Button>
                                             </div>
                                         </div>
@@ -853,6 +901,128 @@ export default function StudentOnboarding() {
                 )}
 
             </div>
+
+            {/* Repository Selector Modal */}
+            {showRepoSelector && (
+                <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-50 p-4">
+                    <Card className="w-full max-w-3xl max-h-[85vh] overflow-hidden shadow-2xl animate-in fade-in zoom-in-95 duration-300">
+                        <CardHeader className="border-b bg-gradient-to-r from-indigo-50 to-purple-50">
+                            <div className="flex justify-between items-start">
+                                <div>
+                                    <CardTitle className="text-2xl font-black text-slate-900">Select Repositories to Import</CardTitle>
+                                    <CardDescription className="text-base mt-1">
+                                        Choose which projects to analyze with AI and add to your profile
+                                    </CardDescription>
+                                </div>
+                                <Button
+                                    variant="ghost"
+                                    size="sm"
+                                    onClick={() => {
+                                        setShowRepoSelector(false);
+                                        setSelectedRepos([]);
+                                    }}
+                                    className="text-slate-400 hover:text-slate-600"
+                                >
+                                    <X className="w-5 h-5" />
+                                </Button>
+                            </div>
+                        </CardHeader>
+                        <CardContent className="overflow-y-auto max-h-[50vh] p-6">
+                            {availableRepos.length === 0 ? (
+                                <div className="text-center py-12">
+                                    <Github className="w-16 h-16 text-slate-300 mx-auto mb-4" />
+                                    <p className="text-slate-500">No repositories found</p>
+                                </div>
+                            ) : (
+                                <div className="space-y-3">
+                                    {availableRepos.map((repo) => (
+                                        <div
+                                            key={repo.url}
+                                            className={`flex items-start gap-4 p-4 border-2 rounded-xl transition-all cursor-pointer hover:shadow-md ${selectedRepos.includes(repo.url)
+                                                ? 'border-indigo-500 bg-indigo-50/50'
+                                                : 'border-slate-200 hover:border-indigo-200'
+                                                }`}
+                                            onClick={() => {
+                                                if (selectedRepos.includes(repo.url)) {
+                                                    setSelectedRepos(selectedRepos.filter(url => url !== repo.url));
+                                                } else {
+                                                    setSelectedRepos([...selectedRepos, repo.url]);
+                                                }
+                                            }}
+                                        >
+                                            <input
+                                                type="checkbox"
+                                                checked={selectedRepos.includes(repo.url)}
+                                                onChange={() => { }} // Handled by parent div click
+                                                className="mt-1 w-5 h-5 rounded border-slate-300 text-indigo-600 focus:ring-indigo-500"
+                                            />
+                                            <div className="flex-1 min-w-0">
+                                                <div className="flex items-start justify-between gap-2">
+                                                    <h4 className="font-bold text-slate-900 text-lg">{repo.name}</h4>
+                                                    {repo.is_private && (
+                                                        <Badge variant="outline" className="text-xs">Private</Badge>
+                                                    )}
+                                                </div>
+                                                <p className="text-sm text-slate-600 mt-1 line-clamp-2">{repo.description}</p>
+                                                <div className="flex flex-wrap gap-2 mt-3">
+                                                    {repo.language && (
+                                                        <Badge variant="outline" className="bg-white text-indigo-600 border-indigo-200">
+                                                            {repo.language}
+                                                        </Badge>
+                                                    )}
+                                                    <span className="text-xs text-slate-400 flex items-center gap-1">
+                                                        ⭐ {repo.stars} stars
+                                                    </span>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    ))}
+                                </div>
+                            )}
+                        </CardContent>
+                        <CardFooter className="flex justify-between items-center border-t bg-slate-50 py-4 px-6">
+                            <p className="text-sm text-slate-500">
+                                {selectedRepos.length > 0 ? (
+                                    <span className="font-bold text-indigo-600">
+                                        {selectedRepos.length} project{selectedRepos.length !== 1 ? 's' : ''} selected
+                                    </span>
+                                ) : (
+                                    'Select at least one repository'
+                                )}
+                            </p>
+                            <div className="flex gap-3">
+                                <Button
+                                    variant="outline"
+                                    onClick={() => {
+                                        setShowRepoSelector(false);
+                                        setSelectedRepos([]);
+                                    }}
+                                    className="border-slate-300"
+                                >
+                                    Cancel
+                                </Button>
+                                <Button
+                                    onClick={handleImportSelected}
+                                    disabled={isParsingGitHub || selectedRepos.length === 0}
+                                    className="bg-indigo-600 hover:bg-indigo-700 shadow-lg shadow-indigo-200"
+                                >
+                                    {isParsingGitHub ? (
+                                        <>
+                                            <Loader2 className="w-4 h-4 animate-spin mr-2" />
+                                            Analyzing...
+                                        </>
+                                    ) : (
+                                        <>
+                                            <Sparkles className="w-4 h-4 mr-2" />
+                                            Import {selectedRepos.length} Project{selectedRepos.length !== 1 ? 's' : ''}
+                                        </>
+                                    )}
+                                </Button>
+                            </div>
+                        </CardFooter>
+                    </Card>
+                </div>
+            )}
         </div>
     );
 }

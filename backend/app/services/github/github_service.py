@@ -30,10 +30,20 @@ class GitHubService:
         }
 
     def _parse_url(self, url: str) -> Optional[tuple]:
-        """Parse GitHub URL into owner and repo"""
+        """Parse GitHub repository URL into owner and repo"""
         match = re.search(r"github\.com/([^/]+)/([^/]+)/?$", url.replace(".git", ""))
         if match:
             return match.group(1), match.group(2)
+        return None
+    
+    def _parse_profile_url(self, url: str) -> Optional[str]:
+        """Extract username from GitHub profile URL"""
+        # Clean URL
+        url = url.strip().rstrip('/')
+        # Match github.com/username (not username/repo)
+        match = re.search(r"github\.com/([^/]+)/?$", url)
+        if match:
+            return match.group(1)
         return None
 
     async def extract_project(self, repo_url: str) -> Dict[str, Any]:
@@ -73,5 +83,33 @@ class GitHubService:
             # Ensure repo_url is included
             project_data["repo_url"] = repo_url
             return project_data
+    
+    async def list_user_repositories(self, github_username: str) -> List[Dict[str, Any]]:
+        """
+        Fetch all public repositories for a GitHub user
+        """
+        async with httpx.AsyncClient() as client:
+            response = await client.get(
+                f"{self.base_url}/users/{github_username}/repos",
+                headers=self.headers,
+                params={"type": "owner", "sort": "updated", "per_page": 100}
+            )
+            
+            if response.status_code != 200:
+                raise ValueError(f"GitHub user not found: {github_username}")
+            
+            repos_data = response.json()
+            
+            # Filter out forks and return clean data
+            return [{
+                "name": repo["name"],
+                "full_name": repo["full_name"],
+                "description": repo["description"] or "No description available",
+                "url": repo["html_url"],
+                "language": repo["language"],
+                "stars": repo["stargazers_count"],
+                "updated_at": repo["updated_at"],
+                "is_private": repo["private"]
+            } for repo in repos_data if not repo["fork"]]
 
 github_service = GitHubService()

@@ -73,6 +73,73 @@ async def analyze_github(
         raise HTTPException(status_code=500, detail=str(e))
 
 
+@router.post("/onboarding/list-github-repos")
+async def list_github_repos(
+    payload: dict
+):
+    """
+    List all repositories for a GitHub user profile
+    Body: { "profile_url": "https://github.com/username" }
+    """
+    profile_url = payload.get("profile_url")
+    if not profile_url:
+        raise HTTPException(status_code=400, detail="GitHub profile URL required")
+    
+    # Parse username from URL
+    username = github_service._parse_profile_url(profile_url)
+    if not username:
+        raise HTTPException(status_code=400, detail="Invalid GitHub profile URL. Expected format: https://github.com/username")
+    
+    try:
+        repos = await github_service.list_user_repositories(username)
+        return {
+            "username": username,
+            "repos": repos,
+            "count": len(repos)
+        }
+    except Exception as e:
+        logger.error(f"GitHub list repos error: {e}")
+        raise HTTPException(status_code=500, detail=str(e))
+
+
+@router.post("/onboarding/analyze-github-batch")
+async def analyze_github_batch(
+    payload: dict
+):
+    """
+    Analyze multiple GitHub repositories in batch
+    Body: { "repo_urls": ["url1", "url2", ...] }
+    """
+    repo_urls = payload.get("repo_urls", [])
+    if not repo_urls:
+        raise HTTPException(status_code=400, detail="Repository URLs required")
+    
+    # Limit to 10 repos to avoid timeout
+    repo_urls = repo_urls[:10]
+    
+    results = []
+    for url in repo_urls:
+        try:
+            project_data = await github_service.extract_project(url)
+            results.append({
+                "success": True,
+                "data": project_data
+            })
+        except Exception as e:
+            logger.warning(f"Failed to analyze {url}: {e}")
+            results.append({
+                "success": False,
+                "url": url,
+                "error": str(e)
+            })
+    
+    return {
+        "results": results,
+        "total": len(results),
+        "successful": sum(1 for r in results if r["success"])
+    }
+
+
 @router.get("/me", response_model=StudentDetailResponse)
 def get_my_profile(
     db: Session = Depends(get_db),
