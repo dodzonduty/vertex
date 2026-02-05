@@ -52,15 +52,12 @@ export default function StudentOnboarding() {
     const [step, setStep] = useState<OnboardingStep>('choice');
     const [loading, setLoading] = useState(false);
     const [isParsingGitHub, setIsParsingGitHub] = useState(false);
-<<<<<<< HEAD
     const [profilePic, setProfilePic] = useState<string | null>(null);
     const [rawCVResponse, setRawCVResponse] = useState<any>(null);
-=======
     const [showRepoSelector, setShowRepoSelector] = useState(false);
     const [availableRepos, setAvailableRepos] = useState<any[]>([]);
     const [selectedRepos, setSelectedRepos] = useState<string[]>([]);
     const [isFetchingRepos, setIsFetchingRepos] = useState(false);
->>>>>>> 3ac4dd978fc1c3a7e5378add24240a618aec9217
     const [studentData, setStudentData] = useState<StudentData>({
         full_name: '',
         email: '',

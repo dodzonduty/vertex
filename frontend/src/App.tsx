@@ -41,12 +41,12 @@ function App() {
         {/* <Route path="/student-dashboard" element={<StudentDashboard onLogout={handleLogout} />} />
         <Route path="/company-dashboard" element={<CompanyDashboard onLogout={handleLogout} />} /> */}
         <Route path="/company-home" element={<AuthenticatedLanding onLogout={handleLogout} userType="company" />} />
-        <Route path="/student/profile/:id" element={<PublicStudentProfile />} />
-        <Route path="/company/profile/:id" element={<PublicCompanyProfile />} />
-        <Route path="/opportunities" element={<Opportunities />} />
-        <Route path="/opportunities/:id" element={<OpportunityProfile />} />
-        <Route path="/companies" element={<Companies />} />
-        <Route path="/profiles" element={<StudentDirectory />} />
+        <Route path="/student/profile/:id" element={<MainLayout><PublicStudentProfile /></MainLayout>} />
+        <Route path="/company/profile/:id" element={<MainLayout><PublicCompanyProfile /></MainLayout>} />
+        <Route path="/opportunities" element={<MainLayout><Opportunities /></MainLayout>} />
+        <Route path="/opportunities/:id" element={<MainLayout><OpportunityProfile /></MainLayout>} />
+        <Route path="/companies" element={<MainLayout><Companies /></MainLayout>} />
+        <Route path="/profiles" element={<MainLayout><StudentDirectory /></MainLayout>} />
         <Route path="*" element={<MainLayout><NotFound /></MainLayout>} />
       </Routes>
     </BrowserRouter>
