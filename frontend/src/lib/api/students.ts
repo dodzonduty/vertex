@@ -68,3 +68,17 @@ export async function analyzeGitHub(url: string): Promise<any> {
         body: JSON.stringify({ url }),
     });
 }
+
+export async function listGitHubRepos(profileUrl: string): Promise<any> {
+    return apiRequest<any>('/api/students/onboarding/list-github-repos', {
+        method: 'POST',
+        body: JSON.stringify({ profile_url: profileUrl }),
+    });
+}
+
+export async function analyzeGitHubBatch(repoUrls: string[]): Promise<any> {
+    return apiRequest<any>('/api/students/onboarding/analyze-github-batch', {
+        method: 'POST',
+        body: JSON.stringify({ repo_urls: repoUrls }),
+    });
+}
