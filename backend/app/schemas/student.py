@@ -71,6 +71,7 @@ class StudentDetailResponse(BaseModel):
     email: str
     role: str
     status: Optional[str] = None
+    profile_photo_url: Optional[str] = None
     
     # Enhanced data
     projects: List[ProjectResponse] = []

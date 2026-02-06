@@ -80,6 +80,7 @@ class Student(Base, TimestampMixin):
     projects: Mapped[list["Project"]] = relationship("Project", back_populates="owner", cascade="all, delete-orphan")
     team_memberships: Mapped[list["TeamMember"]] = relationship("TeamMember", back_populates="student", cascade="all, delete-orphan")
     team_applications: Mapped[list["TeamApplication"]] = relationship("TeamApplication", back_populates="applicant", cascade="all, delete-orphan")
+    team_invitations: Mapped[list["TeamInvitation"]] = relationship("TeamInvitation", foreign_keys="[TeamInvitation.invitee_student_id]", back_populates="invitee", cascade="all, delete-orphan")
     votes: Mapped[list["JoinRequestVote"]] = relationship("JoinRequestVote", back_populates="voter", cascade="all, delete-orphan")
     applications: Mapped[list["Application"]] = relationship("Application", back_populates="student", cascade="all, delete-orphan")
     # Tags and Badges via generic assignment logic or specific relationships if needed

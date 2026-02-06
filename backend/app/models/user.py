@@ -1,4 +1,4 @@
-from sqlalchemy import String, Enum as SQLEnum
+from sqlalchemy import String, Enum as SQLEnum, Text
 from sqlalchemy.orm import Mapped, mapped_column, relationship, validates
 from enum import Enum
 from .base import Base, TimestampMixin
@@ -29,6 +29,7 @@ class User(Base, TimestampMixin):
     password_hash: Mapped[str] = mapped_column(String(255), nullable=False)
     role: Mapped[str] = mapped_column(String(50), nullable=False)
     status: Mapped[str] = mapped_column(String(50), nullable=True)
+    profile_photo_url: Mapped[str] = mapped_column(Text, nullable=True)
     
     # Relationships
     student: Mapped["Student"] = relationship("Student", back_populates="user", uselist=False, cascade="all, delete-orphan")

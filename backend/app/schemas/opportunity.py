@@ -13,8 +13,25 @@ class OpportunityBase(BaseModel):
     created_by_type: str  # company | professor
     created_by_id: str
 
+class OpportunityCreateInput(BaseModel):
+    """Schema for creating an opportunity from frontend form"""
+    title: str
+    type: str
+    description: str
+    date: str
+    endDate: Optional[str] = None
+    location: str
+    prizes: Optional[list[str]] = []
+    requirements: Optional[list[str]] = []
+    judgingCriteria: Optional[list[str]] = []
+    rules: Optional[list[str]] = []
+    applicationLink: Optional[str] = None
+    maxParticipants: Optional[str] = None
+    registrationDeadline: Optional[str] = None
+    tags: Optional[list[str]] = []
+
 class OpportunityCreate(OpportunityBase):
-    opportunity_id: str
+    pass
 
 class OpportunityUpdate(BaseModel):
     type: Optional[str] = None

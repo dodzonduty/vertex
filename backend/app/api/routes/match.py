@@ -14,36 +14,6 @@ from app.models.student import Student
 
 router = APIRouter(prefix="/api", tags=["trending", "matching"])
 
-@router.get("/trending")
-def get_trending_tags(
-    db: Session = Depends(deps.get_db),
-    type: str = "hackathon",
-    limit: int = 5
-):
-    """
-    Get top trending tags based on opportunity counts.
-    Real implementation using count() on TagAssignment.
-    """
-    opportunity_type = type.rstrip('s').lower()
-    
-    # Query to count tags assigned to opportunities of a specific type
-    trending = db.query(
-        Tag.name.label("tag"),
-        func.count(TagAssignment.tag_id).label("count")
-    ).join(
-        TagAssignment, Tag.tag_id == TagAssignment.tag_id
-    ).join(
-        Opportunity, (TagAssignment.entity_id == Opportunity.opportunity_id) & (TagAssignment.entity_type == "opportunity")
-    ).filter(
-        Opportunity.type == opportunity_type
-    ).group_by(
-        Tag.tag_id
-    ).order_by(
-        func.count(TagAssignment.tag_id).desc()
-    ).limit(limit).all()
-    
-    return [{"tag": f"#{t.tag}" if not t.tag.startswith("#") else t.tag, "count": t.count} for t in trending]
-
 @router.get("/vertex-connect")
 def get_vertex_connect(
     db: Session = Depends(deps.get_db),

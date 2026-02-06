@@ -16,6 +16,7 @@ from .team import Team
 from .team_member import TeamMember
 from .team_opening import TeamOpening
 from .team_application import TeamApplication
+from .team_invitation import TeamInvitation
 from .join_request_vote import JoinRequestVote
 from .opportunity import Opportunity
 from .application import Application
@@ -43,6 +44,7 @@ __all__ = [
     "TeamMember",
     "TeamOpening",
     "TeamApplication",
+    "TeamInvitation",
     "JoinRequestVote",
     "Opportunity",
     "Application",

@@ -6,7 +6,7 @@ from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
 from app.core.config import settings
-from app.api.routes import auth, students, opportunities, tags, match, onboarding
+from app.api.routes import auth, students, opportunities, tags, match, onboarding, rooms, enrollment, companies, trending
 
 
 # Create FastAPI application
@@ -32,22 +32,25 @@ app.add_middleware(
 app.include_router(auth.router)
 app.include_router(onboarding.router)
 app.include_router(students.router)
-from app.api.routes.companies import profiles as company_profiles
-app.include_router(company_profiles.router, prefix="/api/companies", tags=["companies"])
+app.include_router(companies.router)
 app.include_router(opportunities.router)
 app.include_router(tags.router)
+app.include_router(trending.router)
 app.include_router(match.router)
+app.include_router(rooms.router)
+app.include_router(enrollment.router)
 
-# Mocks
-from app.mocks import opportunity_mock, tags_mock, trending_mock, perfect_match_mock
-app.include_router(opportunity_mock.router)
-app.include_router(tags_mock.router)
-app.include_router(trending_mock.router)
+# Mocks - Only include mocks that don't have real implementations yet
+from app.mocks import perfect_match_mock
+# app.include_router(opportunity_mock.router)  # Disabled - using real opportunities API
+# app.include_router(tags_mock.router)  # Disabled - using real tags API
+# app.include_router(trending_mock.router)  # Disabled - using real trending API
 app.include_router(perfect_match_mock.router)
-from app.mocks import vertex_connect_mock, opportunity_list_mock, profile_picture_mock
+from app.mocks import vertex_connect_mock, opportunity_list_mock
+# from app.mocks import profile_picture_mock  # Disabled - using real auth/upload-profile-photo
 app.include_router(vertex_connect_mock.router)
 app.include_router(opportunity_list_mock.router)
-app.include_router(profile_picture_mock.router)
+# app.include_router(profile_picture_mock.router)  # Disabled - using real auth/upload-profile-photo
 
 
 @app.get("/")

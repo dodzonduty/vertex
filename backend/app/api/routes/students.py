@@ -173,11 +173,13 @@ def get_my_profile(
         student.email = student.user.email
         student.role = student.user.role
         student.status = student.user.status
+        student.profile_photo_url = student.user.profile_photo_url
     else:
         # Fallback if connection is weird
         student.email = current_user.email
         student.role = current_user.role
         student.status = current_user.status
+        student.profile_photo_url = current_user.profile_photo_url
     
     return student
 
@@ -315,6 +317,34 @@ def update_my_profile(
         raise HTTPException(status_code=500, detail=str(e))
         
     return student
+
+@router.get("/me/projects", response_model=list[ProjectResponse])
+def get_my_projects(
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user)
+):
+    """
+    Get all projects for the current student
+    """
+    if current_user.role != "student":
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="Only students can access projects"
+        )
+    
+    student = db.query(Student).filter(Student.user_id == current_user.user_id).first()
+    if not student:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Student profile not found"
+        )
+    
+    # Get all projects with their AI analyses
+    projects = db.query(Project).options(
+        joinedload(Project.ai_analyses)
+    ).filter(Project.owner_id == student.student_id).all()
+    
+    return projects
 
 @router.post("/me/projects", response_model=ProjectResponse, status_code=status.HTTP_201_CREATED)
 async def add_project_to_me(

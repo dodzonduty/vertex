@@ -8,21 +8,159 @@ from typing import List, Optional
 
 from app.api import deps
 from app.models.opportunity import Opportunity
-from app.schemas.opportunity import OpportunityResponse
+from app.models.user import User
+from app.models.tag import Tag
+from app.models.tag_assignment import TagAssignment
+from app.schemas.opportunity import OpportunityResponse, OpportunityCreateInput
+import uuid
 
 router = APIRouter(prefix="/api", tags=["opportunities"])
+
+@router.post("/opportunities/", response_model=OpportunityResponse)
+def create_opportunity(
+    opp_in: OpportunityCreateInput,
+    db: Session = Depends(deps.get_db),
+    current_user: User = Depends(deps.get_current_active_user)
+):
+    """
+    Create a new opportunity
+    """
+    # 1. Prepare Description JSON (Rich Data)
+    host_name = "Unknown Host"
+    if current_user.role == "company" and current_user.company:
+        host_name = current_user.company.name
+    elif current_user.role == "professor" and current_user.professor:
+        host_name = current_user.professor.full_name
+
+    rich_description = {
+        "text": opp_in.description,
+        "date": opp_in.date,
+        "endDate": opp_in.endDate,
+        "location": opp_in.location,
+        "prizes": opp_in.prizes,
+        "requirements": opp_in.requirements,
+        "judgingCriteria": opp_in.judgingCriteria,
+        "rules": opp_in.rules,
+        "applicationLink": opp_in.applicationLink,
+        "maxParticipants": opp_in.maxParticipants,
+        "registrationDeadline": opp_in.registrationDeadline,
+        "host": host_name,
+        # Default placeholder image based on type
+        "image": "https://lh3.googleusercontent.com/aida-public/AB6AXuCLIp0CIanjTtvkxnyAXdaEozBHpAQHExEEx64XXLNm5_a8vX1Jq4FROlTxUjfTU7_DfcJVXzcxIPqI8QWg3aiqPxsfpDywiM4-xztZzL1bl1vDbYuMLSFx8Dtm7z1bzXL-JTDJyoJybgPXWS8IDs3rqa3sr9-YDgJEnPraB-FGQpcwXBTj6awOxOBbp1bfbFFDcIGVafaWIiJVSPw8xfPupvatbR7mu76CQgSr9JyUonggUOyh-8px8lUrE9kVRCmm4wn2bJAfHyA"
+    }
+    
+    # 2. Create Model
+    new_opp = Opportunity(
+        opportunity_id=f"OPP-{uuid.uuid4().hex[:8]}",
+        type=opp_in.type.lower(), 
+        title=opp_in.title,
+        description=rich_description,
+        status="active",
+        created_by_type=current_user.role,
+        created_by_id=current_user.user_id
+    )
+    
+    db.add(new_opp)
+    db.commit()
+    db.refresh(new_opp)
+
+    # 3. Handle Tags
+    if opp_in.tags:
+        for tag_name in opp_in.tags:
+            # Clean tag
+            clean_name = tag_name.strip()
+            if not clean_name:
+                continue
+                
+            # Find or Create Tag
+            # Strategy: If user wants "limited to tags found", we technically shouldn't create. 
+            # But for usability in a blank system, we'll Create if not exists with type 'domain'
+            tag = db.query(Tag).filter(func.lower(Tag.name) == clean_name.lower()).first()
+            
+            if not tag:
+                tag = Tag(
+                    tag_id=f"TAG-{uuid.uuid4().hex[:8]}",
+                    name=clean_name, 
+                    type="domain" # Default type for auto-created tags
+                )
+                db.add(tag)
+                db.flush() # Flush to get ID if needed, though we set it manually
+            
+            # Create Assignment
+            assignment = TagAssignment(
+                tag_id=tag.tag_id,
+                entity_type="opportunity",
+                entity_id=new_opp.opportunity_id,
+                confidence_score=1.0
+            )
+            db.add(assignment)
+        
+        db.commit()
+    
+    return new_opp
 
 @router.get("/opportunities/", response_model=List[OpportunityResponse])
 def read_opportunities(
     db: Session = Depends(deps.get_db),
     skip: int = 0,
-    limit: int = 100
+    limit: int = 100,
+    current_user: User = Depends(deps.get_current_active_user)
 ):
     """
-    Retrieve all opportunities
+    Retrieve all opportunities.
+    For Company/Professor: Only returns *their* created opportunities.
+    For Admin: Returns all.
     """
-    opportunities = db.query(Opportunity).offset(skip).limit(limit).all()
+    query = db.query(Opportunity)
+    
+    # Data Isolation: Companies/Professors only see what they created
+    if current_user.role in ["company", "professor"]:
+        query = query.filter(Opportunity.created_by_id == current_user.user_id)
+        
+    opportunities = query.offset(skip).limit(limit).all()
+    opportunities = query.offset(skip).limit(limit).all()
     return opportunities
+
+@router.get("/opportunities/{opportunity_id}", response_model=OpportunityResponse)
+def read_single_opportunity(
+    opportunity_id: str,
+    db: Session = Depends(deps.get_db)
+):
+    """
+    Retrieve a specific opportunity by ID.
+    Includes company profile photo in hosted_by information and enrolled teams count.
+    """
+    from fastapi import HTTPException
+    from app.models.company import Company
+    from app.models.team import Team
+    
+    opp = db.query(Opportunity).filter(Opportunity.opportunity_id == opportunity_id).first()
+    if not opp:
+        raise HTTPException(status_code=404, detail="Opportunity not found")
+    
+    # Count enrolled teams for this opportunity
+    enrolled_teams_count = db.query(Team).filter(Team.opportunity_id == opportunity_id).count()
+    
+    # Enrich with company profile photo if created by a company
+    if opp.created_by_type == "company":
+        creator_user = db.query(User).filter(User.user_id == opp.created_by_id).first()
+        if creator_user:
+            company = db.query(Company).filter(Company.user_id == creator_user.user_id).first()
+            
+            # Add hosted_by information to description
+            if isinstance(opp.description, dict):
+                opp.description["hosted_by"] = {
+                    "name": company.name if company else "Unknown Company",
+                    "type": "Organization",
+                    "profile_photo_url": creator_user.profile_photo_url if creator_user.profile_photo_url else None
+                }
+                # Add enrolled teams count
+                opp.description["enrolled_teams_count"] = enrolled_teams_count
+    elif isinstance(opp.description, dict):
+        # Add count even if not a company
+        opp.description["enrolled_teams_count"] = enrolled_teams_count
+        
+    return opp
 
 @router.get("/opportunities-list")
 def read_opportunities_list(
@@ -71,7 +209,7 @@ def read_opportunities_list(
             )
             
             # Use distinct to avoid duplicate opportunities if they match multiple tags
-            query = query.distinct()
+            query = query.distinct(Opportunity.opportunity_id)
     
     
     total_count = query.count()
@@ -82,6 +220,15 @@ def read_opportunities_list(
     for opp in results:
         desc_data = opp.description if isinstance(opp.description, dict) else {}
         
+        # Helper to get price
+        prizes = desc_data.get("prizes", [])
+        price = prizes[0] if isinstance(prizes, list) and prizes else desc_data.get("price", "TBA")
+
+        # Helper to get summary
+        summary = desc_data.get("summary") or desc_data.get("text") or "No description available"
+        if len(summary) > 150:
+            summary = summary[:147] + "..."
+
         # Fetch tags for badges
         opp_tags = db.query(Tag.name).join(TagAssignment).filter(
             (TagAssignment.entity_id == opp.opportunity_id) & 
@@ -98,11 +245,11 @@ def read_opportunities_list(
             "title": opp.title,
             "host": desc_data.get("host", "Unknown Host"),
             "badges": badges or [{"text": opp.type.capitalize(), "style": "blue-soft"}],
-            "summary": desc_data.get("summary", "No summary available"),
+            "summary": summary,
             "date": desc_data.get("date", "TBA"),
-            "price": desc_data.get("price", "TBA"),
+            "price": price,
             "location": desc_data.get("location", "Remote"),
-            "image": desc_data.get("image", "https://via.placeholder.com/300x200"),
+            "image": desc_data.get("image", "https://viaplaceholder.com/300x200"),
             "type": opp.type
         })
     
@@ -119,13 +266,34 @@ def get_opportunities_count(db: Session = Depends(deps.get_db)):
     count = db.query(func.count(Opportunity.opportunity_id)).scalar()
     return {"count": count}
 
-@router.get("/opportunities/top", response_model=List[OpportunityResponse])
+@router.get("/opportunities/top")
 def get_top_opportunities(
     db: Session = Depends(deps.get_db),
     limit: int = 5
 ):
     """
-    Get top opportunities (recently created for now)
+    Get top opportunities (recently created for now) - Flattened for Frontend
     """
     opportunities = db.query(Opportunity).order_by(Opportunity.created_at.desc()).limit(limit).all()
-    return opportunities
+    
+    formatted_results = []
+    for opp in opportunities:
+        desc_data = opp.description if isinstance(opp.description, dict) else {}
+        
+        # Helper to get price
+        prizes = desc_data.get("prizes", [])
+        price = prizes[0] if isinstance(prizes, list) and prizes else desc_data.get("price", "TBA")
+        
+        formatted_results.append({
+            "opportunity_id": opp.opportunity_id,
+            "title": opp.title,
+            "type": opp.type,
+            "price": price,
+            "date": desc_data.get("date", "TBA"),
+            "location": desc_data.get("location", "Remote"),
+            "badge_text": opp.type.capitalize(),
+            "badge_color": "blue" if opp.type == "hackathon" else "emerald",
+            "image": desc_data.get("image", "https://via.placeholder.com/300x200")
+        })
+        
+    return formatted_results
