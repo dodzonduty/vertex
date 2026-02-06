@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Building2, CheckCircle2, ArrowRight, Loader2, Mail, Lock, Phone, MapPin, Link as LinkIcon, Plus, X, Upload } from 'lucide-react';
+import { useLocalStorage } from '../hooks/useLocalStorage';
+import { Building2, CheckCircle2, ArrowRight, Loader2, Mail, Lock, Phone, MapPin, Link as LinkIcon, Plus, X, Upload, Eye, EyeOff, Edit2 } from 'lucide-react';
 import { Button } from '../components/ui/button';
 import { Card, CardHeader, CardTitle, CardDescription, CardContent, CardFooter } from '../components/ui/card';
 import { Badge } from '../components/ui/badge';
@@ -32,10 +33,11 @@ interface CompanyData {
 
 export default function CompanyOnboarding() {
     const navigate = useNavigate();
-    const [step, setStep] = useState<OnboardingStep>('form');
+    const [step, setStep] = useLocalStorage<OnboardingStep>('vertex_company_onboarding_step', 'form');
     const [loading, setLoading] = useState(false);
     const [profilePic, setProfilePic] = useState<string | null>(null);
-    const [companyData, setCompanyData] = useState<CompanyData>({
+    const [showPassword, setShowPassword] = useState(false);
+    const [companyData, setCompanyData] = useLocalStorage<CompanyData>('vertex_company_onboarding_data', {
         email: '',
         password: '',
         name: '',
@@ -100,6 +102,10 @@ export default function CompanyOnboarding() {
                 });
             }
             setLoading(false);
+            // Clear onboarding data
+            localStorage.removeItem('vertex_company_onboarding_step');
+            localStorage.removeItem('vertex_company_onboarding_data');
+            
             setStep('success');
             toast.success('Company Profile Created!', {
                 description: 'Welcome to Vertex. Start finding talented students.',
@@ -142,7 +148,7 @@ export default function CompanyOnboarding() {
                                     <h3 className="text-xl font-bold text-slate-900">Account Information</h3>
                                     <div className="grid md:grid-cols-2 gap-6">
                                         <div className="space-y-2">
-                                            <Label htmlFor="email" className="text-xs font-black uppercase tracking-widest text-slate-400 flex items-center gap-2">
+                                            <Label htmlFor="email" className="text-xs font-black uppercase tracking-widest text-slate-900 flex items-center gap-2">
                                                 <Mail className="w-4 h-4" /> Email
                                             </Label>
                                             <Input
@@ -152,22 +158,33 @@ export default function CompanyOnboarding() {
                                                 value={companyData.email}
                                                 onChange={(e) => setCompanyData({ ...companyData, email: e.target.value })}
                                                 required
-                                                className="py-6 rounded-xl border-slate-200 focus:border-blue-500"
+                                                style={{ borderColor: '#cbd5e1', borderWidth: '1px', paddingLeft: '20px', paddingRight: '20px' }}
+                                                className="py-6 px-5 rounded-xl focus:border-2 focus:border-blue-500 placeholder:text-slate-300 selection:bg-blue-500 selection:text-white"
                                             />
                                         </div>
                                         <div className="space-y-2">
-                                            <Label htmlFor="password" className="text-xs font-black uppercase tracking-widest text-slate-400 flex items-center gap-2">
+                                            <Label htmlFor="password" className="text-xs font-black uppercase tracking-widest text-slate-900 flex items-center gap-2">
                                                 <Lock className="w-4 h-4" /> Password
                                             </Label>
-                                            <Input
-                                                id="password"
-                                                type="password"
-                                                placeholder="••••••••"
-                                                value={companyData.password}
-                                                onChange={(e) => setCompanyData({ ...companyData, password: e.target.value })}
-                                                required
-                                                className="py-6 rounded-xl border-slate-200"
-                                            />
+                                            <div className="relative">
+                                                <Input
+                                                    id="password"
+                                                    type={showPassword ? "text" : "password"}
+                                                    placeholder="••••••••"
+                                                    value={companyData.password}
+                                                    onChange={(e) => setCompanyData({ ...companyData, password: e.target.value })}
+                                                    required
+                                                    style={{ borderColor: '#cbd5e1', borderWidth: '1px', paddingLeft: '20px', paddingRight: '40px' }}
+                                                    className="py-6 px-5 rounded-xl focus:border-2 focus:border-blue-500 placeholder:text-slate-300 selection:bg-blue-500 selection:text-white"
+                                                />
+                                                <button
+                                                    type="button"
+                                                    onClick={() => setShowPassword(!showPassword)}
+                                                    className="absolute right-4 top-1/2 -translate-y-1/2 text-slate-400 hover:text-blue-600 focus:outline-none"
+                                                >
+                                                    {showPassword ? <EyeOff className="w-5 h-5" /> : <Eye className="w-5 h-5" />}
+                                                </button>
+                                            </div>
                                         </div>
                                     </div>
                                 </div>
@@ -177,23 +194,25 @@ export default function CompanyOnboarding() {
                                     <h3 className="text-xl font-bold text-slate-900">Company Information</h3>
                                     <div className="space-y-6">
                                         <div className="space-y-2">
-                                            <Label htmlFor="company-name" className="text-xs font-black uppercase tracking-widest text-slate-400">Company Name</Label>
+                                            <Label htmlFor="company-name" className="text-xs font-black uppercase tracking-widest text-slate-900">Company Name</Label>
                                             <Input
                                                 id="company-name"
                                                 placeholder="Acme Inc."
                                                 value={companyData.name}
                                                 onChange={(e) => setCompanyData({ ...companyData, name: e.target.value })}
                                                 required
-                                                className="py-6 rounded-xl border-slate-200 focus:border-blue-500"
+                                                style={{ borderColor: '#cbd5e1', borderWidth: '1px', paddingLeft: '20px', paddingRight: '20px' }}
+                                                className="py-6 px-5 rounded-xl focus:border-2 focus:border-blue-500 placeholder:text-slate-300 selection:bg-blue-500 selection:text-white"
                                             />
                                         </div>
                                         <div className="space-y-2">
-                                            <Label htmlFor="industry" className="text-xs font-black uppercase tracking-widest text-slate-400">Industry</Label>
+                                            <Label htmlFor="industry" className="text-xs font-black uppercase tracking-widest text-slate-900">Industry</Label>
                                             <select
                                                 id="industry"
                                                 value={companyData.industry}
                                                 onChange={(e) => setCompanyData({ ...companyData, industry: e.target.value })}
-                                                className="w-full h-12 px-4 rounded-xl border border-slate-200 outline-none focus:ring-2 focus:ring-blue-500 font-medium text-sm"
+                                                style={{ borderColor: '#cbd5e1', borderWidth: '1px' }}
+                                                className="w-full h-12 px-4 rounded-xl border border-slate-200 outline-none focus:ring-2 focus:ring-blue-500 font-medium text-sm cursor-pointer hover:border-blue-400 transition-colors"
                                                 required
                                             >
                                                 <option value="">Select Industry</option>
@@ -208,18 +227,19 @@ export default function CompanyOnboarding() {
                                             </select>
                                         </div>
                                         <div className="space-y-2">
-                                            <Label htmlFor="description" className="text-xs font-black uppercase tracking-widest text-slate-400">Company Description</Label>
+                                            <Label htmlFor="description" className="text-xs font-black uppercase tracking-widest text-slate-900">Company Description</Label>
                                             <Textarea
                                                 id="description"
                                                 placeholder="Tell students about your company, mission, and culture..."
                                                 value={companyData.description}
                                                 onChange={(e) => setCompanyData({ ...companyData, description: e.target.value })}
-                                                className="min-h-[120px] rounded-xl border-slate-200"
+                                                style={{ borderColor: '#cbd5e1', borderWidth: '1px', padding: '20px' }}
+                                                className="min-h-[120px] rounded-xl focus:border-2 focus:border-blue-500 placeholder:text-slate-300 selection:bg-blue-500 selection:text-white"
                                             />
                                         </div>
                                         <div className="grid md:grid-cols-2 gap-6">
                                             <div className="space-y-2">
-                                                <Label htmlFor="phone" className="text-xs font-black uppercase tracking-widest text-slate-400 flex items-center gap-2">
+                                                <Label htmlFor="phone" className="text-xs font-black uppercase tracking-widest text-slate-900 flex items-center gap-2">
                                                     <Phone className="w-4 h-4" /> Phone
                                                 </Label>
                                                 <Input
@@ -228,16 +248,18 @@ export default function CompanyOnboarding() {
                                                     placeholder="+1 (555) 000-0000"
                                                     value={companyData.phone}
                                                     onChange={(e) => setCompanyData({ ...companyData, phone: e.target.value })}
-                                                    className="py-6 rounded-xl border-slate-200"
+                                                    style={{ borderColor: '#cbd5e1', borderWidth: '1px', paddingLeft: '20px', paddingRight: '20px' }}
+                                                    className="py-6 px-5 rounded-xl focus:border-2 focus:border-blue-500 placeholder:text-slate-300 selection:bg-blue-500 selection:text-white"
                                                 />
                                             </div>
                                             <div className="space-y-2">
-                                                <Label htmlFor="size" className="text-xs font-black uppercase tracking-widest text-slate-400">Company Size</Label>
+                                                <Label htmlFor="size" className="text-xs font-black uppercase tracking-widest text-slate-900">Company Size</Label>
                                                 <select
                                                     id="size"
                                                     value={companyData.size}
                                                     onChange={(e) => setCompanyData({ ...companyData, size: e.target.value })}
-                                                    className="w-full h-12 px-4 rounded-xl border border-slate-200 outline-none focus:ring-2 focus:ring-blue-500 font-medium text-sm"
+                                                    style={{ borderColor: '#cbd5e1', borderWidth: '1px' }}
+                                                    className="w-full h-12 px-4 rounded-xl border border-slate-200 outline-none focus:ring-2 focus:ring-blue-500 font-medium text-sm cursor-pointer hover:border-blue-400 transition-colors"
                                                 >
                                                     <option value="Start-up">Start-up</option>
                                                     <option value="Small">Small (1-50)</option>
@@ -248,7 +270,7 @@ export default function CompanyOnboarding() {
                                             </div>
                                         </div>
                                         <div className="space-y-2">
-                                            <Label htmlFor="address" className="text-xs font-black uppercase tracking-widest text-slate-400 flex items-center gap-2">
+                                            <Label htmlFor="address" className="text-xs font-black uppercase tracking-widest text-slate-900 flex items-center gap-2">
                                                 <MapPin className="w-4 h-4" /> Address
                                             </Label>
                                             <Input
@@ -256,15 +278,16 @@ export default function CompanyOnboarding() {
                                                 placeholder="City, Country or Remote"
                                                 value={companyData.address}
                                                 onChange={(e) => setCompanyData({ ...companyData, address: e.target.value })}
-                                                className="py-6 rounded-xl border-slate-200"
+                                                style={{ borderColor: '#cbd5e1', borderWidth: '1px', paddingLeft: '20px', paddingRight: '20px' }}
+                                                className="py-6 px-5 rounded-xl focus:border-2 focus:border-blue-500 placeholder:text-slate-300 selection:bg-blue-500 selection:text-white"
                                             />
                                         </div>
                                         <div className="space-y-4">
                                             <div className="flex items-center justify-between">
-                                                <Label className="text-xs font-black uppercase tracking-widest text-slate-400 flex items-center gap-2">
+                                                <Label className="text-xs font-black uppercase tracking-widest text-slate-900 flex items-center gap-2">
                                                     <LinkIcon className="w-4 h-4" /> Social Links
                                                 </Label>
-                                                <Button type="button" variant="outline" size="sm" onClick={addSocialLink} className="gap-1">
+                                                <Button type="button" variant="outline" size="sm" onClick={addSocialLink} className="gap-1 border-slate-200 hover:bg-slate-50 text-slate-600">
                                                     <Plus className="w-4 h-4" /> Add
                                                 </Button>
                                             </div>
@@ -273,7 +296,8 @@ export default function CompanyOnboarding() {
                                                     <select
                                                         value={link.type}
                                                         onChange={(e) => updateSocialLink(idx, 'type', e.target.value)}
-                                                        className="h-10 w-28 rounded-lg border border-slate-200 text-sm"
+                                                        className="h-12 w-32 rounded-xl border border-slate-200 text-sm px-3 outline-none focus:ring-2 focus:ring-blue-500"
+                                                        style={{ borderColor: '#cbd5e1', borderWidth: '1px' }}
                                                     >
                                                         <option value="website">Website</option>
                                                         <option value="linkedin">LinkedIn</option>
@@ -284,10 +308,11 @@ export default function CompanyOnboarding() {
                                                         placeholder="https://..."
                                                         value={link.url}
                                                         onChange={(e) => updateSocialLink(idx, 'url', e.target.value)}
-                                                        className="flex-1"
+                                                        className="flex-1 py-6 px-5 rounded-xl focus:border-2 focus:border-blue-500 placeholder:text-slate-300"
+                                                        style={{ borderColor: '#cbd5e1', borderWidth: '1px' }}
                                                     />
-                                                    <Button type="button" variant="ghost" size="icon" onClick={() => removeSocialLink(idx)}>
-                                                        <X className="w-4 h-4 text-red-500" />
+                                                    <Button type="button" variant="ghost" size="icon" onClick={() => removeSocialLink(idx)} className="h-12 w-12 rounded-xl hover:bg-red-50 hover:text-red-500 transition-colors">
+                                                        <X className="w-5 h-5" />
                                                     </Button>
                                                 </div>
                                             ))}
@@ -297,7 +322,7 @@ export default function CompanyOnboarding() {
                             </form>
                         </CardContent>
                         <CardFooter className="py-8 bg-slate-50/50 border-t justify-end">
-                            <Button form="company-form" className="px-8 py-6 rounded-xl font-bold bg-blue-600 hover:bg-blue-700 shadow-xl shadow-blue-200">
+                            <Button form="company-form" style={{ minHeight: '45px', color: 'white', paddingLeft: '64px', paddingRight: '64px', paddingTop: '24px', paddingBottom: '24px' }} className="rounded-xl font-bold bg-blue-600 hover:bg-blue-700 shadow-xl shadow-blue-200 cursor-pointer">
                                 Preview Profile <ArrowRight className="w-5 h-5 ml-2" />
                             </Button>
                         </CardFooter>
@@ -358,32 +383,40 @@ export default function CompanyOnboarding() {
                             <CardContent className="pt-20 pb-12 px-12">
                                 <div className="space-y-6">
                                     <div>
-                                        <h3 className="text-3xl font-black text-slate-900 mb-2">{companyData.name}</h3>
-                                        <p className="text-blue-600 font-bold text-xl">{companyData.industry}</p>
-                                        <p className="text-slate-600 mt-2">{companyData.email}</p>
+                                        <div className="flex justify-between items-start">
+                                            <div>
+                                                <h3 className="text-3xl font-black text-slate-900 mb-2">{companyData.name}</h3>
+                                                <p className="text-blue-600 font-bold text-xl">{companyData.industry}</p>
+                                            </div>
+                                            <Button variant="ghost" size="icon" onClick={() => setStep('form')} className="text-slate-400 hover:text-blue-600">
+                                                <Edit2 className="w-5 h-5" />
+                                            </Button>
+                                        </div>
+                                        <p className="text-slate-600 mt-2 flex items-center gap-2"><Mail className="w-4 h-4" /> {companyData.email}</p>
                                         {(companyData.phone || companyData.address || companyData.size) && (
-                                            <div className="flex flex-wrap gap-4 mt-3 text-slate-500 text-sm">
-                                                {companyData.phone && <span className="flex items-center gap-1"><Phone className="w-4 h-4" /> {companyData.phone}</span>}
-                                                {companyData.address && <span className="flex items-center gap-1"><MapPin className="w-4 h-4" /> {companyData.address}</span>}
-                                                {companyData.size && <span>{companyData.size}</span>}
+                                            <div className="flex flex-wrap gap-4 mt-4 text-slate-500 text-sm font-medium">
+                                                {companyData.phone && <span className="flex items-center gap-1 bg-slate-100 px-3 py-1 rounded-full"><Phone className="w-3 h-3" /> {companyData.phone}</span>}
+                                                {companyData.address && <span className="flex items-center gap-1 bg-slate-100 px-3 py-1 rounded-full"><MapPin className="w-3 h-3" /> {companyData.address}</span>}
+                                                {companyData.size && <span className="bg-slate-100 px-3 py-1 rounded-full">{companyData.size}</span>}
                                             </div>
                                         )}
                                     </div>
 
                                     {companyData.description && (
-                                        <div>
-                                            <h4 className="text-sm font-black text-slate-400 uppercase tracking-wider mb-2">About</h4>
+                                        <div className="bg-slate-50 p-6 rounded-2xl border border-slate-100">
+                                            <h4 className="text-xs font-black text-slate-400 uppercase tracking-widest mb-3">About The Company</h4>
                                             <p className="text-slate-600 text-lg leading-relaxed">{companyData.description}</p>
                                         </div>
                                     )}
 
                                     {companyData.socialLinks.filter((l) => l.url.trim()).length > 0 && (
                                         <div>
-                                            <h4 className="text-sm font-black text-slate-400 uppercase tracking-wider mb-2">Social Links</h4>
-                                            <div className="flex flex-wrap gap-2">
+                                            <h4 className="text-xs font-black text-slate-400 uppercase tracking-widest mb-3">Online Presence</h4>
+                                            <div className="flex flex-wrap gap-3">
                                                 {companyData.socialLinks.filter((l) => l.url.trim()).map((l, i) => (
-                                                    <a key={i} href={l.url} target="_blank" rel="noopener noreferrer" className="text-blue-600 hover:underline text-sm">
-                                                        {l.type}: {l.url}
+                                                    <a key={i} href={l.url} target="_blank" rel="noopener noreferrer" className="flex items-center gap-2 px-4 py-2 bg-white border border-slate-200 rounded-xl text-blue-600 font-bold hover:border-blue-200 hover:shadow-md transition-all">
+                                                        <LinkIcon className="w-4 h-4" />
+                                                        <span className="capitalize">{l.type}</span>
                                                     </a>
                                                 ))}
                                             </div>
@@ -391,12 +424,42 @@ export default function CompanyOnboarding() {
                                     )}
                                 </div>
                             </CardContent>
-                            <CardFooter className="bg-slate-900 p-8 flex justify-between items-center">
-                                <p className="text-slate-400 text-sm font-medium">Looking good? Complete your company profile.</p>
+                            <CardFooter style={{ backgroundColor: '#2563eb', padding: '32px' }} className="flex justify-between items-center">
+                                <p style={{ color: 'white' }} className="text-sm font-medium">Ready to launch?</p>
                                 <div className="flex gap-4">
-                                    <Button variant="ghost" onClick={() => setStep('form')} className="text-white hover:text-blue-400 hover:bg-slate-800 font-bold">Edit</Button>
-                                    <Button onClick={finalizeOnboarding} className="bg-blue-600 hover:bg-blue-700 text-white font-bold px-8 py-6 rounded-xl shadow-xl shadow-blue-500/20" disabled={loading}>
-                                        {loading ? <Loader2 className="w-5 h-5 animate-spin mr-2" /> : "Complete Profile"}
+                                    <Button 
+                                        variant="ghost" 
+                                        onClick={() => setStep('form')} 
+                                        style={{ 
+                                            backgroundColor: 'white',
+                                            color: '#2563eb',
+                                            paddingLeft: '32px',
+                                            paddingRight: '32px',
+                                            paddingTop: '12px',
+                                            paddingBottom: '12px',
+                                            cursor: 'pointer',
+                                            border: '2px solid white'
+                                        }}
+                                        className="text-sm font-bold rounded-xl hover:bg-slate-50"
+                                    >
+                                        Edit
+                                    </Button>
+                                    <Button 
+                                        onClick={finalizeOnboarding} 
+                                        style={{ 
+                                            backgroundColor: 'white',
+                                            color: '#2563eb',
+                                            paddingLeft: '32px',
+                                            paddingRight: '32px',
+                                            paddingTop: '24px',
+                                            paddingBottom: '24px',
+                                            minHeight: '56px',
+                                            cursor: 'pointer'
+                                        }}
+                                        className="font-bold rounded-xl shadow-xl hover:bg-slate-50" 
+                                        disabled={loading}
+                                    >
+                                        {loading ? <Loader2 className="w-5 h-5 animate-spin mr-2" /> : "Verify & Launch"}
                                     </Button>
                                 </div>
                             </CardFooter>
@@ -406,26 +469,48 @@ export default function CompanyOnboarding() {
 
                 {/* STEP: SUCCESS */}
                 {step === 'success' && (
-                    <div className="text-center space-y-12 py-10">
-                        <div className="relative inline-block">
-                            <div className="w-32 h-32 bg-green-500 rounded-[2.5rem] flex items-center justify-center mx-auto shadow-2xl shadow-green-200 animate-in zoom-in duration-500">
-                                <CheckCircle2 className="w-16 h-16 text-white" />
+                    <div style={{ textAlign: 'center', padding: '40px', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center' }} className="space-y-12 animate-in fade-in duration-700">
+                        <div style={{ position: 'relative', display: 'inline-block' }}>
+                            <div style={{ width: '128px', height: '128px', borderRadius: '40px', backgroundColor: '#22c55e', display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto', boxShadow: '0 25px 50px -12px rgba(34, 197, 94, 0.25)' }} className="animate-in zoom-in duration-500">
+                                <CheckCircle2 style={{ width: '64px', height: '64px', color: 'white' }} />
                             </div>
-                            <div className="absolute -top-4 -right-4">
-                                <div className="w-12 h-12 bg-white rounded-2xl shadow-xl flex items-center justify-center animate-bounce">
-                                    <Building2 className="w-6 h-6 text-blue-600" />
+                            <div style={{ position: 'absolute', top: '-16px', right: '-16px' }}>
+                                <div style={{ width: '48px', height: '48px', backgroundColor: 'white', borderRadius: '16px', boxShadow: '0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04)', display: 'flex', alignItems: 'center', justifyContent: 'center' }} className="animate-bounce">
+                                    <Building2 style={{ width: '24px', height: '24px', color: '#2563eb' }} />
                                 </div>
                             </div>
                         </div>
 
-                        <div className="space-y-4">
-                            <h2 className="text-5xl font-black text-slate-900 tracking-tight">Welcome to Vertex!</h2>
-                            <p className="text-slate-500 text-xl max-w-lg mx-auto leading-relaxed">Your company profile is ready. Start posting opportunities and connecting with talented students.</p>
+                        <div style={{ marginBottom: '32px' }} className="space-y-4">
+                            <h2 style={{ fontSize: '48px', fontWeight: '900', color: '#0f172a', letterSpacing: '-0.025em', margin: '0' }}>Welcome to Vertex!</h2>
+                            <p style={{ fontSize: '20px', color: '#64748b', maxWidth: '500px', margin: '16px auto 0', lineHeight: '1.625' }}>Your company profile is ready. Start posting opportunities and connecting with talented students.</p>
                         </div>
 
-                        <div className="flex flex-col sm:flex-row gap-6 justify-center">
-                            <Button onClick={() => navigate('/company-home')} className="px-12 py-8 bg-blue-600 hover:bg-blue-700 text-white rounded-3xl font-black text-lg transition-all transform hover:scale-105 shadow-2xl shadow-blue-200">
-                                Go to Dashboard
+                        <div style={{ display: 'flex', justifyContent: 'center', width: '100%' }}>
+                            <Button 
+                                onClick={() => navigate('/company-home')} 
+                                style={{ 
+                                    paddingLeft: '64px', 
+                                    paddingRight: '64px', 
+                                    paddingTop: '24px', 
+                                    paddingBottom: '24px', 
+                                    backgroundColor: '#2563eb', 
+                                    color: 'white', 
+                                    borderRadius: '24px', 
+                                    fontWeight: '900', 
+                                    fontSize: '20px',
+                                    boxShadow: '0 20px 30px -10px rgba(37, 99, 235, 0.4)',
+                                    cursor: 'pointer',
+                                    minHeight: '80px',
+                                    display: 'flex',
+                                    alignItems: 'center',
+                                    justifyContent: 'center',
+                                    gap: '12px',
+                                    border: 'none'
+                                }}
+                                className="hover:bg-blue-700 transition-transform transform hover:scale-105 active:scale-95"
+                            >
+                                Go to Dashboard <ArrowRight style={{ width: '24px', height: '24px' }} />
                             </Button>
                         </div>
                     </div>

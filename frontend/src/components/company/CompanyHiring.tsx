@@ -1,5 +1,7 @@
 import { useState } from 'react';
-import { Search, Sparkles, User, FolderGit2, CheckCircle2, ArrowRight } from 'lucide-react';
+import { useNavigate } from 'react-router-dom';
+import { Search, Sparkles, FolderGit2, CheckCircle2, ArrowRight } from 'lucide-react';
+import '../Opportunities.css';
 
 type SearchTarget = 'students' | 'projects';
 
@@ -26,14 +28,15 @@ interface Project {
 }
 
 export function CompanyHiring() {
+  const navigate = useNavigate();
   const [searchTarget, setSearchTarget] = useState<SearchTarget>('students');
-  const [searchQuery, setSearchQuery] = useState('');
   const [useAISearch, setUseAISearch] = useState(false);
-  const [selectedTags, setSelectedTags] = useState<string[]>([]);
+  const [sortBy, setSortBy] = useState<string>('Most Recent');
+  const [selectedTags, setSelectedTags] = useState<string[]>(['#All']); // Init with #All like Opps
 
   const availableTags = [
-    'React', 'Python', 'AI/ML', 'Node.js', 'TypeScript', 'Full-Stack',
-    'Mobile', 'UI/UX', 'DevOps', 'Data Science', 'Blockchain'
+    '#All', '#React', '#Python', '#AI/ML', '#Node.js', '#TypeScript', 
+    '#Full-Stack', '#Mobile', '#UI/UX', '#DevOps', '#Data Science', '#Blockchain'
   ];
 
   const students: Student[] = [
@@ -58,6 +61,17 @@ export function CompanyHiring() {
       atsScore: 92,
       projectCount: 8,
       avatar: 'SC'
+    },
+    {
+      id: '3',
+      name: 'Mike Rodriguez',
+      university: 'UC Berkeley',
+      year: 'Graduate',
+      jobTitle: 'Blockchain Developer',
+      skills: ['Solidity', 'Web3', 'React', 'Rust'],
+      atsScore: 78,
+      projectCount: 3,
+      avatar: 'MR'
     }
   ];
 
@@ -66,7 +80,7 @@ export function CompanyHiring() {
       id: '1',
       name: 'AI Chat Bot',
       studentName: 'Alex Johnson',
-      description: 'Conversational AI using NLP and machine learning with context awareness',
+      description: 'Conversational AI using NLP and machine learning with context awareness to provide real-time support.',
       tags: ['AI/ML', 'Python', 'NLP', 'TensorFlow'],
       verified: true,
       githubLink: 'https://github.com/username/ai-chatbot'
@@ -75,7 +89,7 @@ export function CompanyHiring() {
       id: '2',
       name: 'Healthcare Assistant',
       studentName: 'Sarah Chen',
-      description: 'AI-powered healthcare assistant for patient diagnosis support',
+      description: 'AI-powered healthcare assistant for patient diagnosis support, integrating with electronic health records.',
       tags: ['AI/ML', 'Healthcare', 'Python', 'Deep Learning'],
       verified: true,
       githubLink: 'https://github.com/username/health-ai'
@@ -83,181 +97,241 @@ export function CompanyHiring() {
   ];
 
   const toggleTag = (tag: string) => {
-    setSelectedTags(prev =>
-      prev.includes(tag) ? prev.filter(t => t !== tag) : [...prev, tag]
-    );
+    if (tag === '#All') {
+        setSelectedTags(['#All']);
+        return;
+    }
+    let newTags = [...selectedTags];
+    if (newTags.includes('#All')) newTags = [];
+    
+    if (newTags.includes(tag)) {
+        newTags = newTags.filter(t => t !== tag);
+    } else {
+        newTags.push(tag);
+    }
+    
+    if (newTags.length === 0) newTags = ['#All'];
+    setSelectedTags(newTags);
+  };
+
+  const scrollTags = (direction: 'left' | 'right') => {
+    const container = document.getElementById('hiring-tags-container');
+    if (container) {
+        const scrollAmount = 200;
+        container.scrollBy({
+            left: direction === 'left' ? -scrollAmount : scrollAmount,
+            behavior: 'smooth'
+        });
+    }
   };
 
   return (
-    <div className="max-w-6xl mx-auto py-4 animate-in fade-in duration-700">
-      <div className="mb-10 text-center md:text-left">
-        <h1 className="text-4xl font-extrabold text-slate-900 tracking-tight mb-2">Talent Acquisition</h1>
-        <p className="text-slate-600 text-lg">Harness neural search to discover verified talent and groundbreaking projects.</p>
-      </div>
-
-      {/* Target Toggle - Standardized Glass Pill */}
-      <div className="flex justify-center md:justify-start gap-4 mb-10">
-        <button
-          onClick={() => setSearchTarget('students')}
-          className={`flex items-center gap-2 px-8 py-3 rounded-full text-sm font-bold transition-all duration-300 transform ${searchTarget === 'students'
-            ? 'bg-blue-600 text-white shadow-xl shadow-blue-200 scale-105'
-            : 'bg-white text-slate-500 border border-slate-200/50 hover:bg-slate-50 hover:border-blue-100'
-            }`}
-        >
-          <User className="w-4 h-4" />
-          Students
-        </button>
-        <button
-          onClick={() => setSearchTarget('projects')}
-          className={`flex items-center gap-2 px-8 py-3 rounded-full text-sm font-bold transition-all duration-300 transform ${searchTarget === 'projects'
-            ? 'bg-blue-600 text-white shadow-xl shadow-blue-200 scale-105'
-            : 'bg-white text-slate-500 border border-slate-200/50 hover:bg-slate-50 hover:border-blue-100'
-            }`}
-        >
-          <FolderGit2 className="w-4 h-4" />
-          Projects
-        </button>
-      </div>
-
-      {/* Search Layout */}
-      <div className="bg-white rounded-[2.5rem] shadow-2xl shadow-slate-200/50 border border-slate-100 p-8 mb-10 group transition-all hover:border-blue-100">
-        <div className={`flex flex-col md:flex-row gap-4 mb-8 p-2 rounded-2xl border transition-all duration-300 ${useAISearch ? 'border-blue-500 ring-4 ring-blue-500/10' : 'border-slate-100 bg-slate-50'}`}>
-          <div className="flex-1 relative w-full group">
-            <Search className={`absolute left-5 top-1/2 -translate-y-1/2 w-5 h-5 transition-colors ${useAISearch ? 'text-blue-500' : 'text-slate-400'}`} />
-            <input
-              type="text"
-              placeholder={useAISearch ? "Describe your hiring goal (e.g. 'Looking for an AI expert with React experience...')" : `Search ${searchTarget}...`}
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-              className="w-full pl-14 pr-4 py-4 bg-transparent outline-none text-slate-900 font-medium placeholder:text-slate-400"
-            />
-          </div>
-          <button
-            onClick={() => setUseAISearch(!useAISearch)}
-            className={`flex items-center gap-2 px-8 py-4 rounded-xl transition-all font-bold ${useAISearch ? 'bg-blue-600 text-white shadow-xl' : 'bg-white text-slate-600 hover:bg-slate-200'}`}
-          >
-            <Sparkles className={`w-5 h-5 ${useAISearch ? 'animate-pulse' : ''}`} />
-            <span>Smart Candidate Scan</span>
-          </button>
+    <main className="opp-main">
+      {/* Search Section - Standardized */}
+      <section className="opp-search-section">
+        <div className="opp-search-width-container">
+            <div className="opp-search-group">
+                <div className="opp-search-bg-blur"></div>
+                <div className="opp-search-box">
+                    <span className="material-symbols-outlined opp-search-icon">search</span>
+                    <input
+                        className="opp-search-input"
+                        placeholder={useAISearch ? "Describe your ideal candidate..." : "Search for talent by name, skill, or university..."}
+                        type="text"
+                    />
+                    <button 
+                        className="opp-ask-ai-btn vibrant-gradient"
+                        onClick={() => setUseAISearch(!useAISearch)}
+                    >
+                        <span className="material-symbols-outlined">auto_awesome</span>
+                        Ask AI
+                    </button>
+                </div>
+            </div>
         </div>
+      </section>
 
-        {!useAISearch ? (
-          <div>
-            <label className="block text-[10px] font-black text-slate-400 uppercase tracking-[2px] mb-4">Focus Areas</label>
-            <div className="flex flex-wrap gap-2">
-              {availableTags.map((tag) => (
+      {/* Filters Section - Standardized */}
+      <section className="opp-filters-section">
+        <div className="opp-filters-container">
+            <div className="opp-filter-toggle">
                 <button
-                  key={tag}
-                  onClick={() => toggleTag(tag)}
-                  className={`px-5 py-2 rounded-full text-xs font-bold transition-all duration-300 border ${selectedTags.includes(tag)
-                    ? 'bg-blue-600 text-white border-blue-600 shadow-lg shadow-blue-200'
-                    : 'bg-white text-slate-500 border-slate-200 hover:border-blue-300 hover:text-blue-600'
-                    }`}
+                    onClick={() => setSearchTarget('students')}
+                    className={`opp-toggle-option ${searchTarget === 'students' ? 'active' : ''}`}
                 >
-                  {tag}
+                    Candidates
                 </button>
-              ))}
+                <button
+                    onClick={() => setSearchTarget('projects')}
+                    className={`opp-toggle-option ${searchTarget === 'projects' ? 'active' : ''}`}
+                >
+                    Projects
+                </button>
             </div>
-          </div>
-        ) : (
-          <div className="bg-slate-900 rounded-2xl p-6 text-white flex items-center justify-between group overflow-hidden relative">
-            <div className="relative z-10">
-              <h4 className="font-bold text-blue-400 mb-1 flex items-center gap-2">
-                <Sparkles className="w-4 h-4" />
-                Neural Intelligence Mode
-              </h4>
-              <p className="text-sm text-slate-400">Vertex AI is simulating candidate fits based on your technical requirements.</p>
-            </div>
-            <div className="absolute top-0 right-0 p-4 opacity-5 group-hover:opacity-20 transition-opacity">
-              <Search className="w-24 h-24 transform -rotate-12" />
-            </div>
-          </div>
-        )}
-      </div>
 
-      <div className="grid md:grid-cols-2 gap-8 mb-12">
-        {searchTarget === 'students' ? students.map(s => <StudentCard key={s.id} student={s} />) : projects.map(p => <ProjectCard key={p.id} project={p} />)}
-      </div>
-    </div>
+            <div className="opp-tags-wrapper">
+                <button className="opp-scroll-btn" onClick={() => scrollTags('left')}>
+                    <span className="material-symbols-outlined">chevron_left</span>
+                </button>
+
+                <div className="opp-tags-row" id="hiring-tags-container">
+                    {availableTags.map(tag => (
+                        <button
+                            key={tag}
+                            className={`opp-chip ${selectedTags.includes(tag) ? 'active' : 'inactive'}`}
+                            onClick={() => toggleTag(tag)}
+                        >
+                            {tag}
+                        </button>
+                    ))}
+                </div>
+
+                <button className="opp-scroll-btn" onClick={() => scrollTags('right')}>
+                    <span className="material-symbols-outlined">chevron_right</span>
+                </button>
+            </div>
+        </div>
+      </section>
+
+      {/* Main Content Grid - Standardized Vertical Layout */}
+      <section className="opp-content-section" style={{ maxWidth: '1000px', margin: '0 auto', display: 'flex', flexDirection: 'column', gap: '2rem' }}>
+         <div className="w-full">
+            <div className="opp-listing-header-row">
+                <h3 className="opp-listing-title">
+                    Showing {searchTarget === 'students' ? students.length : projects.length} {searchTarget === 'students' ? 'Candidates' : 'Projects'}
+                </h3>
+
+                <div className="opp-sort-dropdown">
+                    <span className="material-symbols-outlined">sort</span>
+                    <span className="opp-sort-label">Sort by:</span>
+                    <select
+                        className="opp-sort-select"
+                        value={sortBy}
+                        onChange={(e) => setSortBy(e.target.value)}
+                    >
+                        <option>Most Recent</option>
+                        <option>Best Match</option>
+                        <option>Experience</option>
+                    </select>
+                </div>
+            </div>
+
+            <div className="flex flex-col gap-6">
+                {searchTarget === 'students' 
+                    ? students.map(s => <StudentCard key={s.id} student={s} />) 
+                    : projects.map(p => <ProjectCard key={p.id} project={p} />)
+                }
+            </div>
+         </div>
+      </section>
+    </main>
   );
 }
 
 function StudentCard({ student }: { student: Student }) {
   return (
-    <div className="group bg-white rounded-[2rem] p-8 border border-slate-100 shadow-lg hover:shadow-2xl transition-all duration-500 transform hover:-translate-y-1">
-      <div className="flex items-start gap-6 mb-6">
-        <div className="w-20 h-20 bg-blue-50 rounded-2xl flex items-center justify-center text-2xl font-black text-blue-600 group-hover:scale-110 transition-transform">
-          {student.avatar}
-        </div>
-        <div className="flex-1">
-          <h3 className="text-2xl font-bold text-slate-900 mb-1 group-hover:text-blue-600 transition-colors">{student.name}</h3>
-          <p className="text-blue-600 text-xs font-black uppercase tracking-widest mb-2 leading-none">{student.jobTitle}</p>
-          <p className="text-slate-400 font-bold text-[10px] uppercase tracking-wider">{student.university} • {student.year}</p>
-        </div>
-      </div>
+    <div className="opp-event-card" style={{ cursor: 'default' }}> {/* Reusing opp-event-card for consistent styling */}
+        <div className="flex flex-col md:flex-row gap-6 p-6 w-full">
+            {/* Avatar Section */}
+            <div className="w-20 h-20 bg-blue-50 rounded-2xl flex items-center justify-center text-2xl font-black text-blue-600 shrink-0">
+                {student.avatar}
+            </div>
 
-      <div className="mb-8 p-5 bg-slate-50 rounded-2xl border border-slate-100">
-        <div className="flex items-center justify-between mb-2 text-[10px] font-black text-slate-400 uppercase tracking-widest">
-          <span className="flex items-center gap-1"><Sparkles className="w-3 h-3 text-blue-500" />ATS Match</span>
-          <span className="text-blue-600">{student.atsScore}%</span>
-        </div>
-        <div className="w-full bg-slate-200 rounded-full h-1.5 overflow-hidden">
-          <div className="bg-blue-600 h-full rounded-full transition-all duration-1000" style={{ width: `${student.atsScore}%` }} />
-        </div>
-      </div>
+            {/* Main Info */}
+            <div className="flex-1 flex flex-col justify-center">
+                <div className="flex items-center gap-2 mb-1">
+                    <h3 className="text-xl font-bold text-slate-900">{student.name}</h3>
+                    <div className="flex items-center gap-1 px-2 py-0.5 bg-blue-50 text-blue-600 rounded-full text-[10px] font-bold uppercase border border-blue-100">
+                        Top Talent
+                    </div>
+                </div>
+                <p className="text-blue-600 text-xs font-black uppercase tracking-widest mb-2 leading-none">{student.jobTitle}</p>
+                <p className="text-slate-400 font-bold text-[10px] uppercase tracking-wider">{student.university} • {student.year}</p>
+                
+                {/* Skills */}
+                <div className="flex flex-wrap gap-2 mt-4">
+                    {student.skills.slice(0, 5).map((s, i) => (
+                        <span key={i} className="px-3 py-1 bg-slate-50 border border-slate-100 text-slate-500 text-[10px] font-bold uppercase rounded-lg">
+                            {s}
+                        </span>
+                    ))}
+                    {student.skills.length > 5 && (
+                         <span className="px-3 py-1 text-slate-400 text-[10px] font-bold">+{student.skills.length - 5}</span>
+                    )}
+                </div>
+            </div>
 
-      <div className="flex flex-wrap gap-2 mb-8">
-        {student.skills.map((s, i) => (
-          <span key={i} className="px-3 py-1 bg-white border border-slate-100 text-slate-500 text-[10px] font-bold uppercase rounded-lg">
-            {s}
-          </span>
-        ))}
-      </div>
+            {/* Meta / Action Column */}
+            <div className="w-full md:w-64 flex flex-col justify-between border-t md:border-t-0 md:border-l border-slate-100 pt-4 md:pt-0 md:pl-6 gap-4">
+                <div className="p-3 bg-slate-50 rounded-xl border border-slate-100">
+                     <div className="flex items-center justify-between mb-2 text-[10px] font-black text-slate-400 uppercase tracking-widest">
+                        <span className="flex items-center gap-1"><Sparkles className="w-3 h-3 text-blue-500" />ATS Match</span>
+                        <span className="text-blue-600">{student.atsScore}%</span>
+                    </div>
+                    <div className="w-full bg-slate-200 rounded-full h-1.5 overflow-hidden">
+                        <div className="bg-blue-600 h-full rounded-full" style={{ width: `${student.atsScore}%` }} />
+                    </div>
+                </div>
 
-      <button className="w-full py-4 bg-blue-600 text-white rounded-2xl font-bold flex items-center justify-center gap-2 group/btn shadow-xl shadow-blue-200 hover:shadow-blue-300 transition-all hover:-translate-y-1">
-        Deep Dive Profile
-        <ArrowRight className="w-4 h-4 transform group-hover/btn:translate-x-1 transition-transform" />
-      </button>
+                <div className="flex gap-3 mt-auto">
+                    <button className="flex-1 h-12 bg-white border border-slate-300 text-slate-700 rounded-xl font-bold text-sm hover:bg-slate-50 hover:border-slate-400 transition-all cursor-pointer">
+                        Message
+                    </button>
+                    <button className="flex-1 h-12 bg-blue-600 text-white rounded-xl font-bold text-sm shadow-lg shadow-blue-200 hover:shadow-blue-300 hover:-translate-y-0.5 transition-all flex items-center justify-center gap-2 cursor-pointer">
+                        Profile
+                        <ArrowRight className="w-4 h-4" />
+                    </button>
+                </div>
+            </div>
+        </div>
     </div>
   );
 }
 
 function ProjectCard({ project }: { project: Project }) {
   return (
-    <div className="group bg-white rounded-[2rem] p-8 border border-slate-100 shadow-lg hover:shadow-2xl transition-all duration-500 transform hover:-translate-y-1">
-      <div className="flex items-start justify-between mb-6">
-        <div className="flex-1">
-          <div className="flex items-center gap-2 mb-2">
-            <h3 className="text-2xl font-bold text-slate-900 group-hover:text-blue-600 transition-colors">{project.name}</h3>
-            {project.verified && (
-              <div className="flex items-center gap-1 px-2 py-0.5 bg-green-50 text-green-700 rounded-full text-[10px] font-bold uppercase border border-green-100">
-                <CheckCircle2 className="w-3 h-3" />
-                Verified
-              </div>
-            )}
-          </div>
-          <p className="text-blue-600 text-xs font-black uppercase tracking-widest leading-none">Maintained by {project.studentName}</p>
+    <div className="opp-event-card" style={{ cursor: 'default' }}>
+        <div className="flex flex-col md:flex-row gap-6 p-6 w-full">
+            {/* Project Icon/Image Placeholder */}
+            <div className="w-20 h-20 bg-indigo-50 rounded-2xl flex items-center justify-center text-indigo-600 shrink-0">
+                <FolderGit2 className="w-8 h-8" />
+            </div>
+
+             <div className="flex-1 flex flex-col justify-center">
+                 <div className="flex items-center gap-2 mb-1">
+                     <h3 className="text-xl font-bold text-slate-900">{project.name}</h3>
+                     {project.verified && (
+                        <div className="flex items-center gap-1 px-2 py-0.5 bg-green-50 text-green-700 rounded-full text-[10px] font-bold uppercase border border-green-100">
+                            <CheckCircle2 className="w-3 h-3" />
+                            Verified
+                        </div>
+                     )}
+                 </div>
+                 <p className="text-slate-500 text-sm leading-relaxed mb-3 line-clamp-2">{project.description}</p>
+                 
+                 <div className="flex items-center gap-2">
+                     <span className="text-[10px] font-bold uppercase text-slate-400">Maintained by</span>
+                     <span className="text-xs font-bold text-blue-600 uppercase">{project.studentName}</span>
+                 </div>
+             </div>
+
+             <div className="w-full md:w-64 flex flex-col justify-between border-t md:border-t-0 md:border-l border-slate-100 pt-4 md:pt-0 md:pl-6 gap-4">
+                 <div className="flex flex-wrap gap-2">
+                     {project.tags.map((tag, idx) => (
+                         <span key={idx} className="px-3 py-1 bg-slate-50 text-slate-500 text-[10px] font-bold uppercase rounded-lg border border-slate-100">
+                             {tag}
+                         </span>
+                     ))}
+                 </div>
+                 
+                 <div className="flex gap-3 mt-auto">
+                     <button className="flex-1 h-12 bg-indigo-600 text-white rounded-xl font-bold text-sm shadow-lg shadow-indigo-200 hover:shadow-indigo-300 hover:-translate-y-0.5 transition-all flex items-center justify-center gap-2 cursor-pointer">
+                         <FolderGit2 className="w-4 h-4" />
+                         Code
+                     </button>
+                 </div>
+             </div>
         </div>
-      </div>
-
-      <p className="text-slate-500 leading-relaxed mb-8 h-12 line-clamp-2">{project.description}</p>
-
-      <div className="flex flex-wrap gap-2 mb-8">
-        {project.tags.map((tag, idx) => (
-          <span key={idx} className="px-3 py-1 bg-slate-50 text-slate-400 text-[10px] font-bold uppercase rounded-lg border border-slate-100">
-            {tag}
-          </span>
-        ))}
-      </div>
-
-      <div className="flex gap-4">
-        <button className="flex-1 py-4 bg-blue-600 text-white rounded-2xl font-bold flex items-center justify-center gap-2 group/btn shadow-xl shadow-blue-200 hover:shadow-blue-300 transition-all hover:-translate-y-1">
-          Inspect Code
-        </button>
-        <button className="flex-1 py-4 bg-white border border-slate-200 text-slate-900 rounded-2xl font-bold hover:bg-slate-50 transition-all">
-          Author Bio
-        </button>
-      </div>
     </div>
   );
 }

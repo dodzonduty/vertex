@@ -44,7 +44,7 @@ export function CompanyDashboard({ onLogout }: CompanyDashboardProps) {
           <div className="flex items-center gap-6">
             <button
               onClick={onLogout}
-              className="text-sm font-bold text-slate-500 hover:text-blue-600 transition-colors"
+              className="text-sm font-bold text-slate-500 hover:text-blue-600 transition-colors cursor-pointer"
             >
               Log out
             </button>
@@ -60,7 +60,7 @@ export function CompanyDashboard({ onLogout }: CompanyDashboardProps) {
 
         {/* Minimal Navigation */}
         <div className="mb-8 border-b border-slate-200">
-          <div className="flex gap-8 overflow-x-auto no-scrollbar">
+          <div className="flex gap-8 overflow-x-auto no-scrollbar overflow-visible p-1">
             <TabButton
               icon={<Building2 className="w-4 h-4" />}
               label="Profile"
@@ -79,12 +79,36 @@ export function CompanyDashboard({ onLogout }: CompanyDashboardProps) {
               active={activeTab === 'browse'}
               onClick={() => setActiveTab('browse')}
             />
-            <TabButton
-              icon={<Calendar className="w-4 h-4" />}
-              label="Create Events"
-              active={activeTab === 'events'}
-              onClick={() => setActiveTab('events')}
-            />
+            
+            {/* Opportunities Dropdown */}
+            <div className="relative group">
+              <TabButton
+                icon={<Calendar className="w-4 h-4" />}
+                label="Opportunities"
+                active={activeTab === 'events'}
+                onClick={() => {/* Toggle or keep active if selected */}}
+                className="group-hover:text-blue-600 group-hover:bg-slate-50"
+              />
+              {/* Dropdown Menu */}
+              <div className="absolute top-full left-0 mt-2 w-56 bg-white rounded-xl shadow-xl border border-slate-100 overflow-hidden opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200 z-50 transform origin-top-left">
+                <div className="p-1">
+                  <Link 
+                    to="/opportunities" 
+                    className="flex items-center gap-3 px-4 py-3 text-sm font-semibold text-slate-600 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition-colors"
+                  >
+                    <Search className="w-4 h-4" />
+                    View Opportunities
+                  </Link>
+                  <button 
+                    onClick={() => setActiveTab('events')}
+                    className="w-full flex items-center gap-3 px-4 py-3 text-sm font-semibold text-slate-600 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition-colors text-left"
+                  >
+                    <Calendar className="w-4 h-4" />
+                    Host an Opportunity
+                  </button>
+                </div>
+              </div>
+            </div>
           </div>
         </div>
 
@@ -105,16 +129,17 @@ interface TabButtonProps {
   label: string;
   active: boolean;
   onClick: () => void;
+  className?: string;
 }
 
-function TabButton({ icon, label, active, onClick }: TabButtonProps) {
+function TabButton({ icon, label, active, onClick, className = '' }: TabButtonProps) {
   return (
     <button
       onClick={onClick}
       className={`flex items-center gap-2 px-4 py-2.5 rounded-full text-sm font-semibold transition-all duration-300 transform scale-100 hover:scale-105 active:scale-95 ${active
         ? 'bg-blue-600 text-white shadow-lg shadow-blue-200'
         : 'bg-white text-slate-600 hover:bg-slate-50 hover:text-blue-600 border border-slate-200/50 hover:border-blue-100 hover:shadow-md'
-        }`}
+        } ${className}`}
     >
       {icon}
       {label}

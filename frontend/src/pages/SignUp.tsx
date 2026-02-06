@@ -12,6 +12,19 @@ export function SignUp() {
 
     const handleRoleSelect = (role: 'student' | 'company') => {
         setSelectedRole(role);
+        
+        // Clear any previous onboarding state to ensure a fresh start
+        if (role === 'student') {
+            // Keys used in StudentOnboarding.tsx
+            localStorage.removeItem('vertex_onboarding_step');
+            localStorage.removeItem('vertex_onboarding_data');
+        } else {
+            // Company onboarding doesn't currently use local storage, 
+            // but clearing potential future keys is good practice
+            localStorage.removeItem('company_onboarding_step');
+            localStorage.removeItem('company_onboarding_data');
+        }
+
         // Navigate to role-specific onboarding
         setTimeout(() => {
             if (role === 'student') {
@@ -86,7 +99,7 @@ export function SignUp() {
                                 </ul>
                                 <br />
                                 {/* CTA */}
-                                <button className="w-full py-4 bg-gradient-to-r from-indigo-600 to-purple-600 text-white rounded-2xl font-bold text-lg shadow-xl shadow-indigo-200 hover:shadow-2xl hover:shadow-indigo-300 transition-all flex items-center justify-center gap-2 group-hover:gap-4">
+                                <button style={{ minHeight: '45px' }} className="w-full py-4 bg-gradient-to-r from-indigo-600 to-purple-600 text-white rounded-2xl font-extrabold text-lg shadow-xl shadow-indigo-200 hover:shadow-2xl hover:shadow-indigo-300 transition-all flex items-center justify-center gap-2 group-hover:gap-4 cursor-pointer">
                                     Continue as Student
                                     <ArrowRight className="w-5 h-5" />
                                 </button>
@@ -137,7 +150,7 @@ export function SignUp() {
                                 </ul>
                                 <br />
                                 {/* CTA */}
-                                <button className="w-full py-4 bg-gradient-to-r from-blue-600 to-cyan-600 text-white rounded-2xl font-bold text-lg shadow-xl shadow-blue-200 hover:shadow-2xl hover:shadow-blue-300 transition-all flex items-center justify-center gap-2 group-hover:gap-4">
+                                <button style={{ minHeight: '45px' }} className="w-full py-4 bg-gradient-to-r from-blue-600 to-cyan-600 text-white rounded-2xl font-extrabold text-lg shadow-xl shadow-blue-200 hover:shadow-2xl hover:shadow-blue-300 transition-all flex items-center justify-center gap-2 group-hover:gap-4 cursor-pointer">
                                     Continue as Company
                                     <ArrowRight className="w-5 h-5" />
                                 </button>
@@ -152,7 +165,7 @@ export function SignUp() {
                         Already have an account?{' '}
                         <button
                             onClick={() => navigate('/signin')}
-                            className="text-indigo-600 font-bold hover:text-indigo-700 transition-colors underline decoration-2 underline-offset-4"
+                            className="text-indigo-600 font-bold hover:text-indigo-700 cursor-pointer transition-colors underline decoration-2 underline-offset-4"
                         >
                             Sign In
                         </button>

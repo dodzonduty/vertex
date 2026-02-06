@@ -1,8 +1,10 @@
 import { useState, useEffect } from 'react';
-import { Plus, Calendar, MapPin, Trophy, Edit, XCircle, ArrowRight, CheckCircle2, MoreHorizontal, Sparkles, Users, Clock, DollarSign, Target, FileText, Link as LinkIcon, X } from 'lucide-react';
+import { Plus, Calendar, MapPin, Trophy, Edit, XCircle, ArrowRight, CheckCircle2, MoreHorizontal, Sparkles, Users, Clock, DollarSign, Target, FileText, Link as LinkIcon, X, Save } from 'lucide-react';
+import { useSearchParams } from 'react-router-dom';
 import { StatePreservation } from '../../lib/utils/statePreservation';
 import { toast } from 'sonner';
 import { apiRequest } from '../../lib/api/config';
+import { Button } from '../ui/button';
 
 interface Event {
   id: string;
@@ -41,7 +43,17 @@ interface EventFormData {
 }
 
 export function CompanyEvents() {
-  const [showCreateModal, setShowCreateModal] = useState(false);
+  const [searchParams, setSearchParams] = useSearchParams();
+  const isCreating = searchParams.get('mode') === 'create';
+  const toggleCreateMode = (create: boolean) => {
+    setSearchParams(prev => {
+        const newParams = new URLSearchParams(prev);
+        if (create) newParams.set('mode', 'create');
+        else newParams.delete('mode');
+        return newParams;
+    });
+  };
+
   const [showLanding, setShowLanding] = useState(false);
   
   // Load events from storage or use default
@@ -49,10 +61,6 @@ export function CompanyEvents() {
 
   // Fetch events from backend
   useEffect(() => {
-    // For now, we fetch all and locally filter (or backend should support filtering by my ID)
-    // Ideally: GET /api/opportunities/?created_by_me=true
-    // Since we don't have that yet, we'll fetch list and assume for this demo we just show what we created or all.
-    // Given the "fresh environment", creating one will show it.
     apiRequest<any[]>('/api/opportunities/')
       .then(data => {
         // Map backend response to Event interface
@@ -143,28 +151,27 @@ export function CompanyEvents() {
       };
 
       setEvents([newEvent, ...events]);
-      setShowCreateModal(false);
+      toggleCreateMode(false);
       setShowLanding(false);
       
       // Clear form data
-    // Clear form data
-    const emptyForm: EventFormData = {
-      title: '',
-      type: 'hackathon',
-      description: '',
-      date: '',
-      endDate: '',
-      location: '',
-      prizes: [],
-      requirements: [],
-      judgingCriteria: [],
-      rules: [],
-      applicationLink: '',
-      maxParticipants: '',
-      registrationDeadline: '',
-      tags: []
-    };
-    setFormData(emptyForm);
+      const emptyForm: EventFormData = {
+        title: '',
+        type: 'hackathon',
+        description: '',
+        date: '',
+        endDate: '',
+        location: '',
+        prizes: [],
+        requirements: [],
+        judgingCriteria: [],
+        rules: [],
+        applicationLink: '',
+        maxParticipants: '',
+        registrationDeadline: '',
+        tags: []
+      };
+      setFormData(emptyForm);
       StatePreservation.clearSession('event_form_data');
       toast.success('Event published successfully!', {
         description: 'Your event is now live and visible to students.'
@@ -186,8 +193,6 @@ export function CompanyEvents() {
 
   const addArrayItem = (field: 'prizes' | 'requirements' | 'judgingCriteria' | 'rules') => {
     if (field === 'prizes') {
-        // Special handling for prizes? No, we just need to adapt how it's stored or just append empty
-        // Actually, the new Prize UI won't use this generic one.
         return; 
     }
     setFormData({
@@ -209,6 +214,21 @@ export function CompanyEvents() {
     });
   };
 
+  if (isCreating) {
+    return (
+        <EventCreateForm 
+           formData={formData}
+           setFormData={setFormData}
+           onClose={() => toggleCreateMode(false)}
+           onSubmit={handleCreateEvent}
+           addArrayItem={addArrayItem}
+           updateArrayItem={updateArrayItem}
+           removeArrayItem={removeArrayItem}
+           availableTags={availableTags}
+        />
+    );
+  }
+
   return (
     <div className="max-w-6xl mx-auto py-4 animate-in fade-in duration-700">
       {(showLanding || events.length === 0) ? (
@@ -216,7 +236,7 @@ export function CompanyEvents() {
           <EventLandingPage 
             onCreateClick={() => {
               setShowLanding(false);
-              setShowCreateModal(true);
+              toggleCreateMode(true);
             }}
             hasEvents={events.length > 0}
           />
@@ -229,20 +249,55 @@ export function CompanyEvents() {
               <p className="text-slate-600 text-lg">Orchestrate hackathons and workshops to engage with elite talent.</p>
             </div>
             <div className="flex gap-3">
-              <button
+            <div className="flex gap-3">
+              <Button
                 onClick={() => setShowLanding(true)}
-                className="flex items-center gap-2 px-6 py-3.5 bg-white border-2 border-blue-600 text-blue-600 rounded-2xl font-bold hover:bg-blue-50 transition-all"
+                variant="ghost"
+                style={{
+                    backgroundColor: 'white',
+                    border: '2px solid #2563eb',
+                    color: '#2563eb',
+                    paddingTop: '12px',
+                    paddingBottom: '12px',
+                    paddingLeft: '24px',
+                    paddingRight: '24px',
+                    borderRadius: '16px',
+                    fontWeight: 700,
+                    height: 'auto',
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: '8px',
+                    cursor: 'pointer'
+                }}
+                className="hover:bg-blue-50 transition-all"
               >
                 <Sparkles className="w-5 h-5" />
                 View Guide
-              </button>
-              <button
-                onClick={() => setShowCreateModal(true)}
-                className="flex items-center gap-2 px-6 py-3.5 bg-blue-600 text-white rounded-2xl font-bold shadow-xl shadow-blue-200 hover:shadow-blue-300 hover:-translate-y-0.5 transition-all"
+              </Button>
+              <Button
+                onClick={() => toggleCreateMode(true)}
+                style={{
+                    backgroundColor: '#2563eb',
+                    color: 'white',
+                    paddingTop: '12px',
+                    paddingBottom: '12px',
+                    paddingLeft: '32px', // Slightly larger for primary
+                    paddingRight: '32px',
+                    borderRadius: '16px',
+                    fontWeight: 700,
+                    height: 'auto',
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: '8px',
+                    cursor: 'pointer',
+                    boxShadow: '0 10px 15px -3px rgba(37, 99, 235, 0.2)'
+                }}
+                className="hover:bg-blue-700 hover:-translate-y-0.5 transition-all shadow-xl shadow-blue-200"
               >
                 <Plus className="w-5 h-5" />
                 Host an Event
-              </button>
+              </Button>
+            </div>
             </div>
           </div>
 
@@ -256,23 +311,6 @@ export function CompanyEvents() {
             ))}
           </div>
         </>
-      )}
-
-      {showCreateModal && (
-        <EventCreateModal
-          formData={formData}
-          setFormData={setFormData}
-          onClose={() => {
-            setShowCreateModal(false);
-            // Optionally clear form on close - commented out to preserve state
-            // StatePreservation.clearSession('event_form_data');
-          }}
-          onSubmit={handleCreateEvent}
-          addArrayItem={addArrayItem}
-          updateArrayItem={updateArrayItem}
-          removeArrayItem={removeArrayItem}
-          availableTags={availableTags}
-        />
       )}
     </div>
   );
@@ -401,25 +439,44 @@ function EventLandingPage({ onCreateClick, hasEvents }: { onCreateClick: () => v
   return (
     <div className="max-w-5xl mx-auto">
       {/* Hero Section */}
-      <div className="text-center mb-16">
-        <div className="inline-flex items-center gap-2 px-4 py-2 bg-blue-50 text-blue-600 rounded-full text-xs font-bold uppercase tracking-widest mb-6">
+      {/* Hero Section */}
+      <div className="flex flex-col items-center text-center mb-16">
+        <div className="inline-flex items-center gap-2 px-4 py-2 bg-blue-50 text-blue-600 rounded-full text-xs font-bold uppercase tracking-widest mb-6 border border-blue-100">
           <Sparkles className="w-4 h-4" />
           Event Creation Platform
         </div>
-        <h1 className="text-5xl font-black text-slate-900 mb-4">
+        <h1 className="text-5xl font-black text-slate-900 mb-4 tracking-tight">
           Create Engaging Events for Top Talent
         </h1>
-        <p className="text-xl text-slate-600 mb-8 max-w-2xl mx-auto">
+        <p className="text-xl text-slate-600 mb-10 max-w-2xl mx-auto leading-relaxed">
           Host hackathons, workshops, and sponsorships to connect with elite students and discover groundbreaking projects.
         </p>
-        <div className="flex justify-center mt-10">
-          <button
+        <div className="flex justify-center mt-2">
+          <Button
             onClick={onCreateClick}
-            className="flex items-center gap-3 px-10 py-5 bg-blue-600 text-white rounded-3xl font-bold text-xl shadow-2xl shadow-blue-200 hover:shadow-blue-300 hover:-translate-y-1 transition-all"
+            style={{ 
+                minHeight: '64px',
+                paddingTop: '16px',
+                paddingBottom: '16px',
+                paddingLeft: '48px',
+                paddingRight: '48px',
+                borderRadius: '24px',
+                backgroundColor: '#2563eb',
+                color: 'white',
+                fontSize: '20px',
+                fontWeight: 700,
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                gap: '12px',
+                cursor: 'pointer',
+                boxShadow: '0 25px 50px -12px rgba(37, 99, 235, 0.25)' 
+            }}
+            className="hover:bg-blue-700 hover:shadow-blue-300 hover:-translate-y-1 transition-all"
           >
             <Plus className="w-7 h-7" />
             Create Your First Event
-          </button>
+          </Button>
         </div>
       </div>
 
@@ -492,7 +549,7 @@ function EventLandingPage({ onCreateClick, hasEvents }: { onCreateClick: () => v
   );
 }
 
-interface EventCreateModalProps {
+interface EventCreateFormProps {
   formData: EventFormData;
   setFormData: (data: EventFormData) => void;
   onClose: () => void;
@@ -503,7 +560,7 @@ interface EventCreateModalProps {
   removeArrayItem: (field: 'prizes' | 'requirements' | 'judgingCriteria' | 'rules', index: number) => void;
 }
 
-function EventCreateModal({ formData, setFormData, onClose, onSubmit, addArrayItem, updateArrayItem, removeArrayItem, availableTags }: EventCreateModalProps) {
+function EventCreateForm({ formData, setFormData, onClose, onSubmit, addArrayItem, updateArrayItem, removeArrayItem, availableTags }: EventCreateFormProps) {
   
   // Local state for rank prizes to sync with formData.prizes
   // We'll parse existing prizes if any to populate
@@ -544,19 +601,60 @@ function EventCreateModal({ formData, setFormData, onClose, onSubmit, addArrayIt
 
 
   return (
-    <div className="fixed inset-0 bg-slate-900/60 backdrop-blur-md flex items-center justify-center z-50 p-4 animate-in fade-in duration-300">
-      <div className="bg-white rounded-[2.5rem] max-w-4xl w-full max-h-[90vh] overflow-y-auto shadow-2xl animate-in zoom-in-95 duration-300">
+    <div className="max-w-4xl mx-auto py-8 animate-in fade-in slide-in-from-bottom-4 duration-500">
+      <div className="bg-white rounded-[2.5rem] shadow-2xl border border-slate-100 overflow-hidden">
         <div className="sticky top-0 bg-white border-b border-slate-200 px-8 py-6 flex items-center justify-between z-10">
           <h2 className="text-3xl font-black text-slate-900">Create New Event</h2>
-          <button
-            onClick={onClose}
-            className="w-10 h-10 flex items-center justify-center rounded-full hover:bg-slate-100 transition-colors"
-          >
-            <X className="w-5 h-5 text-slate-400" />
-          </button>
+          <div className="flex gap-3">
+             <Button
+               type="button"
+               variant="ghost"
+               onClick={onClose}
+               style={{
+                  color: '#94a3b8',
+                  paddingTop: '12px',
+                  paddingBottom: '12px',
+                  paddingLeft: '24px',
+                  paddingRight: '24px',
+                  borderRadius: '12px',
+                  fontWeight: 700,
+                  cursor: 'pointer',
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: '8px',
+                  height: 'auto'
+               }}
+               className="hover:bg-slate-50 hover:text-slate-600"
+             >
+               <X className="w-5 h-5" /> Cancel
+             </Button>
+             <Button
+                type="submit"
+                form="event-create-form"
+                style={{
+                      backgroundColor: '#2563eb', // Blue-600
+                      color: 'white',
+                      paddingTop: '12px',
+                      paddingBottom: '12px',
+                      paddingLeft: '32px',
+                      paddingRight: '32px',
+                      borderRadius: '12px',
+                      fontWeight: 700,
+                      cursor: 'pointer',
+                      display: 'flex',
+                      alignItems: 'center',
+                      gap: '8px',
+                      border: 'none',
+                      height: 'auto'
+                }}
+                className="hover:bg-blue-700 shadow-xl shadow-blue-200"
+             >
+               <Save className="w-5 h-5" /> Publish Event
+             </Button>
+          </div>
         </div>
         
-        <form onSubmit={onSubmit} className="p-8 space-y-8">
+        <form id="event-create-form" onSubmit={onSubmit} className="p-8 space-y-8">
           {/* Basic Information */}
           <section>
             <h3 className="text-lg font-bold text-slate-900 mb-6 flex items-center gap-2">
@@ -570,7 +668,8 @@ function EventCreateModal({ formData, setFormData, onClose, onSubmit, addArrayIt
                   required
                   value={formData.type}
                   onChange={(e) => setFormData({ ...formData, type: e.target.value as 'hackathon' | 'sponsorship' | 'workshop' })}
-                  className="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none font-medium"
+                  className="w-full px-6 py-4 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none font-medium h-14"
+                  style={{ minHeight: '56px', paddingLeft: '24px' }}
                 >
                   <option value="hackathon">Hackathon</option>
                   <option value="workshop">Workshop</option>
@@ -584,7 +683,8 @@ function EventCreateModal({ formData, setFormData, onClose, onSubmit, addArrayIt
                   value={formData.title}
                   onChange={(e) => setFormData({ ...formData, title: e.target.value })}
                   placeholder="E.g. Global AI Summit 2026"
-                  className="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none"
+                  className="w-full px-6 py-4 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none"
+                  style={{ minHeight: '56px', paddingLeft: '24px' }}
                 />
               </div>
             </div>
@@ -596,7 +696,8 @@ function EventCreateModal({ formData, setFormData, onClose, onSubmit, addArrayIt
                 value={formData.description}
                 onChange={(e) => setFormData({ ...formData, description: e.target.value })}
                 placeholder="Detailed description of your event, what participants will do, and what makes it special..."
-                className="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none resize-none"
+                 className="w-full px-6 py-4 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none resize-none"
+                 style={{ paddingLeft: '24px' }}
               />
             </div>
           </section>
@@ -615,7 +716,8 @@ function EventCreateModal({ formData, setFormData, onClose, onSubmit, addArrayIt
                   type="date"
                   value={formData.date}
                   onChange={(e) => setFormData({ ...formData, date: e.target.value })}
-                  className="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none"
+                  className="w-full px-6 py-4 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none"
+                  style={{ minHeight: '56px', paddingLeft: '24px' }}
                 />
               </div>
               <div>
@@ -624,7 +726,8 @@ function EventCreateModal({ formData, setFormData, onClose, onSubmit, addArrayIt
                   type="date"
                   value={formData.endDate}
                   onChange={(e) => setFormData({ ...formData, endDate: e.target.value })}
-                  className="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none"
+                  className="w-full px-6 py-4 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none"
+                  style={{ minHeight: '56px', paddingLeft: '24px' }}
                 />
               </div>
             </div>
@@ -636,7 +739,8 @@ function EventCreateModal({ formData, setFormData, onClose, onSubmit, addArrayIt
                   value={formData.location}
                   onChange={(e) => setFormData({ ...formData, location: e.target.value })}
                   placeholder="E.g. San Francisco, CA or Virtual"
-                  className="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none"
+                  className="w-full px-6 py-4 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none"
+                  style={{ minHeight: '56px', paddingLeft: '24px' }}
                 />
               </div>
               <div>
@@ -646,7 +750,8 @@ function EventCreateModal({ formData, setFormData, onClose, onSubmit, addArrayIt
                   value={formData.maxParticipants}
                   onChange={(e) => setFormData({ ...formData, maxParticipants: e.target.value })}
                   placeholder="Leave empty for unlimited"
-                  className="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none"
+                  className="w-full px-6 py-4 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none"
+                  style={{ minHeight: '56px', paddingLeft: '24px' }}
                 />
               </div>
             </div>
@@ -656,7 +761,8 @@ function EventCreateModal({ formData, setFormData, onClose, onSubmit, addArrayIt
                 type="datetime-local"
                 value={formData.registrationDeadline}
                 onChange={(e) => setFormData({ ...formData, registrationDeadline: e.target.value })}
-                className="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none"
+                className="w-full px-6 py-4 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none"
+                style={{ minHeight: '56px', paddingLeft: '24px' }}
               />
             </div>
           </section>
@@ -752,47 +858,51 @@ function EventCreateModal({ formData, setFormData, onClose, onSubmit, addArrayIt
                           <input 
                               id="new-prize-title"
                               placeholder="Prize Title (e.g. Best UX)"
-                              className="flex-1 px-4 py-3 bg-white border border-slate-200 rounded-xl focus:ring-2 focus:ring-blue-500 outline-none"
+                              className="flex-1 px-6 py-4 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-blue-500 outline-none"
+                              style={{ minHeight: '56px', paddingLeft: '24px' }}
                               onKeyDown={(e) => {
                                   if (e.key === 'Enter') {
                                       e.preventDefault();
-                                      document.getElementById('add-prize-btn')?.click();
+                                      const titleInput = document.getElementById('new-prize-title') as HTMLInputElement;
+                                      const amountInput = document.getElementById('new-prize-amount') as HTMLInputElement;
+                                      
+                                      if (titleInput.value.trim()) {
+                                          const newPrizeStream = `${titleInput.value.trim()}: ${amountInput.value.trim() || 'TBA'}`;
+                                          setFormData({
+                                              ...formData, 
+                                              prizes: [...formData.prizes, newPrizeStream]
+                                          });
+                                          titleInput.value = '';
+                                          amountInput.value = '';
+                                          titleInput.focus();
+                                      }
                                   }
                               }}
                           />
                           <input 
                               id="new-prize-amount"
                               placeholder="Amount"
-                              className="w-32 px-4 py-3 bg-white border border-slate-200 rounded-xl focus:ring-2 focus:ring-blue-500 outline-none"
+                              className="w-32 px-6 py-4 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-blue-500 outline-none"
+                              style={{ minHeight: '56px', paddingLeft: '24px' }}
                               onKeyDown={(e) => {
                                   if (e.key === 'Enter') {
                                       e.preventDefault();
-                                      document.getElementById('add-prize-btn')?.click();
+                                      const titleInput = document.getElementById('new-prize-title') as HTMLInputElement;
+                                      const amountInput = document.getElementById('new-prize-amount') as HTMLInputElement;
+                                      
+                                      if (titleInput.value.trim()) {
+                                          const newPrizeStream = `${titleInput.value.trim()}: ${amountInput.value.trim() || 'TBA'}`;
+                                          setFormData({
+                                              ...formData, 
+                                              prizes: [...formData.prizes, newPrizeStream]
+                                          });
+                                          titleInput.value = '';
+                                          amountInput.value = '';
+                                          titleInput.focus();
+                                      }
                                   }
                               }}
                           />
-                          <button
-                              id="add-prize-btn"
-                              type="button"
-                              onClick={() => {
-                                  const titleInput = document.getElementById('new-prize-title') as HTMLInputElement;
-                                  const amountInput = document.getElementById('new-prize-amount') as HTMLInputElement;
-                                  
-                                  if (titleInput.value.trim()) {
-                                      const newPrizeStream = `${titleInput.value.trim()}: ${amountInput.value.trim() || 'TBA'}`;
-                                      setFormData({
-                                          ...formData, 
-                                          prizes: [...formData.prizes, newPrizeStream]
-                                      });
-                                      titleInput.value = '';
-                                      amountInput.value = '';
-                                      titleInput.focus();
-                                  }
-                              }}
-                              className="px-6 py-3 bg-slate-900 text-white rounded-xl font-bold hover:bg-slate-800 transition-colors"
-                          >
-                              Add
-                          </button>
                       </div>
                   </div>
               </div>
@@ -827,7 +937,8 @@ function EventCreateModal({ formData, setFormData, onClose, onSubmit, addArrayIt
                     <input 
                       list="tag-options"
                       placeholder="Type or select a tag..."
-                      className="flex-1 px-4 py-3 bg-white border border-slate-200 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none"
+                      className="flex-1 px-6 py-4 bg-white border border-slate-200 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none"
+                      style={{ minHeight: '56px', paddingLeft: '24px' }}
                       onKeyDown={(e) => {
                         if (e.key === 'Enter') {
                           e.preventDefault();
@@ -864,7 +975,8 @@ function EventCreateModal({ formData, setFormData, onClose, onSubmit, addArrayIt
                     value={req}
                     onChange={(e) => updateArrayItem('requirements', index, e.target.value)}
                     placeholder="E.g. Team of 2-4 students"
-                    className="flex-1 px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none"
+                    className="flex-1 px-6 py-4 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none"
+                    style={{ minHeight: '56px', paddingLeft: '24px' }}
                   />
                   <button
                     type="button"

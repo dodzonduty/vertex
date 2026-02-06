@@ -14,14 +14,14 @@ interface InputProps {
 }
 
 const InputField = ({ type, placeholder, icon, value, onChange }: InputProps) => (
-    <div className="flex items-center gap-3 border border-slate-200 rounded-xl px-4 py-2 focus-within:ring-2 focus-within:ring-indigo-500 transition-all bg-white">
+    <div className="flex items-center gap-3 border border-slate-200 rounded-xl px-5 py-3.5 focus-within:ring-2 focus-within:ring-indigo-500 hover:border-slate-300 transition-all bg-white">
         <span className="text-slate-400">{icon}</span>
         <input
             type={type}
             placeholder={placeholder}
             value={value}
             onChange={onChange}
-            className="w-full outline-none font-medium text-slate-900 placeholder:text-slate-400 bg-transparent"
+            className="w-full outline-none text-slate-900 placeholder:text-slate-300 bg-transparent cursor-text"
             required
         />
     </div>
@@ -65,30 +65,28 @@ export function SignIn() {
                 <div className="absolute top-[40%] -left-[10%] w-[50vw] h-[50vw] rounded-full bg-blue-500/5 blur-[100px]" />
             </div>
 
-            <div className="max-w-md w-full bg-white/80 backdrop-blur-xl rounded-2xl shadow-2xl shadow-indigo-500/10 border border-white/20 ring-1 ring-slate-200/50 p-8 relative z-10 animate-in fade-in zoom-in-95 duration-500">
-                <div className="text-center mb-8">
-                    <h1 className="text-3xl font-extrabold text-transparent bg-clip-text bg-gradient-to-r from-slate-900 to-indigo-800 mb-2">
+            <div className="max-w-lg w-full bg-white/80 backdrop-blur-xl rounded-2xl shadow-2xl shadow-indigo-500/10 border border-white/20 ring-1 ring-slate-200/50 p-10 relative z-10 animate-in fade-in zoom-in-95 duration-500">
+                <div className="text-center mb-12">
+                    <h1 className="text-5xl font-extrabold text-slate-900 mb-4">
                         Welcome Back
                     </h1>
-                    <p className="text-slate-1000">Sign in to access your dashboard</p>
+                    <p className="text-slate-700 text-lg font-medium">Sign in to access your dashboard</p>
                 </div>
 
-                <form onSubmit={handleLogin} className="space-y-5">
-                    <div className="flex items-center justify-between">
-                        <label className="text-xs font-bold text-slate-900 uppercase tracking-wide">Email Address</label>
+                <form onSubmit={handleLogin} className="space-y-6">
+                    <div className="space-y-2">
+                        <label className="text-sm font-medium text-slate-700">Email Address</label>
+                        <InputField
+                            type="email"
+                            placeholder="you@example.com"
+                            icon={<Mail className="w-5 h-5" />}
+                            value={email}
+                            onChange={(e) => setEmail(e.target.value)}
+                        />
                     </div>
-                    <InputField
-                        type="email"
-                        placeholder="you@example.com"
-                        icon={<Mail className="w-5 h-5" />}
-                        value={email}
-                        onChange={(e) => setEmail(e.target.value)}
-                    />
 
-                    <div className="space-y-1">
-                        <div className="flex items-center justify-between">
-                            <label className="text-xs font-bold text-slate-900 uppercase tracking-wide">Password</label>
-                        </div>
+                    <div className="space-y-2">
+                        <label className="text-sm font-medium text-slate-700">Password</label>
                         <InputField
                             type="password"
                             placeholder="••••••••"
@@ -101,7 +99,8 @@ export function SignIn() {
                     <button
                         type="submit"
                         disabled={loading}
-                        className="w-full py-3.5 rounded-xl font-bold text-white bg-gradient-to-r from-indigo-600 to-violet-600 shadow-lg hover:shadow-xl flex items-center justify-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-300"
+                        style={{ minHeight: '45px' }}
+                        className="w-full rounded-2xl font-extrabold text-lg text-white bg-gradient-to-r from-purple-600 via-violet-600 to-indigo-600 shadow-xl shadow-purple-500/30 hover:shadow-2xl hover:shadow-purple-500/40 hover:from-purple-500 hover:via-violet-500 hover:to-indigo-500 hover:scale-[1.02] active:scale-[0.98] flex items-center justify-center gap-3 disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer transition-all duration-300"
                     >
                         {loading ? (
                             <>
@@ -117,12 +116,12 @@ export function SignIn() {
                     </button>
                 </form>
 
-                <div className="mt-6 text-center">
+                <div className="mt-8 text-center">
                     <p className="text-slate-600 text-sm">
                         Don't have an account?{'  '}
                         <button
                             onClick={() => navigate('/signup')}
-                            className="text-indigo-900 font-bold hover:text-indigo-100 transition-colors"
+                            className="text-slate-900 font-bold hover:text-indigo-700 cursor-pointer transition-colors underline decoration-2 underline-offset-4"
                         >
                             Sign Up
                         </button>

@@ -1,6 +1,7 @@
 import { useState, useRef } from 'react';
+import { useLocalStorage } from '../hooks/useLocalStorage';
 import { useNavigate } from 'react-router-dom';
-import { Upload, Sparkles, CheckCircle2, ArrowRight, Loader2, Github, Linkedin, Plus, X, Mail, Lock, User as UserIcon } from 'lucide-react';
+import { Upload, Sparkles, CheckCircle2, ArrowRight, Loader2, Github, Linkedin, Plus, X, Mail, Lock, User as UserIcon, Eye, EyeOff, Edit2 } from 'lucide-react';
 import { apiRequest, setAuthToken, setUserData } from '../lib/api/config';
 import { signupStudent, analyzeCV, updateStudentProfile, listGitHubRepos, analyzeGitHubBatch } from '../lib/api/students';
 import { login } from '../lib/api/auth';
@@ -49,7 +50,7 @@ interface Project {
 export default function StudentOnboarding() {
     const navigate = useNavigate();
     const fileInputRef = useRef<HTMLInputElement>(null);
-    const [step, setStep] = useState<OnboardingStep>('choice');
+    const [step, setStep] = useLocalStorage<OnboardingStep>('vertex_onboarding_step', 'choice');
     const [loading, setLoading] = useState(false);
     const [isParsingGitHub, setIsParsingGitHub] = useState(false);
     const [profilePic, setProfilePic] = useState<string | null>(null);
@@ -58,7 +59,7 @@ export default function StudentOnboarding() {
     const [availableRepos, setAvailableRepos] = useState<any[]>([]);
     const [selectedRepos, setSelectedRepos] = useState<string[]>([]);
     const [isFetchingRepos, setIsFetchingRepos] = useState(false);
-    const [studentData, setStudentData] = useState<StudentData>({
+    const [studentData, setStudentData] = useLocalStorage<StudentData>('vertex_onboarding_data', {
         full_name: '',
         email: '',
         password: '',
@@ -73,6 +74,11 @@ export default function StudentOnboarding() {
     });
 
     const [confirmPassword, setConfirmPassword] = useState('');
+    const [showPassword, setShowPassword] = useState(false);
+    const [showConfirmPassword, setShowConfirmPassword] = useState(false);
+    const fullNameRef = useRef<HTMLInputElement>(null);
+    const emailRef = useRef<HTMLInputElement>(null);
+    const universityRef = useRef<HTMLInputElement>(null);
     const [currentProject, setCurrentProject] = useState<Partial<Project>>({
         title: '',
         description: '',
@@ -371,8 +377,24 @@ export default function StudentOnboarding() {
             }
 
             setLoading(false);
-            setStep('success');
+            setLoading(false);
+            // Clear onboarding data from local storage
+            setStep('choice');
+            setStudentData({
+                full_name: '',
+                email: '',
+                password: '',
+                university: '',
+                degree_level: 'Junior',
+                github_url: '',
+                linkedin_url: '',
+                projects: [],
+                bio: '',
+                ats_score: 0,
+                skills: []
+            });
             toast.success('Profile Completed Successfully!');
+            navigate('/dashboard');
         } catch (error) {
             console.error('Finalization error:', error);
             setLoading(false);
@@ -498,7 +520,7 @@ export default function StudentOnboarding() {
                                     <h3 className="text-xl font-bold text-slate-900">Account Information</h3>
                                     <div className="grid md:grid-cols-2 gap-6">
                                         <div className="space-y-2">
-                                            <Label htmlFor="email" className="text-xs font-black uppercase tracking-widest text-slate-400 flex items-center gap-2">
+                                            <Label htmlFor="email" className="text-xs font-black uppercase tracking-widest text-slate-900 flex items-center gap-2">
                                                 <Mail className="w-4 h-4" /> Email
                                             </Label>
                                             <Input
@@ -508,11 +530,12 @@ export default function StudentOnboarding() {
                                                 value={studentData.email}
                                                 onChange={(e) => setStudentData({ ...studentData, email: e.target.value })}
                                                 required
-                                                className="py-6 rounded-xl border-slate-200 focus:border-indigo-500"
+                                                style={{ borderColor: '#cbd5e1', borderWidth: '1px', paddingLeft: '20px', paddingRight: '20px' }}
+                                                className="py-6 px-5 rounded-xl focus:border-2 focus:border-indigo-500 placeholder:text-slate-300 selection:bg-indigo-500 selection:text-white"
                                             />
                                         </div>
                                         <div className="space-y-2">
-                                            <Label htmlFor="password" className="text-xs font-black uppercase tracking-widest text-slate-400 flex items-center gap-2">
+                                            <Label htmlFor="password" className="text-xs font-black uppercase tracking-widest text-slate-900 flex items-center gap-2">
                                                 <Lock className="w-4 h-4" /> Password
                                             </Label>
                                             <Input
@@ -522,7 +545,8 @@ export default function StudentOnboarding() {
                                                 value={studentData.password}
                                                 onChange={(e) => setStudentData({ ...studentData, password: e.target.value })}
                                                 required
-                                                className="py-6 rounded-xl border-slate-200"
+                                                style={{ borderColor: '#cbd5e1', borderWidth: '1px', paddingLeft: '20px', paddingRight: '20px' }}
+                                                className="py-6 px-5 rounded-xl focus:border-2 focus:border-indigo-500 placeholder:text-slate-300 selection:bg-indigo-500 selection:text-white"
                                             />
                                         </div>
                                     </div>
@@ -532,33 +556,36 @@ export default function StudentOnboarding() {
                                     <h3 className="text-xl font-bold text-slate-900">Basic Information</h3>
                                     <div className="space-y-6">
                                         <div className="space-y-2">
-                                            <Label htmlFor="name" className="text-xs font-black uppercase tracking-widest text-slate-400">Full Name</Label>
+                                            <Label htmlFor="name" className="text-xs font-black uppercase tracking-widest text-slate-900">Full Name</Label>
                                             <Input
                                                 id="name"
                                                 placeholder="John Doe"
                                                 value={studentData.full_name}
                                                 onChange={(e) => setStudentData({ ...studentData, full_name: e.target.value })}
                                                 required
-                                                className="py-6 rounded-xl border-slate-200 focus:border-indigo-500"
+                                                style={{ borderColor: '#cbd5e1', borderWidth: '1px', paddingLeft: '20px', paddingRight: '20px' }}
+                                                className="py-6 px-5 rounded-xl focus:border-2 focus:border-indigo-500 placeholder:text-slate-300 selection:bg-indigo-500 selection:text-white"
                                             />
                                         </div>
                                         <div className="grid md:grid-cols-2 gap-6">
                                             <div className="space-y-2">
-                                                <Label htmlFor="uni" className="text-xs font-black uppercase tracking-widest text-slate-400">University</Label>
+                                                <Label htmlFor="uni" className="text-xs font-black uppercase tracking-widest text-slate-900">University</Label>
                                                 <Input
                                                     id="uni"
                                                     placeholder="MIT / Stanford"
                                                     value={studentData.university}
                                                     onChange={(e) => setStudentData({ ...studentData, university: e.target.value })}
-                                                    className="py-6 rounded-xl border-slate-200"
+                                                    style={{ borderColor: '#cbd5e1', borderWidth: '1px', paddingLeft: '20px', paddingRight: '20px' }}
+                                                    className="py-6 px-5 rounded-xl focus:border-2 focus:border-indigo-500 placeholder:text-slate-300 selection:bg-indigo-500 selection:text-white"
                                                 />
                                             </div>
                                             <div className="space-y-2">
-                                                <Label htmlFor="year" className="text-xs font-black uppercase tracking-widest text-slate-400">Year Of Study</Label>
+                                                <Label htmlFor="year" className="text-xs font-black uppercase tracking-widest text-slate-900">Year Of Study</Label>
                                                 <select
                                                     value={studentData.degree_level}
                                                     onChange={(e) => setStudentData({ ...studentData, degree_level: e.target.value })}
-                                                    className="w-full h-12 px-4 rounded-xl border border-slate-200 outline-none focus:ring-2 focus:ring-indigo-500 font-medium text-sm"
+                                                    style={{ borderColor: '#cbd5e1', borderWidth: '1px' }}
+                                                    className="w-full h-12 px-4 rounded-xl outline-none focus:ring-2 focus:ring-indigo-500 hover:border-indigo-400 transition-colors font-medium text-sm cursor-pointer"
                                                 >
                                                     <option>Freshman</option>
                                                     <option>Sophomore</option>
@@ -575,7 +602,7 @@ export default function StudentOnboarding() {
                                     <h3 className="text-xl font-bold text-slate-900">Social Links (Optional)</h3>
                                     <div className="grid md:grid-cols-2 gap-6">
                                         <div className="space-y-2">
-                                            <Label className="text-xs font-black uppercase tracking-widest text-slate-400 flex items-center gap-2">
+                                            <Label className="text-xs font-black uppercase tracking-widest text-slate-900 flex items-center gap-2">
                                                 <Github className="w-4 h-4" /> GitHub Profile
                                             </Label>
                                             <div className="relative">
@@ -583,7 +610,8 @@ export default function StudentOnboarding() {
                                                     placeholder="https://github.com/username"
                                                     value={studentData.github_url}
                                                     onChange={(e) => setStudentData({ ...studentData, github_url: e.target.value })}
-                                                    className="py-6 rounded-xl border-slate-200 pr-32"
+                                                    style={{ borderColor: '#cbd5e1', borderWidth: '1px', paddingLeft: '20px', paddingRight: '20px' }}
+                                                    className="py-6 px-5 rounded-xl focus:border-2 focus:border-indigo-500 pr-32 placeholder:text-slate-300 selection:bg-indigo-500 selection:text-white"
                                                 />
                                                 <Button
                                                     type="button"
@@ -597,14 +625,15 @@ export default function StudentOnboarding() {
                                             </div>
                                         </div>
                                         <div className="space-y-2">
-                                            <Label className="text-xs font-black uppercase tracking-widest text-slate-400 flex items-center gap-2">
+                                            <Label className="text-xs font-black uppercase tracking-widest text-slate-900 flex items-center gap-2">
                                                 <Linkedin className="w-4 h-4" /> LinkedIn Profile
                                             </Label>
                                             <Input
                                                 placeholder="https://linkedin.com/in/username"
                                                 value={studentData.linkedin_url}
                                                 onChange={(e) => setStudentData({ ...studentData, linkedin_url: e.target.value })}
-                                                className="py-6 rounded-xl border-slate-200"
+                                                style={{ borderColor: '#cbd5e1', borderWidth: '1px', paddingLeft: '20px', paddingRight: '20px' }}
+                                                className="py-6 px-5 rounded-xl focus:border-2 focus:border-indigo-500 placeholder:text-slate-300 selection:bg-indigo-500 selection:text-white"
                                             />
                                         </div>
                                     </div>
@@ -614,24 +643,26 @@ export default function StudentOnboarding() {
                                     <h3 className="text-xl font-bold text-slate-900">Projects (Optional)</h3>
                                     <div className="space-y-4 p-6 bg-slate-50 rounded-xl border border-slate-200">
                                         <div className="space-y-2">
-                                            <Label className="text-xs font-black uppercase tracking-widest text-slate-400">Project Title</Label>
+                                            <Label className="text-xs font-black uppercase tracking-widest text-slate-900">Project Title</Label>
                                             <Input
                                                 placeholder="My Awesome Project"
                                                 value={currentProject.title}
                                                 onChange={(e) => setCurrentProject({ ...currentProject, title: e.target.value })}
-                                                className="py-6 rounded-xl border-slate-200"
+                                                style={{ borderColor: '#cbd5e1', borderWidth: '1px', paddingLeft: '20px', paddingRight: '20px' }}
+                                                className="py-6 px-5 rounded-xl focus:border-2 focus:border-indigo-500 placeholder:text-slate-300 selection:bg-indigo-500 selection:text-white"
                                             />
                                         </div>
                                         <div className="space-y-2">
-                                            <Label className="text-xs font-black uppercase tracking-widest text-slate-400">GitHub Repository URL</Label>
+                                            <Label className="text-xs font-black uppercase tracking-widest text-slate-900">GitHub Repository URL</Label>
                                             <Input
                                                 placeholder="https://github.com/username/project"
                                                 value={currentProject.repo_url}
                                                 onChange={(e) => setCurrentProject({ ...currentProject, repo_url: e.target.value })}
-                                                className="py-6 rounded-xl border-slate-200"
+                                                style={{ borderColor: '#cbd5e1', borderWidth: '1px', paddingLeft: '20px', paddingRight: '20px' }}
+                                                className="py-6 px-5 rounded-xl focus:border-2 focus:border-indigo-500 placeholder:text-slate-300 selection:bg-indigo-500 selection:text-white"
                                             />
                                         </div>
-                                        <Button type="button" onClick={addProject} className="w-full py-6 rounded-xl bg-indigo-600 hover:bg-indigo-700 font-bold">
+                                        <Button type="button" onClick={addProject} style={{ minHeight: '45px', color: 'white', paddingTop: '24px', paddingBottom: '24px' }} className="w-full rounded-xl bg-indigo-600 hover:bg-indigo-700 font-bold cursor-pointer">
                                             <Plus className="w-5 h-5 mr-2" /> Add Project
                                         </Button>
                                     </div>
@@ -660,7 +691,7 @@ export default function StudentOnboarding() {
                             </form>
                         </CardContent>
                         <CardFooter className="py-8 bg-slate-50/50 border-t justify-end items-center">
-                            <Button form="manual-form" className="px-8 py-6 rounded-xl font-bold bg-indigo-600 hover:bg-indigo-700 shadow-xl shadow-indigo-200">
+                            <Button form="manual-form" style={{ minHeight: '45px', color: 'white', paddingLeft: '64px', paddingRight: '64px', paddingTop: '24px', paddingBottom: '24px' }} className="rounded-xl font-bold bg-indigo-600 hover:bg-indigo-700 shadow-xl shadow-indigo-200 cursor-pointer">
                                 Preview Profile <ArrowRight className="w-5 h-5 ml-2" />
                             </Button>
                         </CardFooter>
@@ -751,61 +782,206 @@ export default function StudentOnboarding() {
                                         </h4>
                                         <div className="grid md:grid-cols-2 gap-4">
                                             <div className="space-y-2">
-                                                <Label className="text-xs font-bold text-slate-2500">Create Password</Label>
-                                                <Input
-                                                    type="password"
-                                                    placeholder="••••••••"
-                                                    value={studentData.password}
-                                                    onChange={(e) => setStudentData({ ...studentData, password: e.target.value })}
-                                                    className="bg-white border-slate-50"
-                                                />
+                                                <Label className="text-xs font-bold text-slate-900">Create Password</Label>
+                                                <div className="relative">
+                                                    <Input
+                                                        type={showPassword ? "text" : "password"}
+                                                        placeholder="••••••••"
+                                                        value={studentData.password}
+                                                        onChange={(e) => setStudentData({ ...studentData, password: e.target.value })}
+                                                        style={{ 
+                                                            borderColor: '#cbd5e1', 
+                                                            borderWidth: '1px', 
+                                                            paddingLeft: '16px',
+                                                            paddingRight: '40px',
+                                                            cursor: 'pointer'
+                                                        }}
+                                                        className="bg-white pr-10 selection:bg-indigo-500 selection:text-white"
+                                                    />
+                                                    <button
+                                                        type="button"
+                                                        onClick={() => setShowPassword(!showPassword)}
+                                                        style={{ 
+                                                            position: 'absolute', 
+                                                            right: '12px', 
+                                                            top: '50%', 
+                                                            transform: 'translateY(-50%)',
+                                                            cursor: 'pointer',
+                                                            background: 'none',
+                                                            border: 'none',
+                                                            padding: '4px'
+                                                        }}
+                                                    >
+                                                        {showPassword ? <EyeOff className="w-5 h-5 text-slate-400" /> : <Eye className="w-5 h-5 text-slate-400" />}
+                                                    </button>
+                                                </div>
                                             </div>
                                             <div className="space-y-2">
-                                                <Label className="text-xs font-bold text-slate-2500">Confirm Password</Label>
-                                                <Input
-                                                    type="password"
-                                                    placeholder=""
-                                                    value={confirmPassword}
-                                                    onChange={(e) => setConfirmPassword(e.target.value)}
-                                                    className="bg-white border-slate-"
-                                                />
+                                                <Label className="text-xs font-bold text-slate-900">Confirm Password</Label>
+                                                <div className="relative">
+                                                    <Input
+                                                        type={showConfirmPassword ? "text" : "password"}
+                                                        placeholder="••••••••"
+                                                        value={confirmPassword}
+                                                        onChange={(e) => setConfirmPassword(e.target.value)}
+                                                        style={{ 
+                                                            borderColor: '#cbd5e1', 
+                                                            borderWidth: '1px', 
+                                                            paddingLeft: '16px',
+                                                            paddingRight: '40px',
+                                                            cursor: 'pointer'
+                                                        }}
+                                                        className="bg-white pr-10 selection:bg-indigo-500 selection:text-white"
+                                                    />
+                                                    <button
+                                                        type="button"
+                                                        onClick={() => setShowConfirmPassword(!showConfirmPassword)}
+                                                        style={{ 
+                                                            position: 'absolute', 
+                                                            right: '12px', 
+                                                            top: '50%', 
+                                                            transform: 'translateY(-50%)',
+                                                            cursor: 'pointer',
+                                                            background: 'none',
+                                                            border: 'none',
+                                                            padding: '4px'
+                                                        }}
+                                                    >
+                                                        {showConfirmPassword ? <EyeOff className="w-5 h-5 text-slate-400" /> : <Eye className="w-5 h-5 text-slate-400" />}
+                                                    </button>
+                                                </div>
                                             </div>
                                         </div>
                                     </div>
 
                                     <div className="grid md:grid-cols-2 gap-6">
                                         <div className="space-y-2">
-                                            <Label className="text-xs font-black uppercase tracking-widest text-slate-400">Full Name</Label>
-                                            <Input
-                                                value={studentData.full_name}
-                                                onChange={(e) => setStudentData({ ...studentData, full_name: e.target.value })}
-                                                className="py-6 rounded-xl border-slate-200"
-                                            />
+                                            <Label className="text-xs font-black uppercase tracking-widest text-slate-900">Full Name</Label>
+                                            <div className="relative">
+                                                <Input
+                                                    ref={fullNameRef}
+                                                    value={studentData.full_name}
+                                                    onChange={(e) => setStudentData({ ...studentData, full_name: e.target.value })}
+                                                    style={{ 
+                                                        borderColor: '#cbd5e1', 
+                                                        borderWidth: '1px', 
+                                                        paddingLeft: '16px',
+                                                        paddingRight: '40px',
+                                                        cursor: 'pointer'
+                                                    }}
+                                                    className="py-6 rounded-xl pr-10 selection:bg-indigo-500 selection:text-white"
+                                                />
+                                                <button
+                                                    type="button"
+                                                    onClick={() => {
+                                                        fullNameRef.current?.focus();
+                                                        const len = studentData.full_name.length;
+                                                        fullNameRef.current?.setSelectionRange(len, len);
+                                                    }}
+                                                    style={{ 
+                                                        position: 'absolute', 
+                                                        right: '12px', 
+                                                        top: '50%', 
+                                                        transform: 'translateY(-50%)',
+                                                        cursor: 'pointer',
+                                                        background: 'none',
+                                                        border: 'none',
+                                                        padding: '4px'
+                                                    }}
+                                                >
+                                                    <Edit2 className="w-4 h-4 text-slate-400" />
+                                                </button>
+                                            </div>
                                         </div>
                                         <div className="space-y-2">
-                                            <Label className="text-xs font-black uppercase tracking-widest text-slate-400">Email Address</Label>
-                                            <Input
-                                                type="email"
-                                                value={studentData.email}
-                                                onChange={(e) => setStudentData({ ...studentData, email: e.target.value })}
-                                                className="py-6 rounded-xl border-slate-200"
-                                                required
-                                            />
+                                            <Label className="text-xs font-black uppercase tracking-widest text-slate-900">Email Address</Label>
+                                            <div className="relative">
+                                                <Input
+                                                    ref={emailRef}
+                                                    type="email"
+                                                    value={studentData.email}
+                                                    onChange={(e) => setStudentData({ ...studentData, email: e.target.value })}
+                                                    style={{ 
+                                                        borderColor: '#cbd5e1', 
+                                                        borderWidth: '1px', 
+                                                        paddingLeft: '16px',
+                                                        paddingRight: '40px',
+                                                        cursor: 'pointer'
+                                                    }}
+                                                    className="py-6 rounded-xl pr-10 selection:bg-indigo-500 selection:text-white"
+                                                    required
+                                                />
+                                                <button
+                                                    type="button"
+                                                    onClick={() => {
+                                                        emailRef.current?.focus();
+                                                        const len = studentData.email.length;
+                                                        emailRef.current?.setSelectionRange(len, len);
+                                                    }}
+                                                    style={{ 
+                                                        position: 'absolute', 
+                                                        right: '12px', 
+                                                        top: '50%', 
+                                                        transform: 'translateY(-50%)',
+                                                        cursor: 'pointer',
+                                                        background: 'none',
+                                                        border: 'none',
+                                                        padding: '4px'
+                                                    }}
+                                                >
+                                                    <Edit2 className="w-4 h-4 text-slate-400" />
+                                                </button>
+                                            </div>
                                         </div>
                                         <div className="space-y-2">
-                                            <Label className="text-xs font-black uppercase tracking-widest text-slate-400">University</Label>
-                                            <Input
-                                                value={studentData.university}
-                                                onChange={(e) => setStudentData({ ...studentData, university: e.target.value })}
-                                                className="py-6 rounded-xl border-slate-200"
-                                            />
+                                            <Label className="text-xs font-black uppercase tracking-widest text-slate-900">University</Label>
+                                            <div className="relative">
+                                                <Input
+                                                    ref={universityRef}
+                                                    value={studentData.university}
+                                                    onChange={(e) => setStudentData({ ...studentData, university: e.target.value })}
+                                                    style={{ 
+                                                        borderColor: '#cbd5e1', 
+                                                        borderWidth: '1px', 
+                                                        paddingLeft: '16px',
+                                                        paddingRight: '40px',
+                                                        cursor: 'pointer'
+                                                    }}
+                                                    className="py-6 rounded-xl pr-10 selection:bg-indigo-500 selection:text-white"
+                                                />
+                                                <button
+                                                    type="button"
+                                                    onClick={() => {
+                                                        universityRef.current?.focus();
+                                                        const len = studentData.university.length;
+                                                        universityRef.current?.setSelectionRange(len, len);
+                                                    }}
+                                                    style={{ 
+                                                        position: 'absolute', 
+                                                        right: '12px', 
+                                                        top: '50%', 
+                                                        transform: 'translateY(-50%)',
+                                                        cursor: 'pointer',
+                                                        background: 'none',
+                                                        border: 'none',
+                                                        padding: '4px'
+                                                    }}
+                                                >
+                                                    <Edit2 className="w-4 h-4 text-slate-400" />
+                                                </button>
+                                            </div>
                                         </div>
                                         <div className="space-y-2">
-                                            <Label className="text-xs font-black uppercase tracking-widest text-slate-400">Degree Level</Label>
+                                            <Label className="text-xs font-black uppercase tracking-widest text-slate-900">Degree Level</Label>
                                             <select
                                                 value={studentData.degree_level}
                                                 onChange={(e) => setStudentData({ ...studentData, degree_level: e.target.value })}
-                                                className="w-full h-12 px-4 rounded-xl border border-slate-200 outline-none focus:ring-2 focus:ring-indigo-500 font-medium text-sm bg-white"
+                                                style={{ 
+                                                    borderColor: '#cbd5e1', 
+                                                    borderWidth: '1px',
+                                                    cursor: 'pointer'
+                                                }}
+                                                className="w-full h-12 px-4 rounded-xl outline-none focus:ring-2 focus:ring-indigo-500 font-medium text-sm bg-white"
                                             >
                                                 <option>Freshman</option>
                                                 <option>Sophomore</option>
@@ -862,11 +1038,41 @@ export default function StudentOnboarding() {
                                     )}
                                 </div>
                             </CardContent>
-                            <CardFooter className="bg-slate-500 p-8 flex justify-between items-center">
-                                <p className="text-slate-900 text-sm font-medium">Looking good? Complete your onboarding.</p>
+                            <CardFooter style={{ backgroundColor: '#4f46e5', padding: '32px' }} className="flex justify-between items-center">
+                                <p style={{ color: 'white' }} className="text-sm font-medium">Looking good? Complete your onboarding.</p>
                                 <div className="flex gap-4">
-                                    <Button variant="ghost" onClick={() => setStep('choice')} className="text-slate-400 text-sm font-medium">Edit</Button>
-                                    <Button onClick={finalizeOnboarding} className="bg-indigo-600 hover:bg-indigo-700 text-white font-bold px-8 py-6 rounded-xl shadow-xl shadow-indigo-200" disabled={loading}>
+                                    <Button 
+                                        variant="ghost" 
+                                        onClick={() => setStep('manual-form')} 
+                                        style={{ 
+                                            backgroundColor: 'white',
+                                            color: '#4f46e5',
+                                            paddingLeft: '32px',
+                                            paddingRight: '32px',
+                                            paddingTop: '12px',
+                                            paddingBottom: '12px',
+                                            cursor: 'pointer',
+                                            border: '2px solid white'
+                                        }}
+                                        className="text-sm font-bold rounded-xl hover:bg-slate-50"
+                                    >
+                                        Edit
+                                    </Button>
+                                    <Button 
+                                        onClick={finalizeOnboarding} 
+                                        style={{ 
+                                            backgroundColor: 'white',
+                                            color: '#4f46e5',
+                                            paddingLeft: '32px',
+                                            paddingRight: '32px',
+                                            paddingTop: '24px',
+                                            paddingBottom: '24px',
+                                            minHeight: '56px',
+                                            cursor: 'pointer'
+                                        }}
+                                        className="font-bold rounded-xl shadow-xl hover:bg-slate-50" 
+                                        disabled={loading}
+                                    >
                                         {loading ? <Loader2 className="w-5 h-5 animate-spin mr-2" /> : "Complete Profile"}
                                     </Button>
                                 </div>
@@ -875,27 +1081,50 @@ export default function StudentOnboarding() {
                     </div>
                 )}
 
+                {/* STEP: SUCCESS */}
                 {step === 'success' && (
-                    <div className="text-center space-y-12 py-10">
-                        <div className="relative inline-block">
-                            <div className="w-32 h-32 bg-green-500 rounded-[2.5rem] flex items-center justify-center mx-auto shadow-2xl shadow-green-200 animate-in zoom-in duration-500">
-                                <CheckCircle2 className="w-16 h-16 text-white" />
+                    <div style={{ textAlign: 'center', padding: '40px', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center' }} className="space-y-12 animate-in fade-in duration-700">
+                        <div style={{ position: 'relative', display: 'inline-block' }}>
+                            <div style={{ width: '128px', height: '128px', borderRadius: '40px', backgroundColor: '#22c55e', display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto', boxShadow: '0 25px 50px -12px rgba(34, 197, 94, 0.25)' }} className="animate-in zoom-in duration-500">
+                                <CheckCircle2 style={{ width: '64px', height: '64px', color: 'white' }} />
                             </div>
-                            <div className="absolute -top-4 -right-4">
-                                <div className="w-12 h-12 bg-white rounded-2xl shadow-xl flex items-center justify-center animate-bounce">
-                                    <Sparkles className="w-6 h-6 text-indigo-600" />
+                            <div style={{ position: 'absolute', top: '-16px', right: '-16px' }}>
+                                <div style={{ width: '48px', height: '48px', backgroundColor: 'white', borderRadius: '16px', boxShadow: '0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04)', display: 'flex', alignItems: 'center', justifyContent: 'center' }} className="animate-bounce">
+                                    <Sparkles style={{ width: '24px', height: '24px', color: '#4f46e5' }} />
                                 </div>
                             </div>
                         </div>
 
-                        <div className="space-y-4">
-                            <h2 className="text-5xl font-black text-slate-900 tracking-tight">You're All Set!</h2>
-                            <p className="text-slate-500 text-xl max-w-lg mx-auto leading-relaxed">Your professional profile is live. Start connecting with companies and projects that match your expertise.</p>
+                        <div style={{ marginBottom: '32px' }} className="space-y-4">
+                            <h2 style={{ fontSize: '48px', fontWeight: '900', color: '#0f172a', letterSpacing: '-0.025em', margin: '0' }}>You're All Set!</h2>
+                            <p style={{ fontSize: '20px', color: '#64748b', maxWidth: '500px', margin: '16px auto 0', lineHeight: '1.625' }}>Your professional profile is live. Start connecting with companies and projects that match your expertise.</p>
                         </div>
 
-                        <div className="flex flex-col sm:flex-row gap-6 justify-center">
-                            <Button onClick={() => navigate('/student-home')} className="px-12 py-8 bg-indigo-600 hover:bg-indigo-700 text-white rounded-3xl font-black text-lg transition-all transform hover:scale-105 shadow-2xl shadow-indigo-200">
-                                Go to Dashboard
+                        <div style={{ display: 'flex', justifyContent: 'center', width: '100%' }}>
+                            <Button 
+                                onClick={() => navigate('/student-home')} 
+                                style={{ 
+                                    paddingLeft: '64px', 
+                                    paddingRight: '64px', 
+                                    paddingTop: '24px', 
+                                    paddingBottom: '24px', 
+                                    backgroundColor: '#4f46e5', 
+                                    color: 'white', 
+                                    borderRadius: '24px', 
+                                    fontWeight: '900', 
+                                    fontSize: '20px',
+                                    boxShadow: '0 20px 30px -10px rgba(79, 70, 229, 0.4)',
+                                    cursor: 'pointer',
+                                    minHeight: '80px',
+                                    display: 'flex',
+                                    alignItems: 'center',
+                                    justifyContent: 'center',
+                                    gap: '12px',
+                                    border: 'none'
+                                }}
+                                className="hover:bg-indigo-700 transition-transform transform hover:scale-105 active:scale-95"
+                            >
+                                Go to Dashboard <ArrowRight style={{ width: '24px', height: '24px' }} />
                             </Button>
                         </div>
                     </div>

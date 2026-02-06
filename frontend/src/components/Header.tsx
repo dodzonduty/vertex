@@ -2,7 +2,8 @@ import React, { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { apiRequest, getUserData } from '../lib/api/config';
 import { logout } from '../lib/api/auth';
-import { User, LogOut, LayoutDashboard, Building2 } from 'lucide-react';
+import { User, LogOut, LayoutDashboard } from 'lucide-react';
+import { StatePreservation } from '../lib/utils/statePreservation';
 import './Header.css';
 
 export const Header: React.FC = () => {
@@ -49,28 +50,91 @@ export const Header: React.FC = () => {
 
         {/* Navigation Links */}
         <nav className="desktop-nav">
-          <Link to="/opportunities" className="nav-link">
-            Opportunities
-            <span className="header-badge header-badge-blue">
-              {count > 100 ? '+100' : count}
-            </span>
-          </Link>
-          <Link to="/companies" className="nav-link">
-            Companies
-            <span className="header-badge header-badge-purple">
-              NEW
-            </span>
-          </Link>
-          <Link to="/profiles" className="nav-link">Profiles</Link>
-
-          {user && (
+          {user?.role === 'company' ? (
             <>
-              <Link to={user.role === 'student' ? '/student-dashboard' : '/company-dashboard'} className="nav-link flex items-center gap-1">
-                <LayoutDashboard className="w-4 h-4" /> Dashboard
+               <Link 
+                to="/company-home" 
+                className="nav-link"
+                onClick={() => StatePreservation.saveSession('company_landing_tab', 'profile')}
+              >
+                My Profile
               </Link>
-              <Link to={user.role === 'student' ? `/student/profile/${user.user_id}` : `/company/profile/${user.user_id}`} className="nav-link flex items-center gap-1">
-                {user.role === 'student' ? <User className="w-4 h-4" /> : <Building2 className="w-4 h-4" />} My Profile
+              
+              <Link 
+                to="/company-home" 
+                className="nav-link"
+                onClick={() => StatePreservation.saveSession('company_landing_tab', 'profiles')}
+              >
+                Hiring
               </Link>
+
+              <div className="relative group h-full flex items-center">
+                <button className="nav-link flex items-center gap-1">
+                  Opportunities
+                  <span className="header-badge header-badge-purple">Active</span>
+                </button>
+                
+                {/* Dropdown Menu */}
+                <div 
+                    className="absolute top-full mt-2 bg-white rounded-2xl shadow-xl shadow-slate-200/50 border border-slate-100 overflow-hidden opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200 z-50 origin-top"
+                    style={{ left: '50%', transform: 'translateX(-50%)', width: '300px' }}
+                >
+                    <div className="p-2 space-y-1">
+                        <Link 
+                            to="/opportunities"
+                            className="flex items-center gap-3 px-4 py-3 rounded-xl hover:bg-slate-50 transition-colors group/item"
+                        >
+                            <div className="w-10 h-10 rounded-xl bg-blue-50 flex items-center justify-center text-blue-600 group-hover/item:bg-blue-100 transition-colors shrink-0">
+                                <span className="material-symbols-outlined text-xl">search</span>
+                            </div>
+                            <div className="text-left">
+                                <div className="text-sm font-bold text-slate-900 whitespace-nowrap">View Opportunities</div>
+                                <div className="text-xs text-slate-500 font-medium whitespace-nowrap">Browse market & talent</div>
+                            </div>
+                        </Link>
+                        <Link 
+                            to="/company-home"
+                            onClick={() => StatePreservation.saveSession('company_landing_tab', 'opportunities')}
+                            className="w-full flex items-center gap-3 px-4 py-3 rounded-xl hover:bg-slate-50 transition-colors group/item text-left"
+                        >
+                            <div className="w-10 h-10 rounded-xl bg-indigo-50 flex items-center justify-center text-indigo-600 group-hover/item:bg-indigo-100 transition-colors shrink-0">
+                                <span className="material-symbols-outlined text-xl">add_circle</span>
+                            </div>
+                            <div className="text-left">
+                                <div className="text-sm font-bold text-slate-900 whitespace-nowrap">Host an Opportunity</div>
+                                <div className="text-xs text-slate-500 font-medium whitespace-nowrap">Create hackathons & events</div>
+                            </div>
+                        </Link>
+                    </div>
+                </div>
+              </div>
+            </>
+          ) : (
+            <>
+              <Link to="/opportunities" className="nav-link">
+                Opportunities
+                <span className="header-badge header-badge-blue">
+                  {count > 100 ? '+100' : count}
+                </span>
+              </Link>
+              <Link to="/companies" className="nav-link">
+                Companies
+                <span className="header-badge header-badge-purple">
+                  NEW
+                </span>
+              </Link>
+              <Link to="/profiles" className="nav-link">Profiles</Link>
+
+              {user && (
+                <>
+                  <Link to="/student-dashboard" className="nav-link flex items-center gap-1">
+                    <LayoutDashboard className="w-4 h-4" /> Dashboard
+                  </Link>
+                  <Link to={`/student/profile/${user.user_id}`} className="nav-link flex items-center gap-1">
+                    <User className="w-4 h-4" /> My Profile
+                  </Link>
+                </>
+              )}
             </>
           )}
         </nav>

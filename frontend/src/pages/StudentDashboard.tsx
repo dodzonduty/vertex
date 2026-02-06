@@ -67,7 +67,7 @@ export function StudentDashboard({ onLogout }: StudentDashboardProps) {
           <div className="flex items-center gap-6">
             <button
               onClick={onLogout}
-              className="text-sm font-bold text-slate-500 hover:text-indigo-600 transition-colors"
+              className="text-sm font-bold text-slate-500 hover:text-indigo-600 transition-colors cursor-pointer"
             >
               Log out
             </button>

@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react';
+import { useSearchParams } from 'react-router-dom';
 import {
   Mail, Phone, MapPin, Github, Linkedin,
   ExternalLink, CheckCircle2, Award, Plus, Save, X, Sparkles, FolderGit2, Loader2, Edit, Upload
@@ -13,12 +14,28 @@ import { toast } from 'sonner';
 import { getStudentProfile, updateStudentProfile, addProject, analyzeCV } from '../../lib/api/students';
 import { getUserData } from '../../lib/api/config';
 
-type ProfileMode = 'view' | 'edit';
+type ProfileMode = 'view' | 'edit' | 'add-project';
 
 export function StudentProfile() {
-  const [profileMode, setProfileMode] = useState<ProfileMode>('view');
+  const [searchParams, setSearchParams] = useSearchParams();
+  const validModes: ProfileMode[] = ['view', 'edit', 'add-project'];
+  const modeParam = searchParams.get('mode');
+  const profileMode: ProfileMode = validModes.includes(modeParam as ProfileMode) ? (modeParam as ProfileMode) : 'view';
+
+  const setProfileMode = (mode: ProfileMode) => {
+    setSearchParams(prev => {
+      const newParams = new URLSearchParams(prev);
+      if (mode === 'view') {
+        newParams.delete('mode');
+      } else {
+        newParams.set('mode', mode);
+      }
+      return newParams;
+    });
+  };
+
   const [loading, setLoading] = useState(true);
-  const [isAddingProject, setIsAddingProject] = useState(false);
+  // Removed isAddingProject state in favor of profileMode
   const [newProject, setNewProject] = useState({ title: '', description: '', repo_url: '' });
   const [profileData, setProfileData] = useState<any>({
     name: 'Loading...',
@@ -219,9 +236,9 @@ export function StudentProfile() {
     try {
       await addProject(newProject);
       toast.success('Project added successfully');
-      setIsAddingProject(false);
+      setProfileMode('view');
       setNewProject({ title: '', description: '', repo_url: '' });
-      // Refresh profile data
+      // Refresh to show new project
       window.location.reload();
     } catch (error) {
       toast.error('Failed to add project');
@@ -242,50 +259,7 @@ export function StudentProfile() {
   if (profileMode === 'view') {
     return (
       <div className="max-w-5xl mx-auto py-4 animate-in fade-in duration-700">
-        {/* Project Modal */}
-        {isAddingProject && (
-          <div className="fixed inset-0 bg-slate-900/40 backdrop-blur-sm z-50 flex items-center justify-center p-4">
-            <Card className="w-full max-w-md shadow-2xl animate-in zoom-in-95 duration-200">
-              <form onSubmit={handleAddProject}>
-                <CardContent className="p-6 space-y-4">
-                  <div className="flex items-center justify-between mb-2">
-                    <h3 className="text-xl font-bold text-slate-900">Add New Project</h3>
-                    <Button type="button" variant="ghost" size="icon" onClick={() => setIsAddingProject(false)}>
-                      <X className="w-5 h-5" />
-                    </Button>
-                  </div>
-                  <div className="space-y-2">
-                    <Label>Project Title</Label>
-                    <Input
-                      required
-                      value={newProject.title}
-                      onChange={e => setNewProject({ ...newProject, title: e.target.value })}
-                      placeholder="e.g. AI Content Generator"
-                    />
-                  </div>
-                  <div className="space-y-2">
-                    <Label>Description</Label>
-                    <Textarea
-                      required
-                      value={newProject.description}
-                      onChange={e => setNewProject({ ...newProject, description: e.target.value })}
-                      placeholder="Describe what you built..."
-                    />
-                  </div>
-                  <div className="space-y-2">
-                    <Label>Repository URL (Optional)</Label>
-                    <Input
-                      value={newProject.repo_url}
-                      onChange={e => setNewProject({ ...newProject, repo_url: e.target.value })}
-                      placeholder="https://github.com/..."
-                    />
-                  </div>
-                  <Button type="submit" className="w-full bg-indigo-600 hover:bg-indigo-700">Save Project</Button>
-                </CardContent>
-              </form>
-            </Card>
-          </div>
-        )}
+
 
         {/* Profile Header - Premium */}
         <div className="bg-white rounded-3xl border border-slate-200 shadow-xl shadow-slate-200/50 overflow-hidden mb-10 group">
@@ -362,7 +336,22 @@ export function StudentProfile() {
               <div className="md:self-start">
                 <Button
                   onClick={() => setProfileMode('edit')}
-                  className="bg-indigo-600 hover:bg-indigo-700 text-white font-semibold px-6 py-3 rounded-xl shadow-lg shadow-indigo-200 transition-all flex items-center gap-2 group/edit"
+                  style={{
+                    backgroundColor: '#4f46e5',
+                    color: 'white',
+                    paddingTop: '12px',
+                    paddingBottom: '12px',
+                    paddingLeft: '24px',
+                    paddingRight: '24px',
+                    borderRadius: '12px',
+                    fontWeight: 700,
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: '8px',
+                    cursor: 'pointer',
+                    boxShadow: '0 10px 15px -3px rgba(79, 70, 229, 0.2)'
+                  }}
+                  className="bg-indigo-600 hover:bg-indigo-700 transition-all group/edit hover:shadow-indigo-300"
                 >
                   <Edit className="w-4 h-4 text-white/90 group-hover/edit:text-white transition-colors" />
                   Edit Profile
@@ -398,10 +387,25 @@ export function StudentProfile() {
                     />
                     <Button
                       onClick={() => document.getElementById('rescan-cv')?.click()}
-                      className="w-full bg-indigo-600 hover:bg-indigo-700 border-none shadow-xl shadow-indigo-200"
+                      style={{
+                        backgroundColor: '#4f46e5',
+                        color: 'white',
+                        paddingTop: '12px',
+                        paddingBottom: '12px',
+                        borderRadius: '12px',
+                        fontWeight: 700,
+                        cursor: 'pointer',
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        gap: '8px',
+                        width: '100%',
+                        border: 'none'
+                      }}
+                      className="hover:bg-indigo-700 shadow-xl shadow-indigo-200"
                       disabled={isAnalyzing}
                     >
-                      {isAnalyzing ? <Loader2 className="w-4 h-4 animate-spin mr-2" /> : <Upload className="w-4 h-4 mr-2" />}
+                      {isAnalyzing ? <Loader2 className="w-4 h-4 animate-spin mr-2" /> : <Upload className="w-4 h-4" />}
                       {isAnalyzing ? "Analyzing..." : "Auto-Fill with CV"}
                     </Button>
                   </div>
@@ -472,8 +476,25 @@ export function StudentProfile() {
               <div className="flex items-center justify-between mb-4">
                 <h3 className="text-2xl font-black text-slate-900 tracking-tight">Projects</h3>
                 <button
-                  onClick={() => setIsAddingProject(true)}
-                  className="flex items-center gap-2 px-4 py-2 bg-indigo-600 text-white rounded-xl font-bold text-sm hover:bg-indigo-700 transition-colors"
+                  onClick={() => setProfileMode('add-project')}
+                  style={{
+                    backgroundColor: '#4f46e5',
+                    color: 'white',
+                    paddingTop: '12px',
+                    paddingBottom: '12px',
+                    paddingLeft: '24px',
+                    paddingRight: '24px',
+                    borderRadius: '12px',
+                    fontWeight: 700,
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: '8px',
+                    cursor: 'pointer',
+                    minWidth: '140px',
+                    justifyContent: 'center',
+                    border: 'none'
+                  }}
+                  className="hover:bg-indigo-700 transition-colors shadow-lg shadow-indigo-200"
                 >
                   <Plus className="w-4 h-4" />
                   Add Project
@@ -508,124 +529,331 @@ export function StudentProfile() {
   }
 
   // EDIT MODE
-  return (
-    <div className="max-w-4xl mx-auto py-8 animate-in fade-in slide-in-from-bottom-4 duration-500">
-      <Card className="shadow-2xl border-none">
-        <CardContent className="p-0">
-          <form onSubmit={handleSaveProfile}>
-            <div className="p-8 border-b bg-slate-50/50 flex items-center justify-between">
-              <div>
-                <h2 className="text-3xl font-black text-slate-900 tracking-tight">Refine Profile</h2>
-                <p className="text-slate-500 font-medium">Keep your professional identity up to date.</p>
-              </div>
-              <div className="flex gap-3">
-                <Button type="button" variant="ghost" onClick={() => setProfileMode('view')} className="font-bold text-slate-400">
-                  <X className="w-5 h-5 mr-2" /> Cancel
-                </Button>
-                <Button type="submit" className="bg-indigo-600 hover:bg-indigo-700 text-white font-bold px-8 shadow-xl shadow-indigo-200">
-                  <Save className="w-5 h-5 mr-2" /> Save Changes
-                </Button>
-              </div>
-            </div>
-
-            <div className="p-10 space-y-10">
-              {/* Identity Section */}
-              <div className="grid md:grid-cols-2 gap-8">
-                <div className="space-y-2">
-                  <Label className="text-[10px] font-black uppercase tracking-widest text-slate-400">Full Public Name</Label>
-                  <Input
-                    value={profileData.name}
-                    onChange={(e) => setProfileData({ ...profileData, name: e.target.value })}
-                    className="py-6 rounded-xl border-slate-200 focus:ring-indigo-500"
-                  />
+  if (profileMode === 'edit') {
+    return (
+      <div className="max-w-4xl mx-auto py-8 animate-in fade-in slide-in-from-bottom-4 duration-500">
+        <Card className="shadow-2xl border-none">
+          <CardContent className="p-0">
+            <form onSubmit={handleSaveProfile}>
+              {/* ... existing edit form content ... */}
+              <div className="p-8 border-b bg-slate-50/50 flex items-center justify-between">
+                <div>
+                  <h2 className="text-3xl font-black text-slate-900 tracking-tight">Refine Profile</h2>
+                  <p className="text-slate-500 font-medium">Keep your professional identity up to date.</p>
                 </div>
-                <div className="space-y-2">
-                  <Label className="text-[10px] font-black uppercase tracking-widest text-slate-400">Professional Headline</Label>
-                  <Input
-                    value={profileData.jobTitle}
-                    onChange={(e) => setProfileData({ ...profileData, jobTitle: e.target.value })}
-                    className="py-6 rounded-xl border-slate-200 focus:ring-indigo-500"
-                  />
-                </div>
-              </div>
-
-              <div className="space-y-2">
-                <Label className="text-[10px] font-black uppercase tracking-widest text-slate-400">Detailed Bio</Label>
-                <Textarea
-                  value={profileData.description}
-                  onChange={(e) => setProfileData({ ...profileData, description: e.target.value })}
-                  className="min-h-[150px] rounded-xl border-slate-200 focus:ring-indigo-500 text-lg leading-relaxed"
-                />
-              </div>
-
-              <div className="grid md:grid-cols-3 gap-8 border-t border-slate-100 pt-10">
-                <div className="space-y-2">
-                  <Label className="text-[10px] font-black uppercase tracking-widest text-slate-400">University</Label>
-                  <Input
-                    value={profileData.university}
-                    onChange={(e) => setProfileData({ ...profileData, university: e.target.value })}
-                    className="py-6 rounded-xl border-slate-200"
-                  />
-                </div>
-                <div className="space-y-2">
-                  <Label className="text-[10px] font-black uppercase tracking-widest text-slate-400">Study Year</Label>
-                  <Input
-                    value={profileData.year}
-                    onChange={(e) => setProfileData({ ...profileData, year: e.target.value })}
-                    className="py-6 rounded-xl border-slate-200"
-                  />
-                </div>
-                <div className="space-y-2">
-                  <Label className="text-[10px] font-black uppercase tracking-widest text-slate-400">Phone Contact</Label>
-                  <Input
-                    value={profileData.phone}
-                    onChange={(e) => setProfileData({ ...profileData, phone: e.target.value })}
-                    className="py-6 rounded-xl border-slate-200"
-                  />
+                <div className="flex gap-3">
+                  <Button 
+                    type="button" 
+                    variant="ghost" 
+                    onClick={() => setProfileMode('view')} 
+                    style={{
+                      color: '#94a3b8',
+                      paddingTop: '12px',
+                      paddingBottom: '12px',
+                      paddingLeft: '24px',
+                      paddingRight: '24px',
+                      borderRadius: '12px',
+                      fontWeight: 700,
+                      cursor: 'pointer',
+                      display: 'flex',
+                      alignItems: 'center',
+                      gap: '8px',
+                      height: 'auto'
+                    }}
+                    className="hover:bg-slate-50 hover:text-slate-600"
+                  >
+                    <X className="w-5 h-5" /> Cancel
+                  </Button>
+                  <Button 
+                    type="submit" 
+                    style={{
+                      backgroundColor: '#4f46e5',
+                      color: 'white',
+                      paddingTop: '12px',
+                      paddingBottom: '12px',
+                      paddingLeft: '32px',
+                      paddingRight: '32px',
+                      borderRadius: '12px',
+                      fontWeight: 700,
+                      cursor: 'pointer',
+                      display: 'flex',
+                      alignItems: 'center',
+                      gap: '8px',
+                      border: 'none',
+                      height: 'auto'
+                    }}
+                    className="hover:bg-indigo-700 shadow-xl shadow-indigo-200"
+                  >
+                    <Save className="w-5 h-5" /> Save Changes
+                  </Button>
                 </div>
               </div>
 
-              <div className="grid md:grid-cols-2 gap-8">
+              <div className="p-10 space-y-10">
+                {/* Identity Section */}
+                <div className="grid md:grid-cols-2 gap-8">
+                  <div className="space-y-2">
+                    <Label className="text-[10px] font-black uppercase tracking-widest text-slate-400">Full Public Name</Label>
+                    <Input
+                      value={profileData.name}
+                      onChange={(e) => setProfileData({ ...profileData, name: e.target.value })}
+                      style={{
+                          border: '2px solid #cbd5e1',
+                          borderRadius: '12px',
+                          padding: '12px',
+                          fontWeight: 500
+                      }}
+                      className="py-6 focus:!border-indigo-500 hover:!border-indigo-400 transition-colors"
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <Label className="text-[10px] font-black uppercase tracking-widest text-slate-400">Professional Headline</Label>
+                    <Input
+                      value={profileData.jobTitle}
+                      onChange={(e) => setProfileData({ ...profileData, jobTitle: e.target.value })}
+                      style={{
+                          border: '2px solid #cbd5e1',
+                          borderRadius: '12px',
+                          padding: '12px',
+                          fontWeight: 500
+                      }}
+                      className="py-6 focus:!border-indigo-500 hover:!border-indigo-400 transition-colors"
+                    />
+                  </div>
+                </div>
+
                 <div className="space-y-2">
-                  <Label className="text-[10px] font-black uppercase tracking-widest text-slate-400">GitHub URL</Label>
-                  <Input
-                    value={profileData.githubLink}
-                    onChange={(e) => setProfileData({ ...profileData, githubLink: e.target.value })}
-                    placeholder="https://github.com/username"
-                    className="py-6 rounded-xl border-slate-200"
+                  <Label className="text-[10px] font-black uppercase tracking-widest text-slate-400">Detailed Bio</Label>
+                  <Textarea
+                    value={profileData.description}
+                    onChange={(e) => setProfileData({ ...profileData, description: e.target.value })}
+                    style={{
+                        border: '2px solid #cbd5e1',
+                        borderRadius: '12px',
+                        padding: '12px',
+                        lineHeight: '1.6'
+                    }}
+                    className="min-h-[150px] focus:!border-indigo-500 hover:!border-indigo-400 transition-colors text-lg"
                   />
                 </div>
+
+                <div className="grid md:grid-cols-3 gap-8 border-t border-slate-100 pt-10">
+                  <div className="space-y-2">
+                    <Label className="text-[10px] font-black uppercase tracking-widest text-slate-400">University</Label>
+                    <Input
+                      value={profileData.university}
+                      onChange={(e) => setProfileData({ ...profileData, university: e.target.value })}
+                      style={{
+                          border: '2px solid #cbd5e1',
+                          borderRadius: '12px',
+                          padding: '12px',
+                          fontWeight: 500
+                      }}
+                      className="py-6 focus:!border-indigo-500 hover:!border-indigo-400 transition-colors"
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <Label className="text-[10px] font-black uppercase tracking-widest text-slate-400">Study Year</Label>
+                    <Input
+                      value={profileData.year}
+                      onChange={(e) => setProfileData({ ...profileData, year: e.target.value })}
+                      style={{
+                          border: '2px solid #cbd5e1',
+                          borderRadius: '12px',
+                          padding: '12px',
+                          fontWeight: 500
+                      }}
+                      className="py-6 focus:!border-indigo-500 hover:!border-indigo-400 transition-colors"
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <Label className="text-[10px] font-black uppercase tracking-widest text-slate-400">Phone Contact</Label>
+                    <Input
+                      value={profileData.phone}
+                      onChange={(e) => setProfileData({ ...profileData, phone: e.target.value })}
+                      style={{
+                          border: '2px solid #cbd5e1',
+                          borderRadius: '12px',
+                          padding: '12px',
+                          fontWeight: 500
+                      }}
+                      className="py-6 focus:!border-indigo-500 hover:!border-indigo-400 transition-colors"
+                    />
+                  </div>
+                </div>
+
+                <div className="grid md:grid-cols-2 gap-8">
+                  <div className="space-y-2">
+                    <Label className="text-[10px] font-black uppercase tracking-widest text-slate-400">GitHub URL</Label>
+                    <Input
+                      value={profileData.githubLink}
+                      onChange={(e) => setProfileData({ ...profileData, githubLink: e.target.value })}
+                      placeholder="https://github.com/username"
+                      style={{
+                          border: '2px solid #cbd5e1',
+                          borderRadius: '12px',
+                          padding: '12px',
+                          fontWeight: 500
+                      }}
+                      className="py-6 focus:!border-indigo-500 hover:!border-indigo-400 transition-colors"
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <Label className="text-[10px] font-black uppercase tracking-widest text-slate-400">LinkedIn URL</Label>
+                    <Input
+                      value={profileData.linkedinLink}
+                      onChange={(e) => setProfileData({ ...profileData, linkedinLink: e.target.value })}
+                      placeholder="https://linkedin.com/in/username"
+                      style={{
+                          border: '2px solid #cbd5e1',
+                          borderRadius: '12px',
+                          padding: '12px',
+                          fontWeight: 500
+                      }}
+                      className="py-6 focus:!border-indigo-500 hover:!border-indigo-400 transition-colors"
+                    />
+                  </div>
+                </div>
+
                 <div className="space-y-2">
-                  <Label className="text-[10px] font-black uppercase tracking-widest text-slate-400">LinkedIn URL</Label>
+                  <Label className="text-[10px] font-black uppercase tracking-widest text-slate-400">Email Address</Label>
                   <Input
-                    value={profileData.linkedinLink}
-                    onChange={(e) => setProfileData({ ...profileData, linkedinLink: e.target.value })}
-                    placeholder="https://linkedin.com/in/username"
-                    className="py-6 rounded-xl border-slate-200"
+                    value={profileData.email}
+                    disabled
+                    type="email"
+                    className="py-6 rounded-xl border-slate-200 bg-slate-50 opacity-60 cursor-not-allowed"
                   />
                 </div>
               </div>
 
-              <div className="space-y-2">
-                <Label className="text-[10px] font-black uppercase tracking-widest text-slate-400">Email Address</Label>
-                <Input
-                  value={profileData.email}
-                  disabled
-                  type="email"
-                  className="py-6 rounded-xl border-slate-200 bg-slate-50 opacity-60 cursor-not-allowed"
-                />
+              <div className="p-8 bg-indigo-600/5 text-indigo-700 font-bold flex items-center justify-center gap-2 border-t border-indigo-100">
+                <Sparkles className="w-5 h-5" />
+                Vertex AI will re-analyze your compatibility score after saving.
               </div>
-            </div>
+            </form>
+          </CardContent>
+        </Card>
+      </div>
+    );
+  }
 
-            <div className="p-8 bg-indigo-600/5 text-indigo-700 font-bold flex items-center justify-center gap-2 border-t border-indigo-100">
-              <Sparkles className="w-5 h-5" />
-              Vertex AI will re-analyze your compatibility score after saving.
-            </div>
-          </form>
-        </CardContent>
-      </Card>
-    </div>
-  );
+  // ADD PROJECT MODE
+  if (profileMode === 'add-project') {
+    return (
+      <div className="max-w-4xl mx-auto py-8 animate-in fade-in slide-in-from-bottom-4 duration-500">
+        <Card className="shadow-2xl border-none">
+          <CardContent className="p-0">
+            <form onSubmit={handleAddProject}>
+              <div className="p-8 border-b bg-slate-50/50 flex items-center justify-between">
+                <div>
+                  <h2 className="text-3xl font-black text-slate-900 tracking-tight">Add New Project</h2>
+                  <p className="text-slate-500 font-medium">Showcase what you've built.</p>
+                </div>
+                <div className="flex gap-3">
+                  <Button 
+                    type="button" 
+                    variant="ghost" 
+                    onClick={() => setProfileMode('view')} 
+                    style={{
+                      color: '#94a3b8',
+                      paddingTop: '12px',
+                      paddingBottom: '12px',
+                      paddingLeft: '24px',
+                      paddingRight: '24px',
+                      borderRadius: '12px',
+                      fontWeight: 700,
+                      cursor: 'pointer',
+                      display: 'flex',
+                      alignItems: 'center',
+                      gap: '8px',
+                      height: 'auto'
+                    }}
+                    className="hover:bg-slate-50 hover:text-slate-600"
+                  >
+                    <X className="w-5 h-5" /> Cancel
+                  </Button>
+                  <Button 
+                    type="submit" 
+                    style={{
+                      backgroundColor: '#4f46e5',
+                      color: 'white',
+                      paddingTop: '12px',
+                      paddingBottom: '12px',
+                      paddingLeft: '32px',
+                      paddingRight: '32px',
+                      borderRadius: '12px',
+                      fontWeight: 700,
+                      cursor: 'pointer',
+                      display: 'flex',
+                      alignItems: 'center',
+                      gap: '8px',
+                      border: 'none',
+                      height: 'auto'
+                    }}
+                    className="hover:bg-indigo-700 shadow-xl shadow-indigo-200"
+                  >
+                    <Plus className="w-5 h-5" /> Create Project
+                  </Button>
+                </div>
+              </div>
+
+              <div className="p-10 space-y-10">
+                <div className="space-y-2">
+                  <Label className="text-[10px] font-black uppercase tracking-widest text-slate-400">Project Title</Label>
+                  <Input
+                    required
+                    value={newProject.title}
+                    onChange={e => setNewProject({ ...newProject, title: e.target.value })}
+                    placeholder="e.g. AI Content Generator"
+                    style={{
+                        border: '2px solid #cbd5e1',
+                        borderRadius: '12px',
+                        padding: '12px',
+                        fontWeight: 500
+                    }}
+                    className="py-6 focus:!border-indigo-500 hover:!border-indigo-400 transition-colors"
+                  />
+                </div>
+
+                <div className="space-y-2">
+                  <Label className="text-[10px] font-black uppercase tracking-widest text-slate-400">Description</Label>
+                  <Textarea
+                    required
+                    value={newProject.description}
+                    onChange={e => setNewProject({ ...newProject, description: e.target.value })}
+                    placeholder="Describe the problem, your solution, and the technologies used..."
+                    style={{
+                        border: '2px solid #cbd5e1',
+                        borderRadius: '12px',
+                        padding: '12px',
+                        lineHeight: '1.6'
+                    }}
+                    className="min-h-[200px] focus:!border-indigo-500 hover:!border-indigo-400 transition-colors text-lg"
+                  />
+                </div>
+
+                <div className="space-y-2">
+                  <Label className="text-[10px] font-black uppercase tracking-widest text-slate-400">Repository URL (Optional)</Label>
+                  <Input
+                    value={newProject.repo_url}
+                    onChange={e => setNewProject({ ...newProject, repo_url: e.target.value })}
+                    placeholder="https://github.com/..."
+                    style={{
+                        border: '2px solid #cbd5e1',
+                        borderRadius: '12px',
+                        padding: '12px',
+                        fontWeight: 500
+                    }}
+                    className="py-6 focus:!border-indigo-500 hover:!border-indigo-400 transition-colors"
+                  />
+                </div>
+              </div>
+            </form>
+          </CardContent>
+        </Card>
+      </div>
+    );
+  }
 }
 
 // Project Card Component

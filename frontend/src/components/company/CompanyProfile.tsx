@@ -1,11 +1,29 @@
 import { useState, useEffect } from 'react';
-import { Mail, Phone, MapPin, Building2, Users, Edit, Sparkles, CheckCircle2, Loader2, Upload } from 'lucide-react';
+import { useSearchParams } from 'react-router-dom';
+import { Mail, Phone, MapPin, Building2, Users, Edit, Sparkles, CheckCircle2, Loader2, Upload, Save, X } from 'lucide-react';
 import { getCompanyProfile, updateCompanyProfile } from '../../lib/api/companies';
-import { getUserData } from '../../lib/api/config';
 import { toast } from 'sonner';
+import { Button } from '../ui/button';
+import { Input } from '../ui/input';
+import { Label } from '../ui/label';
+import { Textarea } from '../ui/textarea';
+import { Card, CardContent } from '../ui/card';
 
 export function CompanyProfile() {
-  const [profileMode, setProfileMode] = useState<'view' | 'edit'>('view');
+  const [searchParams, setSearchParams] = useSearchParams();
+  const profileMode = searchParams.get('mode') === 'edit' ? 'edit' : 'view';
+
+  const setProfileMode = (mode: 'view' | 'edit') => {
+    setSearchParams(prev => {
+      const newParams = new URLSearchParams(prev);
+      if (mode === 'view') {
+        newParams.delete('mode');
+      } else {
+        newParams.set('mode', mode);
+      }
+      return newParams;
+    });
+  };
 
   const [loading, setLoading] = useState(true);
   const [isUploading, setIsUploading] = useState(false);
@@ -83,7 +101,8 @@ export function CompanyProfile() {
     }
   };
 
-  const handleSave = async () => {
+  const handleSave = async (e?: React.FormEvent) => {
+    if (e) e.preventDefault();
     try {
       await updateCompanyProfile({
         name: companyData.name,
@@ -124,6 +143,216 @@ export function CompanyProfile() {
 
   if (loading) return <div className="flex justify-center p-12"><Loader2 className="animate-spin w-8 h-8 text-blue-600" /></div>;
 
+  // EDIT MODE
+  if (profileMode === 'edit') {
+    return (
+      <div className="max-w-4xl mx-auto py-8 animate-in fade-in slide-in-from-bottom-4 duration-500">
+        <Card className="shadow-2xl border-none">
+          <CardContent className="p-0">
+            <form onSubmit={handleSave}>
+              <div className="p-8 border-b bg-slate-50/50 flex items-center justify-between">
+                <div>
+                  <h2 className="text-3xl font-black text-slate-900 tracking-tight">Refine Company Profile</h2>
+                  <p className="text-slate-500 font-medium">Keep your company details up to date.</p>
+                </div>
+                <div className="flex gap-3">
+                  <Button 
+                    type="button" 
+                    variant="ghost" 
+                    onClick={() => setProfileMode('view')} 
+                    style={{
+                      color: '#94a3b8',
+                      paddingTop: '12px',
+                      paddingBottom: '12px',
+                      paddingLeft: '24px',
+                      paddingRight: '24px',
+                      borderRadius: '12px',
+                      fontWeight: 700,
+                      cursor: 'pointer',
+                      display: 'flex',
+                      alignItems: 'center',
+                      gap: '8px',
+                      height: 'auto'
+                    }}
+                    className="hover:bg-slate-50 hover:text-slate-600"
+                  >
+                    <X className="w-5 h-5" /> Cancel
+                  </Button>
+                  <Button 
+                    type="submit" 
+                    style={{
+                      backgroundColor: '#2563eb', // Blue-600
+                      color: 'white',
+                      paddingTop: '12px',
+                      paddingBottom: '12px',
+                      paddingLeft: '32px',
+                      paddingRight: '32px',
+                      borderRadius: '12px',
+                      fontWeight: 700,
+                      cursor: 'pointer',
+                      display: 'flex',
+                      alignItems: 'center',
+                      gap: '8px',
+                      border: 'none',
+                      height: 'auto'
+                    }}
+                    className="hover:bg-blue-700 shadow-xl shadow-blue-200"
+                  >
+                    <Save className="w-5 h-5" /> Save Changes
+                  </Button>
+                </div>
+              </div>
+
+              <div className="p-10 space-y-10">
+                {/* Identity Section */}
+                <div className="grid md:grid-cols-2 gap-8">
+                  <div className="space-y-2">
+                    <Label className="text-[10px] font-black uppercase tracking-widest text-slate-400">Company Name</Label>
+                    <Input
+                      value={companyData.name}
+                      onChange={(e) => setCompanyData({ ...companyData, name: e.target.value })}
+                      style={{
+                          border: '2px solid #cbd5e1',
+                          borderRadius: '12px',
+                          padding: '12px',
+                          fontWeight: 500
+                      }}
+                      className="py-6 focus:!border-blue-500 hover:!border-blue-400 transition-colors"
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <Label className="text-[10px] font-black uppercase tracking-widest text-slate-400">Industry</Label>
+                    <Input
+                      value={companyData.industry}
+                      onChange={(e) => setCompanyData({ ...companyData, industry: e.target.value })}
+                      style={{
+                          border: '2px solid #cbd5e1',
+                          borderRadius: '12px',
+                          padding: '12px',
+                          fontWeight: 500
+                      }}
+                      className="py-6 focus:!border-blue-500 hover:!border-blue-400 transition-colors"
+                    />
+                  </div>
+                </div>
+
+                <div className="space-y-2">
+                  <Label className="text-[10px] font-black uppercase tracking-widest text-slate-400">Company Description</Label>
+                  <Textarea
+                    value={companyData.description}
+                    onChange={(e) => setCompanyData({ ...companyData, description: e.target.value })}
+                    style={{
+                        border: '2px solid #cbd5e1',
+                        borderRadius: '12px',
+                        padding: '12px',
+                        lineHeight: '1.6'
+                    }}
+                    className="min-h-[150px] focus:!border-blue-500 hover:!border-blue-400 transition-colors text-lg"
+                  />
+                </div>
+
+                <div className="grid md:grid-cols-3 gap-8 border-t border-slate-100 pt-10">
+                  <div className="space-y-2">
+                    <Label className="text-[10px] font-black uppercase tracking-widest text-slate-400">Location</Label>
+                    <Input
+                      value={companyData.address}
+                      onChange={(e) => setCompanyData({ ...companyData, address: e.target.value })}
+                      style={{
+                          border: '2px solid #cbd5e1',
+                          borderRadius: '12px',
+                          padding: '12px',
+                          fontWeight: 500
+                      }}
+                      className="py-6 focus:!border-blue-500 hover:!border-blue-400 transition-colors"
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <Label className="text-[10px] font-black uppercase tracking-widest text-slate-400">Company Size</Label>
+                    <select
+                      value={companyData.size}
+                      onChange={(e) => setCompanyData({ ...companyData, size: e.target.value })}
+                      style={{
+                          border: '2px solid #cbd5e1',
+                          borderRadius: '12px',
+                          padding: '0 12px',
+                          fontWeight: 500,
+                          width: '100%',
+                          outline: 'none',
+                          height: '50px',
+                          backgroundColor: 'white'
+                      }}
+                      className="focus:border-blue-500 hover:border-blue-400 transition-colors text-sm"
+                    >
+                      <option>Start-up</option>
+                      <option>Scale-up</option>
+                      <option>Enterprise</option>
+                      <option>Agency</option>
+                    </select>
+                  </div>
+                  <div className="space-y-2">
+                    <Label className="text-[10px] font-black uppercase tracking-widest text-slate-400">Contact Phone</Label>
+                    <Input
+                      value={companyData.phone}
+                      onChange={(e) => setCompanyData({ ...companyData, phone: e.target.value })}
+                      style={{
+                          border: '2px solid #cbd5e1',
+                          borderRadius: '12px',
+                          padding: '12px',
+                          fontWeight: 500
+                      }}
+                      className="py-6 focus:!border-blue-500 hover:!border-blue-400 transition-colors"
+                    />
+                  </div>
+                </div>
+
+                {/* Social Links Editor */}
+                <div className="space-y-4 border-t border-slate-100 pt-10">
+                  <div className="flex justify-between items-center">
+                    <Label className="text-[10px] font-black uppercase tracking-widest text-slate-400">Social Links</Label>
+                    <button type="button" onClick={addSocialLink} className="text-sm text-blue-600 font-bold hover:underline">+ Add Link</button>
+                  </div>
+                  
+                  <div className="space-y-3">
+                    {companyData.socialLinks.map((link, idx) => (
+                      <div key={idx} className="flex gap-4">
+                        <select
+                          value={link.type}
+                          onChange={(e) => updateSocialLink(idx, 'type', e.target.value)}
+                          className="w-32 px-3 py-2 border rounded-lg text-sm font-medium focus:ring-2 focus:ring-blue-500"
+                          style={{ borderRadius: '8px', border: '1px solid #cbd5e1' }}
+                        >
+                          <option value="website">Website</option>
+                          <option value="linkedin">LinkedIn</option>
+                          <option value="twitter">Twitter</option>
+                          <option value="github">GitHub</option>
+                        </select>
+                        <Input
+                          value={link.url}
+                          onChange={(e) => updateSocialLink(idx, 'url', e.target.value)}
+                          placeholder="https://..."
+                          style={{
+                              border: '1px solid #cbd5e1',
+                              borderRadius: '8px',
+                              padding: '8px 12px',
+                              flex: 1
+                          }}
+                        />
+                        <button type="button" onClick={() => removeSocialLink(idx)} className="p-2 text-slate-400 hover:text-red-500 hover:bg-red-50 rounded-lg transition-colors">
+                          <X className="w-5 h-5" />
+                        </button>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              </div>
+            </form>
+          </CardContent>
+        </Card>
+      </div>
+    );
+  }
+
+  // VIEW MODE (Default)
   return (
     <div className="max-w-5xl mx-auto font-sans animate-in fade-in duration-700">
 
@@ -165,16 +394,7 @@ export function CompanyProfile() {
 
             <div className="flex-1 text-center md:text-left mb-2">
               <div className="flex items-center justify-center md:justify-start gap-3 mb-2">
-                {profileMode === 'edit' ? (
-                  <input
-                    className="text-3xl font-black text-slate-900 tracking-tight bg-slate-50 border p-1 rounded"
-                    value={companyData.name}
-                    onChange={(e) => setCompanyData({ ...companyData, name: e.target.value })}
-                  />
-                ) : (
-                  <h1 className="text-3xl font-black text-slate-900 tracking-tight">{companyData.name}</h1>
-                )}
-
+                <h1 className="text-3xl font-black text-slate-900 tracking-tight">{companyData.name}</h1>
                 <div className="px-2 py-0.5 bg-blue-50 text-blue-700 text-[10px] font-bold uppercase tracking-widest rounded-full border border-blue-100 flex items-center gap-1">
                   <CheckCircle2 className="w-3 h-3" />
                   Verified
@@ -194,28 +414,28 @@ export function CompanyProfile() {
             </div>
 
             <div className="pb-2">
-              <button
-                onClick={() => {
-                  if (profileMode === 'edit') {
-                    handleSave();
-                  } else {
-                    setProfileMode('edit');
-                  }
+              <Button
+                onClick={() => setProfileMode('edit')}
+                style={{
+                  backgroundColor: '#2563eb',
+                  color: 'white',
+                  paddingTop: '12px',
+                  paddingBottom: '12px',
+                  paddingLeft: '24px',
+                  paddingRight: '24px',
+                  borderRadius: '12px',
+                  fontWeight: 700,
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: '8px',
+                  cursor: 'pointer',
+                  boxShadow: '0 10px 15px -3px rgba(37, 99, 235, 0.2)'
                 }}
-                className="px-6 py-3 bg-blue-600 text-white rounded-xl font-bold shadow-lg shadow-blue-200 hover:shadow-xl hover:shadow-blue-300 hover:-translate-y-0.5 transition-all flex items-center gap-2 group/action"
+                className="bg-blue-600 hover:bg-blue-700 transition-all group/action hover:shadow-blue-300 border-none"
               >
-                {profileMode === 'view' ? (
-                  <>
-                    <Edit className="w-4 h-4 transition-transform group-hover/action:rotate-12" />
-                    Edit Profile
-                  </>
-                ) : (
-                  <>
-                    <Sparkles className="w-4 h-4 animate-pulse" />
-                    Save Changes
-                  </>
-                )}
-              </button>
+                <Edit className="w-4 h-4 transition-transform group-hover/action:rotate-12" />
+                Edit Profile
+              </Button>
             </div>
           </div>
         </div>
@@ -236,36 +456,17 @@ export function CompanyProfile() {
               </div>
               <div>
                 <label className="block text-xs font-semibold text-slate-500 mb-1">Phone</label>
-                {profileMode === 'edit' ? (
-                  <input
-                    type="tel"
-                    value={companyData.phone}
-                    onChange={(e) => setCompanyData({ ...companyData, phone: e.target.value })}
-                    placeholder="+1 (555) 000-0000"
-                    className="w-full px-3 py-2 border rounded-lg text-sm"
-                  />
-                ) : (
-                  <div className="flex items-center gap-2 text-slate-900 text-sm">
-                    <Phone className="w-4 h-4 text-slate-400" />
-                    {companyData.phone || 'N/A'}
-                  </div>
-                )}
+                <div className="flex items-center gap-2 text-slate-900 text-sm">
+                  <Phone className="w-4 h-4 text-slate-400" />
+                  {companyData.phone || 'N/A'}
+                </div>
               </div>
               <div>
                 <label className="block text-xs font-semibold text-slate-500 mb-1">Address</label>
-                {profileMode === 'edit' ? (
-                  <input
-                    value={companyData.address}
-                    onChange={(e) => setCompanyData({ ...companyData, address: e.target.value })}
-                    placeholder="City, Country or Remote"
-                    className="w-full px-3 py-2 border rounded-lg text-sm"
-                  />
-                ) : (
-                  <div className="flex items-center gap-2 text-slate-900 text-sm">
-                    <MapPin className="w-4 h-4 text-slate-400" />
-                    {companyData.address || 'N/A'}
-                  </div>
-                )}
+                <div className="flex items-center gap-2 text-slate-900 text-sm">
+                  <MapPin className="w-4 h-4 text-slate-400" />
+                  {companyData.address || 'N/A'}
+                </div>
               </div>
             </div>
           </div>
@@ -273,39 +474,15 @@ export function CompanyProfile() {
           <div className="bg-white border border-slate-200 rounded-lg p-6">
             <h3 className="font-semibold text-slate-900 text-sm uppercase tracking-wider mb-4">Social</h3>
             <div className="space-y-3">
-              {(profileMode === 'edit' ? companyData.socialLinks : companyData.socialLinks?.filter((l) => l.url) ?? []).map((link: { type: string; url: string }, idx: number) => (
+              {(companyData.socialLinks?.filter((l) => l.url) ?? []).map((link: { type: string; url: string }, idx: number) => (
                 <div key={idx} className="flex items-center justify-between gap-2 text-sm">
-                  {profileMode === 'edit' ? (
-                    <div className="flex gap-2 flex-1">
-                      <select
-                        value={link.type}
-                        onChange={(e) => updateSocialLink(idx, 'type', e.target.value)}
-                        className="w-24 px-2 py-1 border rounded text-sm"
-                      >
-                        <option value="website">Website</option>
-                        <option value="linkedin">LinkedIn</option>
-                        <option value="twitter">Twitter</option>
-                        <option value="github">GitHub</option>
-                      </select>
-                      <input
-                        value={link.url}
-                        onChange={(e) => updateSocialLink(idx, 'url', e.target.value)}
-                        placeholder="https://..."
-                        className="flex-1 px-2 py-1 border rounded text-sm"
-                      />
-                      <button type="button" onClick={() => removeSocialLink(idx)} className="text-red-500 hover:text-red-700">×</button>
-                    </div>
-                  ) : (
-                    <>
-                      <a href={link.url} className="text-blue-600 hover:underline truncate">{link.url}</a>
-                    </>
-                  )}
+                  <a href={link.url} target="_blank" rel="noreferrer" className="text-blue-600 hover:underline truncate flex items-center gap-2">
+                    <span className="capitalize font-medium text-slate-700">{link.type}:</span> {link.url}
+                  </a>
                 </div>
               ))}
-              {profileMode === 'edit' && (
-                <button type="button" onClick={addSocialLink} className="text-sm text-blue-600 hover:text-blue-700 font-medium mt-2 flex items-center gap-1">
-                  + Add Link
-                </button>
+              {companyData.socialLinks.length === 0 && (
+                 <p className="text-slate-400 text-sm italic">No social links added.</p>
               )}
             </div>
           </div>
@@ -314,39 +491,26 @@ export function CompanyProfile() {
         {/* Right Column: details */}
         <div className="md:col-span-2 space-y-8">
           <section>
-            <label className="block text-sm font-bold text-slate-900 mb-2">Company Description</label>
-            <textarea
-              rows={6}
-              value={companyData.description || ''}
-              readOnly={profileMode === 'view'}
-              onChange={(e) => setCompanyData({ ...companyData, description: e.target.value })}
-              className={`w-full px-4 py-3 border rounded-lg transition-all ${profileMode === 'edit'
-                ? 'border-blue-500 ring-2 ring-blue-500/20 bg-white text-slate-900 cursor-text'
-                : 'border-slate-100 bg-slate-50 text-slate-600 cursor-default outline-none'
-                }`}
-            />
+            <h3 className="text-2xl font-black text-slate-900 mb-4 tracking-tight">Company Description</h3>
+            <p className="text-slate-600 leading-relaxed text-lg">
+              {companyData.description || "No description added yet. Click edit to tell us about your company!"}
+            </p>
           </section>
 
           <section>
-            <label className="block text-sm font-bold text-slate-900 mb-3">Industry Tags</label>
+            <h3 className="text-2xl font-black text-slate-900 mb-3 tracking-tight">Industry Tags</h3>
             <div className="bg-white border border-slate-200 rounded-lg p-6">
-              <div className="flex flex-wrap gap-2 mb-4">
+              <div className="flex flex-wrap gap-2">
                 {companyData.tags?.length > 0 ? (
                   companyData.tags.map((tag: string, idx: number) => (
-                    <span key={idx} className="px-3 py-1 bg-slate-100 text-slate-700 rounded border border-slate-200 text-sm font-medium flex items-center gap-2 group">
+                    <span key={idx} className="px-3 py-1 bg-slate-50 text-slate-700 rounded border border-slate-200 text-sm font-medium flex items-center gap-2">
                       {tag}
-                      {profileMode === 'edit' && (
-                        <button className="text-slate-400 hover:text-red-500 group-hover:text-red-500">×</button>
-                      )}
                     </span>
                   ))
                 ) : (
                   <span className="text-slate-400 text-sm italic">No tags added yet</span>
                 )}
               </div>
-              {profileMode === 'edit' && (
-                <button className="text-blue-600 font-medium text-sm hover:underline">+ Add Industry Tag</button>
-              )}
             </div>
           </section>
         </div>

@@ -387,11 +387,14 @@ export const Opportunities: React.FC = () => {
                         <span className="opp-meta-text">{opp.location}</span>
                       </div>
                       <button
-                        className="opp-apply-btn"
+                        className={`opp-apply-btn ${localStorage.getItem('user_type') === 'company' ? 'opacity-50 cursor-not-allowed bg-slate-400 hover:bg-slate-400' : ''}`}
                         onClick={(e) => {
                           e.stopPropagation();
+                          if (localStorage.getItem('user_type') === 'company') return;
                           navigate(`/opportunities/${opp.id}`);
                         }}
+                        disabled={localStorage.getItem('user_type') === 'company'}
+                        title={localStorage.getItem('user_type') === 'company' ? "Companies cannot join opportunities" : "Join this opportunity"}
                       >
                         Join
                       </button>

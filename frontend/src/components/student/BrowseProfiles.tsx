@@ -1,7 +1,8 @@
 import { useState, useEffect } from 'react';
-import { Search, Building2, User, Sparkles, ArrowRight, MapPin } from 'lucide-react';
+import { Building2, User, Sparkles, ArrowRight, MapPin } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { apiRequest } from '../../lib/api/config';
+import '../Opportunities.css';
 
 interface Student {
   student_id: string;
@@ -28,7 +29,11 @@ interface Company {
   };
 }
 
-export function BrowseProfiles() {
+interface BrowseProfilesProps {
+  publicView?: boolean;
+}
+
+export function BrowseProfiles({ publicView = false }: BrowseProfilesProps) {
   const navigate = useNavigate();
   const [browseTarget, setBrowseTarget] = useState<'students' | 'companies'>('students');
   const [searchQuery, setSearchQuery] = useState('');
@@ -78,7 +83,7 @@ export function BrowseProfiles() {
   };
 
   return (
-    <div className="max-w-6xl mx-auto py-4 animate-in fade-in duration-700">
+    <div className="opp-main max-w-6xl mx-auto py-4 animate-in fade-in duration-700">
       <div className="mb-10 text-center md:text-left">
         <h1 className="text-4xl font-extrabold text-slate-900 tracking-tight mb-2">Network Discovery</h1>
         <p className="text-slate-600 text-lg">Connect with peers and industry leading organizations.</p>
@@ -86,39 +91,38 @@ export function BrowseProfiles() {
 
       {/* Glass Pill Toggle - Standardized */}
       <div className="flex justify-center md:justify-start gap-4 mb-10">
-        <button
-          onClick={() => setBrowseTarget('students')}
-          className={`flex items-center gap-2 px-8 py-3 rounded-full text-sm font-bold transition-all duration-300 transform ${browseTarget === 'students'
-            ? 'bg-indigo-600 text-white shadow-xl shadow-indigo-200 scale-105'
-            : 'bg-white text-slate-500 border border-slate-200/50 hover:bg-slate-50 hover:border-indigo-100'
-            }`}
-        >
-          <User className="w-8 h-8" />
-          Students
-        </button>
-        <button
-          onClick={() => setBrowseTarget('companies')}
-          className={`flex items-center gap-2 px-8 py-3 rounded-full text-sm font-bold transition-all duration-300 transform ${browseTarget === 'companies'
-            ? 'bg-indigo-600 text-white shadow-xl shadow-indigo-200 scale-105'
-            : 'bg-white text-slate-500 border border-slate-200/50 hover:bg-slate-50 hover:border-indigo-100'
-            }`}
-        >
-          <Building2 className="w-8 h-8" />
-          Companies
-        </button>
+        <div className="opp-filter-toggle">
+          <button
+            onClick={() => setBrowseTarget('students')}
+            className={`opp-toggle-option ${browseTarget === 'students' ? 'active' : ''}`}
+          >
+            Students
+          </button>
+          <button
+            onClick={() => setBrowseTarget('companies')}
+            className={`opp-toggle-option ${browseTarget === 'companies' ? 'active' : ''}`}
+          >
+            Companies
+          </button>
+        </div>
       </div>
 
-      {/* Search Input - Premium */}
-      <div className="bg-white rounded-3xl shadow-xl shadow-slate-200/50 border border-slate-100 p-2 mb-10 group transition-all hover:border-indigo-100">
-        <div className="relative flex items-center">
-          <Search className="w-6 h-6 text-slate-400 group-hover:text-indigo-500 transition-colors mr-3 ml-4" />
+      {/* Search Input - Standardized Ask AI */}
+      <div className="opp-search-group mb-12">
+        <div className="opp-search-bg-blur"></div>
+        <div className="opp-search-box">
+          <span className="material-symbols-outlined opp-search-icon">search</span>
           <input
+            className="opp-search-input"
             type="text"
             placeholder={`Search for ${browseTarget === 'students' ? 'peers and collaborators' : 'innovative companies'}...`}
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
-            className="w-full py-4 bg-transparent outline-none text-slate-900 font-medium placeholder:text-slate-400"
           />
+          <button className="opp-ask-ai-btn vibrant-gradient">
+            <span className="material-symbols-outlined">auto_awesome</span>
+            Ask AI
+          </button>
         </div>
       </div>
 
@@ -138,7 +142,7 @@ export function BrowseProfiles() {
                 <div
                   key={student.student_id}
                   onClick={() => navigate(`/student/profile/${student.student_id}`)}
-                  className="group bg-white rounded-3xl p-8 border border-slate-100 shadow-lg hover:shadow-2xl hover:shadow-indigo-500/10 transition-all duration-500 cursor-pointer transform hover:-translate-y-1"
+                  className="group bg-white rounded-3xl p-8 border border-slate-100 shadow-lg hover:shadow-2xl hover:shadow-indigo-500/10 transition-all duration-500 cursor-pointer transform hover:-translate-y-1 hover:border-indigo-200"
                 >
                   <div className="flex items-start gap-6 mb-6">
                     {student.user?.profile_photo_url ? (
@@ -164,15 +168,33 @@ export function BrowseProfiles() {
                   </div>
 
                   {/* Progress Bar for Score */}
-                  {student.ats_score !== undefined && (
-                    <div className="mb-8 p-5 bg-slate-50 rounded-2xl border border-slate-100">
-                      <div className="flex items-center justify-between mb-2 text-[10px] font-black text-slate-400 uppercase tracking-widest">
-                        <span className="flex items-center gap-1"><Sparkles className="w-3 h-3 text-indigo-500" />Profile Match</span>
-                        <span className="text-indigo-600">{student.ats_score}%</span>
+                  {/* Progress Bar for Score OR Login CTA */}
+                  {!publicView ? (
+                    student.ats_score !== undefined && (
+                      <div className="mb-8 p-5 bg-slate-50 rounded-2xl border border-slate-100">
+                        <div className="flex items-center justify-between mb-2 text-[10px] font-black text-slate-400 uppercase tracking-widest">
+                          <span className="flex items-center gap-1"><Sparkles className="w-3 h-3 text-indigo-500" />Profile Match</span>
+                          <span className="text-indigo-600">{student.ats_score}%</span>
+                        </div>
+                        <div className="w-full bg-slate-200 rounded-full h-1.5 overflow-hidden">
+                          <div className="bg-indigo-600 h-full rounded-full transition-all duration-1000" style={{ width: `${student.ats_score}%` }} />
+                        </div>
                       </div>
-                      <div className="w-full bg-slate-200 rounded-full h-1.5 overflow-hidden">
-                        <div className="bg-indigo-600 h-full rounded-full transition-all duration-1000" style={{ width: `${student.ats_score}%` }} />
+                    )
+                  ) : (
+                    <div 
+                      onClick={(e) => { e.stopPropagation(); navigate('/signin'); }}
+                      className="mb-8 p-4 bg-slate-50 rounded-xl border border-slate-200 border-dashed flex items-center justify-between cursor-pointer group/login hover:bg-indigo-50/50 hover:border-indigo-200 transition-all"
+                    >
+                      <div className="flex items-center gap-2">
+                        <div className="w-8 h-8 rounded-full bg-white flex items-center justify-center shadow-sm text-indigo-600">
+                           <Sparkles className="w-4 h-4" />
+                        </div>
+                        <span className="text-xs font-bold text-slate-600">Profile Match</span>
                       </div>
+                      <span className="text-[10px] font-black uppercase tracking-wider text-indigo-600 flex items-center gap-1 group-hover/login:translate-x-1 transition-transform">
+                        Login to View <ArrowRight className="w-3 h-3" />
+                      </span>
                     </div>
                   )}
 
@@ -186,7 +208,7 @@ export function BrowseProfiles() {
                     </div>
                   )}
 
-                  <button className="w-full py-4 bg-indigo-600 text-white rounded-2xl font-bold flex items-center justify-center gap-2 group/btn shadow-xl shadow-indigo-200 hover:shadow-indigo-300 transition-all hover:-translate-y-0.5">
+                  <button style={{ minHeight: '56px' }} className="cursor-pointer w-full py-4 rounded-xl font-bold flex items-center justify-center gap-2 group/btn shadow-lg hover:shadow-xl transition-all hover:-translate-y-0.5 vibrant-gradient text-white border-0">
                     Connect and View
                     <ArrowRight className="w-4 h-4 transform group-hover/btn:translate-x-1 transition-transform" />
                   </button>
@@ -205,7 +227,7 @@ export function BrowseProfiles() {
                 <div
                   key={company.company_id}
                   onClick={() => navigate(`/company/profile/${company.company_id}`)}
-                  className="group bg-white rounded-3xl p-8 border border-slate-100 shadow-lg hover:shadow-2xl hover:shadow-blue-500/10 transition-all duration-500 cursor-pointer transform hover:-translate-y-1"
+                  className="group bg-white rounded-3xl p-8 border border-slate-100 shadow-lg hover:shadow-2xl hover:shadow-blue-500/10 transition-all duration-500 cursor-pointer transform hover:-translate-y-1 hover:border-blue-200"
                 >
                   <div className="flex items-start gap-6 mb-8">
                     {company.user?.profile_photo_url ? (
@@ -232,7 +254,7 @@ export function BrowseProfiles() {
                     <p className="text-slate-600 text-sm mb-6 line-clamp-2">{company.description}</p>
                   )}
 
-                  <button className="w-full py-4 bg-blue-600 text-white rounded-2xl font-bold flex items-center justify-center gap-2 group/btn shadow-xl shadow-blue-200 hover:shadow-blue-300 transition-all hover:-translate-y-0.5">
+                  <button style={{ minHeight: '56px' }} className="cursor-pointer w-full py-4 rounded-xl font-bold flex items-center justify-center gap-2 group/btn shadow-lg hover:shadow-xl transition-all hover:-translate-y-0.5 vibrant-gradient text-white border-0">
                     Access HQ
                     <ArrowRight className="w-4 h-4 transform group-hover/btn:translate-x-1 transition-transform" />
                   </button>
