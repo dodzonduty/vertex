@@ -35,6 +35,7 @@ export default function CompanyOnboarding() {
     const navigate = useNavigate();
     const [step, setStep] = useLocalStorage<OnboardingStep>('vertex_company_onboarding_step', 'form');
     const [loading, setLoading] = useState(false);
+    const [isSuccess, setIsSuccess] = useState(false);
     const [profilePic, setProfilePic] = useState<string | null>(null);
     const [showPassword, setShowPassword] = useState(false);
     const [companyData, setCompanyData] = useLocalStorage<CompanyData>('vertex_company_onboarding_data', {
@@ -106,7 +107,10 @@ export default function CompanyOnboarding() {
             localStorage.removeItem('vertex_company_onboarding_step');
             localStorage.removeItem('vertex_company_onboarding_data');
             
-            setStep('success');
+            // Reset to form but show success view
+            setStep('form');
+            setIsSuccess(true);
+            
             toast.success('Company Profile Created!', {
                 description: 'Welcome to Vertex. Start finding talented students.',
             });
@@ -128,7 +132,7 @@ export default function CompanyOnboarding() {
             <div className="w-full max-w-4xl relative z-10 animate-in fade-in zoom-in-95 duration-700 py-12">
 
                 {/* STEP: FORM */}
-                {step === 'form' && (
+                {(step === 'form' || step === 'success') && !isSuccess && (
                     <Card className="shadow-2xl border-slate-100">
                         <CardHeader className="border-b bg-slate-50/50 py-8">
                             <div className="flex items-center gap-4 mb-4">
@@ -330,7 +334,7 @@ export default function CompanyOnboarding() {
                 )}
 
                 {/* STEP: REVIEW */}
-                {step === 'review' && (
+                {step === 'review' && !isSuccess && (
                     <div className="space-y-8">
                         <div className="flex items-center justify-between">
                             <div className="space-y-1">
@@ -468,7 +472,7 @@ export default function CompanyOnboarding() {
                 )}
 
                 {/* STEP: SUCCESS */}
-                {step === 'success' && (
+                {isSuccess && (
                     <div style={{ textAlign: 'center', padding: '40px', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center' }} className="space-y-12 animate-in fade-in duration-700">
                         <div style={{ position: 'relative', display: 'inline-block' }}>
                             <div style={{ width: '128px', height: '128px', borderRadius: '40px', backgroundColor: '#22c55e', display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto', boxShadow: '0 25px 50px -12px rgba(34, 197, 94, 0.25)' }} className="animate-in zoom-in duration-500">
