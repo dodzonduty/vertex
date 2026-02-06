@@ -336,12 +336,16 @@ export default function CompanyOnboarding() {
                                                 const formData = new FormData();
                                                 formData.append('file', file);
                                                 try {
-                                                    const res = await fetch(`${import.meta.env.VITE_API_URL || 'http://localhost:8000'}/api/mocks/profile-picture/upload/${companyData.email}`, {
+                                                    const token = localStorage.getItem('auth_token') || localStorage.getItem('token');
+                                                    const res = await fetch(`${import.meta.env.VITE_API_URL || 'http://localhost:8000'}/api/auth/upload-profile-photo`, {
                                                         method: 'POST',
+                                                        headers: {
+                                                            'Authorization': `Bearer ${token}`
+                                                        },
                                                         body: formData
                                                     });
                                                     const data = await res.json();
-                                                    setProfilePic(data.profile_picture_url);
+                                                    setProfilePic(data.profile_photo_url);
                                                     toast.success("Logo uploaded!");
                                                 } catch (err) {
                                                     toast.error("Upload failed");

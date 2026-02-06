@@ -6,7 +6,7 @@ const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:8000';
 
 // Token management
 export const getAuthToken = (): string | null => {
-    return localStorage.getItem('auth_token');
+    return localStorage.getItem('auth_token') || localStorage.getItem('token');
 };
 
 export const setAuthToken = (token: string): void => {

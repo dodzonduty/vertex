@@ -1,11 +1,14 @@
-import { useState } from 'react';
-import { Plus, Users, Search, Sparkles, UserPlus, ArrowRight, ShieldCheck } from 'lucide-react';
+import { useState, useEffect } from 'react';
+import { Plus, Users, Search, Sparkles, UserPlus, ArrowRight, ShieldCheck, X } from 'lucide-react';
+import { apiRequest } from '../../lib/api/config';
+import { toast } from 'sonner';
 
 interface Room {
   id: string;
   title: string;
   description: string;
   host: string;
+  host_id?: string;
   roles: RoleNeeded[];
   members: Member[];
   status: 'open' | 'full';
@@ -25,93 +28,116 @@ interface Member {
   id: string;
   name: string;
   role: string;
-  avatar: string;
+  avatar: string; // Initials or URL
 }
 
-export function StudentOpenMatch() {
+interface CreateRoleData {
+  title: string;
+  count: number;
+  tags: string; // Comma separated for input
+}
+
+export function StudentOpenMatch({ opportunityId }: { opportunityId: string }) {
   const [showCreateRoom, setShowCreateRoom] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
   const [useAISearch, setUseAISearch] = useState(false);
   const [selectedRoom, setSelectedRoom] = useState<Room | null>(null);
+  
+  const [rooms, setRooms] = useState<Room[]>([]);
+  const [loading, setLoading] = useState(true);
 
-  const [rooms] = useState<Room[]>([
-    {
-      id: '1',
-      title: 'AI Hackathon Team - Healthcare Focus',
-      description: 'Building an AI-powered healthcare assistant for the upcoming AI Innovation Hackathon. Looking for passionate team members!',
-      host: 'Sarah Chen',
-      roles: [
-        {
-          id: '1',
-          title: 'Frontend Developer',
-          description: 'React/TypeScript expert for building the user interface',
-          count: 1,
-          filled: 1,
-          tags: ['React', 'TypeScript', 'UI/UX']
-        },
-        {
-          id: '2',
-          title: 'ML Engineer',
-          description: 'Experience with NLP and healthcare data',
-          count: 1,
-          filled: 0,
-          tags: ['Machine Learning', 'NLP', 'Python', 'TensorFlow']
-        },
-        {
-          id: '3',
-          title: 'Backend Developer',
-          description: 'API development and database management',
-          count: 1,
-          filled: 0,
-          tags: ['Node.js', 'Python', 'API', 'Database']
-        }
-      ],
-      members: [
-        { id: '1', name: 'Sarah Chen', role: 'Host / Frontend Developer', avatar: 'SC' }
-      ],
-      status: 'open',
-      createdAt: '2 hours ago'
-    },
-    {
-      id: '2',
-      title: 'Mobile App Development Team',
-      description: 'Creating a social networking app for students. Need creative minds to join!',
-      host: 'Alex Kumar',
-      roles: [
-        {
-          id: '1',
-          title: 'UI/UX Designer',
-          description: 'Design beautiful and intuitive interfaces',
-          count: 1,
-          filled: 0,
-          tags: ['Figma', 'UI/UX', 'Design']
-        },
-        {
-          id: '2',
-          title: 'React Native Developer',
-          description: 'Build cross-platform mobile apps',
-          count: 2,
-          filled: 1,
-          tags: ['React Native', 'Mobile', 'JavaScript']
-        }
-      ],
-      members: [
-        { id: '1', name: 'Alex Kumar', role: 'Host', avatar: 'AK' },
-        { id: '2', name: 'Jordan Lee', role: 'React Native Developer', avatar: 'JL' }
-      ],
-      status: 'open',
-      createdAt: '5 hours ago'
-    }
-  ]);
-
-  const handleCreateRoom = (e: any) => {
-    e.preventDefault();
-    alert('Room created successfully! OpenMatch is now finding compatible matches for your roles.');
-    setShowCreateRoom(false);
+  // Form State
+  const [newRoomTitle, setNewRoomTitle] = useState('');
+  const [newRoomDesc, setNewRoomDesc] = useState('');
+  const [newRoomRoles, setNewRoomRoles] = useState<CreateRoleData[]>([{ title: '', count: 1, tags: '' }]);
+  
+  // Navigation Logic
+  const handleViewHostProfile = (hostId: string) => {
+      window.location.href = `/student/profile/${hostId}`;
   };
 
-  const handleJoinRequest = (roleTitle: string) => {
-    alert(`Join request for "${roleTitle}" sent to the host. You'll be notified if they accept!`);
+  useEffect(() => {
+    fetchRooms();
+  }, [opportunityId]);
+
+  const fetchRooms = async () => {
+    try {
+      const data = await apiRequest<Room[]>(`/api/rooms/?opportunity_id=${opportunityId}`);
+      setRooms(data);
+    } catch (err) {
+      console.error("Failed to fetch rooms", err);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleAddRole = () => {
+    setNewRoomRoles([...newRoomRoles, { title: '', count: 1, tags: '' }]);
+  };
+
+  const handleRoleChange = (index: number, field: keyof CreateRoleData, value: any) => {
+    const updated = [...newRoomRoles];
+    updated[index] = { ...updated[index], [field]: value };
+    setNewRoomRoles(updated);
+  };
+
+  const handleRemoveRole = (index: number) => {
+    const updated = newRoomRoles.filter((_, i) => i !== index);
+    setNewRoomRoles(updated);
+  };
+
+  const handleCreateRoom = async (e: React.FormEvent) => {
+    e.preventDefault();
+    
+    // Filter valid roles
+    const validRoles = newRoomRoles.filter(r => r.title.trim() !== '');
+    if (validRoles.length === 0) {
+        toast.error("Please add at least one role to your room.");
+        return;
+    }
+
+    try {
+        const payload = {
+            title: newRoomTitle,
+            description: newRoomDesc,
+            opportunity_id: opportunityId,
+            roles: validRoles.map(r => ({
+                title: r.title,
+                count: r.count,
+                tags: r.tags.split(',').map(t => t.trim()).filter(Boolean)
+            }))
+        };
+        
+        await apiRequest('/api/rooms/', {
+            method: 'POST',
+            body: JSON.stringify(payload)
+        });
+        
+        toast.success("Room created successfully!");
+        setShowCreateRoom(false);
+        fetchRooms();
+        
+        // Reset form
+        setNewRoomTitle('');
+        setNewRoomDesc('');
+        setNewRoomRoles([{ title: '', count: 1, tags: '' }]);
+        
+    } catch (err) {
+        toast.error("Failed to create room.");
+        console.error(err);
+    }
+  };
+
+  const handleJoinRequest = async (room: Room, roleId: string) => {
+      try {
+          await apiRequest(`/api/rooms/${room.id}/join`, {
+              method: 'POST',
+              body: JSON.stringify({ opening_id: roleId, message: "Requesting to join via OpenMatch" })
+          });
+          toast.success("Join request sent!");
+      } catch (err: any) {
+          toast.error(err.message || "Failed to join");
+      }
   };
 
   return (
@@ -151,15 +177,27 @@ export function StudentOpenMatch() {
         </button>
       </div>
 
-      <div className="grid md:grid-cols-2 gap-8 mb-12">
-        {rooms.map((room) => (
-          <RoomCard
-            key={room.id}
-            room={room}
-            onViewDetails={() => setSelectedRoom(room)}
-          />
-        ))}
-      </div>
+      {loading ? (
+        <div className="flex justify-center py-20">
+            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-indigo-600"></div>
+        </div>
+      ) : (
+        <div className="grid md:grid-cols-2 gap-8 mb-12">
+            {rooms.length === 0 ? (
+                <div className="col-span-2 text-center py-20 text-slate-400">
+                    <p>No active rooms found. Be the first to create one!</p>
+                </div>
+            ) : (
+                rooms.map((room) => (
+                    <RoomCard
+                        key={room.id}
+                        room={room}
+                        onViewDetails={() => setSelectedRoom(room)}
+                    />
+                ))
+            )}
+        </div>
+      )}
 
       {showCreateRoom && (
         <div className="fixed inset-0 bg-slate-900/60 backdrop-blur-md flex items-center justify-center z-50 p-4 animate-in fade-in duration-300">
@@ -169,11 +207,69 @@ export function StudentOpenMatch() {
               <form onSubmit={handleCreateRoom} className="space-y-6">
                 <div>
                   <label className="block text-xs font-bold text-slate-400 uppercase tracking-widest mb-3">Room Title</label>
-                  <input required placeholder="E.g. Fullstack Devs for FinTech" className="w-full px-5 py-4 bg-slate-50 border border-slate-100 rounded-2xl focus:ring-4 focus:ring-indigo-500/10 outline-none" />
+                  <input 
+                    required 
+                    value={newRoomTitle}
+                    onChange={e => setNewRoomTitle(e.target.value)}
+                    placeholder="E.g. Fullstack Devs for FinTech" 
+                    className="w-full px-5 py-4 bg-slate-50 border border-slate-100 rounded-2xl focus:ring-4 focus:ring-indigo-500/10 outline-none" 
+                  />
                 </div>
                 <div>
                   <label className="block text-xs font-bold text-slate-400 uppercase tracking-widest mb-3">Vision & Goals</label>
-                  <textarea rows={4} required placeholder="What are you building?" className="w-full px-5 py-4 bg-slate-50 border border-slate-100 rounded-2xl focus:ring-4 focus:ring-indigo-500/10 outline-none" />
+                  <textarea 
+                    rows={4} 
+                    required 
+                    value={newRoomDesc}
+                    onChange={e => setNewRoomDesc(e.target.value)}
+                    placeholder="What are you building?" 
+                    className="w-full px-5 py-4 bg-slate-50 border border-slate-100 rounded-2xl focus:ring-4 focus-ring-indigo-500/10 outline-none" 
+                  />
+                </div>
+
+                {/* Roles Section */}
+                <div>
+                    <div className="flex justify-between items-center mb-3">
+                        <label className="block text-xs font-bold text-slate-400 uppercase tracking-widest">Open Roles needed</label>
+                        <button type="button" onClick={handleAddRole} className="text-xs font-bold text-indigo-600 flex items-center gap-1 hover:text-indigo-700">
+                             <Plus className="w-3 h-3" /> Add Role
+                        </button>
+                    </div>
+                    <div className="space-y-3">
+                        {newRoomRoles.map((role, idx) => (
+                            <div key={idx} className="p-4 bg-slate-50 rounded-xl border border-slate-100 flex gap-3 items-start relative">
+                                <div className="flex-1 space-y-3">
+                                    <div className="flex gap-3">
+                                        <input 
+                                            placeholder="Role Title (e.g. Frontend Dev)"
+                                            value={role.title}
+                                            onChange={e => handleRoleChange(idx, 'title', e.target.value)}
+                                            className="flex-1 px-3 py-2 bg-white border border-slate-200 rounded-lg text-sm"
+                                            required
+                                        />
+                                        <input 
+                                            type="number"
+                                            min="1"
+                                            value={role.count}
+                                            onChange={e => handleRoleChange(idx, 'count', parseInt(e.target.value))}
+                                            className="w-20 px-3 py-2 bg-white border border-slate-200 rounded-lg text-sm"
+                                        />
+                                    </div>
+                                    <input 
+                                        placeholder="Skills (comma seq: React, Node)"
+                                        value={role.tags}
+                                        onChange={e => handleRoleChange(idx, 'tags', e.target.value)}
+                                        className="w-full px-3 py-2 bg-white border border-slate-200 rounded-lg text-sm"
+                                    />
+                                </div>
+                                {newRoomRoles.length > 1 && (
+                                    <button type="button" onClick={() => handleRemoveRole(idx)} className="text-slate-400 hover:text-red-500 p-1">
+                                        <X className="w-4 h-4" />
+                                    </button>
+                                )}
+                            </div>
+                        ))}
+                    </div>
                 </div>
 
                 <div className="flex gap-4 pt-10 border-t border-slate-100">
@@ -202,6 +298,17 @@ export function StudentOpenMatch() {
                   <h2 className="text-2xl font-black text-slate-900 mb-1">{selectedRoom.title}</h2>
                   <div className="flex items-center gap-3 text-xs font-bold text-slate-400 uppercase tracking-widest">
                     <span>Host: {selectedRoom.host}</span>
+                    {selectedRoom.host_id && (
+                        <>
+                            <span>•</span>
+                            <button 
+                                onClick={() => handleViewHostProfile(selectedRoom.host_id!)}
+                                className="text-indigo-600 hover:text-indigo-800 hover:underline cursor-pointer"
+                            >
+                                View Profile
+                            </button>
+                        </>
+                    )}
                     <span>•</span>
                     <span>{selectedRoom.createdAt}</span>
                   </div>
@@ -223,7 +330,7 @@ export function StudentOpenMatch() {
                     <p className="text-sm text-slate-500 mb-6">{role.description}</p>
                     {role.filled < role.count && (
                       <button
-                        onClick={() => handleJoinRequest(role.title)}
+                        onClick={() => handleJoinRequest(selectedRoom, role.id)}
                         className="w-full py-3 bg-white border border-slate-200 text-indigo-600 rounded-xl font-bold text-sm hover:bg-indigo-600 hover:text-white hover:border-indigo-600 transition-all shadow-sm flex items-center justify-center gap-2 group/jr"
                       >
                         <UserPlus className="w-4 h-4" />

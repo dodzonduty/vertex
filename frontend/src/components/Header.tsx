@@ -14,16 +14,19 @@ export const Header: React.FC = () => {
     const userData = getUserData();
     setUser(userData);
 
+    // Fetch current user with profile photo
     if (userData?.user_id) {
-      apiRequest<{ profile_picture_url: string }>(`/api/mocks/profile-picture/${userData.user_id}`)
-        .then(data => setProfilePic(data.profile_picture_url))
+      apiRequest<{ user_id: string; email: string; role: string; profile_photo_url?: string }>('/api/auth/me')
+        .then(data => {
+          setProfilePic(data.profile_photo_url || null);
+        })
         .catch(() => { });
     }
 
-    // Attempt API call, fallback to 101 if backend not running (mock mode)
-    apiRequest<{ count: number }>('/api/opportunities/count')
-      .then(data => setCount(data.count))
-      .catch(() => setCount(101)); // Fallback for dev without backend
+    // Fetch opportunities count - use the opportunities-list endpoint
+    apiRequest<{ count: number; results: any[] }>('/api/opportunities-list?type=hackathons&tags=%23All')
+      .then(data => setCount(data.count || 0))
+      .catch(() => setCount(0));
   }, []);
 
   const handleLogout = () => {

@@ -45,19 +45,21 @@ export function StudentProfile() {
     if (!file) return;
 
     setIsUploading(true);
-    const userData = getUserData();
-    const userId = userData?.user_id || 'me';
 
     const formData = new FormData();
     formData.append('file', file);
 
     try {
-      const response = await fetch(`${import.meta.env.VITE_API_URL || 'http://localhost:8000'}/api/mocks/profile-picture/upload/${userId}`, {
+      const token = localStorage.getItem('auth_token') || localStorage.getItem('token');
+      const response = await fetch(`${import.meta.env.VITE_API_URL || 'http://localhost:8000'}/api/auth/upload-profile-photo`, {
         method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${token}`
+        },
         body: formData
       });
       const data = await response.json();
-      setProfileData((prev: any) => ({ ...prev, profilePicture: data.profile_picture_url }));
+      setProfileData((prev: any) => ({ ...prev, profilePicture: data.profile_photo_url }));
       toast.success("Profile picture updated!");
     } catch (error) {
       console.error("Upload failed", error);
@@ -162,6 +164,7 @@ export function StudentProfile() {
             atsScore: detailed.ats_score || 0,
             skills: detailed.skills || [],
             projects: detailed.projects || [],
+            profilePicture: (detailed as any).profile_photo_url || null,
             strengths: [],
             weaknesses: []
           });

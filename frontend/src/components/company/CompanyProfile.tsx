@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { Mail, Phone, MapPin, Building2, Link as LinkIcon, Users, Edit, Sparkles, CheckCircle2, Loader2, Upload } from 'lucide-react';
+import { Mail, Phone, MapPin, Building2, Users, Edit, Sparkles, CheckCircle2, Loader2, Upload } from 'lucide-react';
 import { getCompanyProfile, updateCompanyProfile } from '../../lib/api/companies';
 import { getUserData } from '../../lib/api/config';
 import { toast } from 'sonner';
@@ -19,7 +19,7 @@ export function CompanyProfile() {
     description: '',
     tags: [] as string[],
     socialLinks: [] as { type: string; url: string }[],
-    profilePicture: null
+    profilePicture: null as string | null
   });
 
   const handleUploadLogo = async (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -27,19 +27,21 @@ export function CompanyProfile() {
     if (!file) return;
 
     setIsUploading(true);
-    const userData = getUserData();
-    const userId = userData?.user_id || companyData.email || 'me';
 
     const formData = new FormData();
     formData.append('file', file);
 
     try {
-      const response = await fetch(`${import.meta.env.VITE_API_URL || 'http://localhost:8000'}/api/mocks/profile-picture/upload/${userId}`, {
+      const token = localStorage.getItem('auth_token') || localStorage.getItem('token');
+      const response = await fetch(`${import.meta.env.VITE_API_URL || 'http://localhost:8000'}/api/auth/upload-profile-photo`, {
         method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${token}`
+        },
         body: formData
       });
       const data = await response.json();
-      setCompanyData(prev => ({ ...prev, profilePicture: data.profile_picture_url }));
+      setCompanyData(prev => ({ ...prev, profilePicture: data.profile_photo_url }));
       toast.success("Logo updated!");
     } catch (error) {
       console.error("Upload failed", error);
@@ -55,18 +57,10 @@ export function CompanyProfile() {
 
   const loadProfile = async () => {
     try {
-      const userData = getUserData();
       const data = await getCompanyProfile();
 
-      // Fetch profile picture
-      let picUrl = null;
-      if (userData?.user_id || data.email) {
-        try {
-          const picRes = await fetch(`${import.meta.env.VITE_API_URL || 'http://localhost:8000'}/api/mocks/profile-picture/${userData?.user_id || data.email}`);
-          const picData = await picRes.json();
-          picUrl = picData.profile_picture_url;
-        } catch (e) { }
-      }
+      // Fetch profile picture from user data
+      let picUrl: string | null = data.profile_photo_url || null;
 
       const links = (data as any).social_links ?? data.socialLinks ?? [];
       setCompanyData({

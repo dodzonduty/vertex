@@ -6,7 +6,7 @@ import { BrowseProfiles } from '../components/student/BrowseProfiles';
 import { BrowseStudents } from '../components/company/BrowseStudents';
 import { StudentProfile } from '../components/student/StudentProfile';
 import { CompanyProfile } from '../components/company/CompanyProfile';
-import { CompanyOpportunities } from '../components/company/CompanyOpportunities';
+import { CompanyEvents } from '../components/company/CompanyEvents';
 import { StatePreservation } from '../lib/utils/statePreservation';
 import '../components/Header.css';
 import '../components/Footer.css';
@@ -142,7 +142,7 @@ export function AuthenticatedLanding({ onLogout, userType }: AuthenticatedLandin
                         userType === 'student' ? <StudentProfile /> : <CompanyProfile />
                     )}
                     {activeTab === 'opportunities' && (
-                        userType === 'student' ? <OpportunitiesContent /> : <CompanyOpportunities />
+                        userType === 'student' ? <OpportunitiesContent /> : <CompanyEvents />
                     )}
                     {activeTab === 'profiles' && (
                         userType === 'student' ? <BrowseProfiles /> : <BrowseStudents />

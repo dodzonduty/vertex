@@ -5,7 +5,7 @@ import { LandingPage } from './pages/LandingPage';
 import { SignIn } from './pages/SignIn';
 import { SignUp } from './pages/SignUp';
 import { AuthenticatedLanding } from './pages/AuthenticatedLanding';
-// import { StudentDashboard } from './pages/StudentDashboard';
+import { StudentDashboard } from './pages/StudentDashboard';
 // import { CompanyDashboard } from './pages/CompanyDashboard';
 import { PublicStudentProfile } from './pages/PublicStudentProfile';
 import { PublicCompanyProfile } from './pages/PublicCompanyProfile';
@@ -38,8 +38,8 @@ function App() {
         <Route path="/onboarding/company" element={<MainLayout><CompanyOnboarding /></MainLayout>} />
         <Route path="/home" element={<AuthenticatedLanding onLogout={handleLogout} userType="student" />} />
         <Route path="/student-home" element={<AuthenticatedLanding onLogout={handleLogout} userType="student" />} />
-        {/* <Route path="/student-dashboard" element={<StudentDashboard onLogout={handleLogout} />} />
-        <Route path="/company-dashboard" element={<CompanyDashboard onLogout={handleLogout} />} /> */}
+        <Route path="/student-dashboard" element={<StudentDashboard onLogout={handleLogout} />} />
+        {/* <Route path="/company-dashboard" element={<CompanyDashboard onLogout={handleLogout} />} /> */}
         <Route path="/company-home" element={<AuthenticatedLanding onLogout={handleLogout} userType="company" />} />
         <Route path="/student/profile/:id" element={<MainLayout><PublicStudentProfile /></MainLayout>} />
         <Route path="/company/profile/:id" element={<MainLayout><PublicCompanyProfile /></MainLayout>} />

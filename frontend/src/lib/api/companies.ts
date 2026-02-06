@@ -13,6 +13,7 @@ export interface CompanyProfile {
     size?: string;
     tags?: string[];
     socialLinks?: { type: string; url: string }[];
+    profile_photo_url?: string;
 }
 
 export async function signupCompany(data: any): Promise<CompanyProfile> {

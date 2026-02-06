@@ -75,7 +75,7 @@ Name: Opportunities API
 Role: D
 Path: backend/app/mocks/opportunity_mock.py
 Status: MOCK
-Action: IMPLEMENTED 
+Action: IMPLEMENTED
 Owner: Role D
 Notes: Mocking opportunity counts and top opportunities for Landing Page.
 Date: 2026-01-29
@@ -279,11 +279,12 @@ Path: backend/app/api/routes/onboarding.py (PROPOSED)
 Status: MISSING
 Action: REQUESTED
 Owner: Backend Role
-Notes: Frontend requires unified onboarding endpoints for both students and companies. 
+Notes: Frontend requires unified onboarding endpoints for both students and companies.
 Requirements:
+
 - POST /api/onboarding/student: Create User + Student + SocialLinks + Projects in one transaction.
 - POST /api/onboarding/company: Create User + Company in one transaction.
-Date: 2026-02-01
+  Date: 2026-02-01
 
 ---
 
@@ -297,10 +298,11 @@ Action: REQUESTED
 Owner: Backend Role
 Notes: Frontend requires endpoints to manage company profiles.
 Requirements:
+
 - GET /api/companies/me: Fetch details of the current logged-in company.
 - GET /api/companies/{company_id}: Fetch public details of any company.
 - PATCH /api/companies/me: Update company details (industry, description, etc.).
-Date: 2026-02-01
+  Date: 2026-02-01
 
 ---
 
@@ -314,8 +316,9 @@ Action: REQUESTED
 Owner: Backend Role
 Notes: Existing student API only has GET. Need PATCH for mutation.
 Requirements:
+
 - PATCH /api/students/me: Update student details (full_name, university, degree_level, etc.).
-Date: 2026-02-01
+  Date: 2026-02-01
 
 ---
 
@@ -329,9 +332,10 @@ Action: IMPLEMENTED
 Owner: DevB
 Notes: Implemented unified onboarding endpoints for both students and companies. Creates User + Student/Company + SocialLinks + Projects in atomic transactions. Returns JWT token upon successful registration.
 Requirements fulfilled:
+
 - POST /api/onboarding/student: Create User + Student + SocialLinks + Projects in one transaction
 - POST /api/onboarding/company: Create User + Company in one transaction
-Date: 2026-02-02
+  Date: 2026-02-02
 
 ---
 
@@ -344,11 +348,13 @@ Status: REAL
 Action: IMPLEMENTED
 Owner: Antigravity
 Notes: Fully implemented Company persistence foundation.
+
 - Created `signup` endpoint (creates User + Company).
 - Created `/me` endpoint (GET/PATCH) for profile management.
 - Connected Frontend Onboarding to real API (fixed 422 error by removing `role` payload and aligning schema).
 - Connected Company Profile UI to real data (support for editing Name, Description, Industry).
-Date: 2026-02-02
+  Date: 2026-02-02
+
 ---
 
 [REAL_REFINED]
@@ -359,12 +365,13 @@ Path: backend/app/models/student.py, backend/app/api/routes/students.py
 Status: REAL
 Action: REFINED
 Owner: Antigravity
-Notes: Refactored Student model to remove redundant columns (bio, ats_score, skills_json, github_url, linkedin_url) in favor of derived properties. 
+Notes: Refactored Student model to remove redundant columns (bio, ats_score, skills_json, github_url, linkedin_url) in favor of derived properties.
+
 - bio and ats_score are now derived from the latest parsed CV.
 - github_url and linkedin_url are derived from SocialLink records.
 - Updated API routes to stop direct saves to these columns, fixing the UndefinedColumn error.
 - Removed deprecated SQLite migration scripts.
-Date: 2026-02-02
+  Date: 2026-02-02
 
 ---
 
@@ -495,3 +502,76 @@ Action: REFINED
 Owner: Antigravity
 Notes: Load and display phone, address, size, social_links; edit mode for phone, address, social links (add/remove); handle API response (social_links camelCase mapping); save sends all fields to PATCH /me.
 Date: 2026-02-02
+
+---
+
+[REAL_REFINED]
+Entity: API & Feature
+Name: Profile Photo Persistence & API Synchronization
+Role: B/D
+Path: backend/app/api/routes/auth.py, backend/app/schemas/auth.py, frontend/src/components/Header.tsx, frontend/src/components/student/StudentProfile.tsx
+Status: REAL
+Action: REFINED
+Owner: Antigravity
+Notes: Implemented persistent profile photo storage.
+
+- Added `profile_photo_url` to `User` model and `UserResponse` schema.
+- Implemented `POST /api/auth/upload-profile-photo` to store base64 images in PostgreSQL.
+- Updated `GET /api/auth/me` to return the photo URL.
+- Synchronized frontend components (`Header`, `StudentProfile`, `CompanyProfile`) to use real authenticated endpoints instead of mocks.
+- Disabled conflicting mocks: `/api/mocks/profile-picture/*`, `/api/opportunities/count`, and `/api/opportunities/top`.
+  Date: 2026-02-06
+
+---
+
+[REAL_REFINED]
+Entity: Component
+Name: Student Dashboard & Profile Refactoring
+Role: D
+Path: frontend/src/pages/StudentDashboard.tsx, frontend/src/components/student/StudentProfile.tsx
+Status: REAL
+Action: REFINED
+Owner: Antigravity
+Notes: Refactored student dashboard to fetch real user data and photos.
+
+- Replaced mock state with data from `GET /api/auth/me`.
+- Implemented initials fallback for avatars when no photo is present.
+- Added `profile_photo_url` to `StudentDetailResponse` schema and `GET /api/students/me` endpoint.
+- Connected student profile photo upload to the real persistence layer.
+  Date: 2026-02-06
+
+---
+
+[MOCK_REPLACED]
+Entity: API
+Name: Tags & Trending API Integration
+Role: B/D
+Path: backend/app/api/routes/tags.py, backend/app/api/routes/trending.py, frontend/src/components/OpportunitiesContent.tsx, frontend/src/components/company/CompanyEvents.tsx
+Status: REAL
+Action: REPLACED
+Owner: Antigravity
+Notes: Replaced remaining mocks for Tags and Trending.
+
+- Created dedicated `trending.py` router for dynamic tag frequency calculation via database joins.
+- Optimized `tags.py` to support category filtering and provided rich fallback defaults for empty databases.
+- Resolved route conflicts between `opportunities`, `match`, and `tags` routers by removing redundant endpoints.
+- Updated frontend components to handle normalized JSON response structures (e.g., `{ tags: [] }`).
+- Disabled `tags_mock` and `trending_mock`.
+  Date: 2026-02-06
+
+---
+
+[REAL_REFINED]
+Entity: API
+Name: Opportunity Metadata Enrichment
+Role: B/D
+Path: backend/app/api/routes/opportunities.py, frontend/src/pages/OpportunityProfile.tsx
+Status: REAL
+Action: REFINED
+Owner: Antigravity
+Notes: Added real-time metadata to opportunity listings.
+
+- Implemented `enrolled_teams_count` calculation in `GET /api/opportunities/{id}`.
+- Enriched `hosted_by` object with real company profile photos from the database.
+- Displayed participant counts dynamically in the Opportunity Profile sidebar.
+  Date: 2026-02-06

@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { Plus, Calendar, MapPin, Trophy, Edit, XCircle, ArrowRight, CheckCircle2, MoreHorizontal, Sparkles, Users, Clock, DollarSign, Target, FileText, Link as LinkIcon, X } from 'lucide-react';
 import { StatePreservation } from '../../lib/utils/statePreservation';
 import { toast } from 'sonner';
+import { apiRequest } from '../../lib/api/config';
 
 interface Event {
   id: string;
@@ -36,6 +37,7 @@ interface EventFormData {
   applicationLink: string;
   maxParticipants: string;
   registrationDeadline: string;
+  tags: string[];
 }
 
 export function CompanyEvents() {
@@ -43,29 +45,39 @@ export function CompanyEvents() {
   const [showLanding, setShowLanding] = useState(false);
   
   // Load events from storage or use default
-  const savedEvents = StatePreservation.load<Event[]>('company_events');
-  const [events, setEvents] = useState<Event[]>(savedEvents || [
-    {
-      id: '1',
-      title: 'Global AI Summit 2026',
-      type: 'hackathon',
-      description: 'Host and manage one of the largest AI competitions. Connect with top-tier student talent globally.',
-      date: 'Feb 15-17, 2026',
-      location: 'San Francisco, CA',
-      prizes: ['$10,000 First Prize', '$5,000 Second Prize', '$2,500 Third Prize'],
-      requirements: ['Team of 2-4 students', 'Enrolled in Tier 1 Universities'],
-      judgingCriteria: ['Innovation', 'Technical Implementation'],
-      rules: ['Ethical AI standards required'],
-      applicationLink: 'https://example.com/apply',
-      status: 'active',
-      registrations: 156
-    }
-  ]);
+  const [events, setEvents] = useState<Event[]>([]);
 
-  // Save events to storage
+  // Fetch events from backend
   useEffect(() => {
-    StatePreservation.save('company_events', events);
-  }, [events]);
+    // For now, we fetch all and locally filter (or backend should support filtering by my ID)
+    // Ideally: GET /api/opportunities/?created_by_me=true
+    // Since we don't have that yet, we'll fetch list and assume for this demo we just show what we created or all.
+    // Given the "fresh environment", creating one will show it.
+    apiRequest<any[]>('/api/opportunities/')
+      .then(data => {
+        // Map backend response to Event interface
+        const mappedEvents: Event[] = data.map((opp: any) => ({
+          id: opp.opportunity_id,
+          title: opp.title,
+          type: opp.type as any,
+          description: opp.description.text || opp.description.summary || "",
+          date: opp.description.date || "",
+          endDate: opp.description.endDate,
+          location: opp.description.location || "Remote",
+          prizes: opp.description.prizes || [],
+          requirements: opp.description.requirements || [],
+          judgingCriteria: opp.description.judgingCriteria || [],
+          rules: opp.description.rules || [],
+          applicationLink: opp.description.applicationLink || "",
+          status: opp.status as any,
+          registrations: 0, // Mock for now
+          maxParticipants: opp.description.maxParticipants ? parseInt(opp.description.maxParticipants) : undefined,
+          registrationDeadline: opp.description.registrationDeadline
+        }));
+        setEvents(mappedEvents);
+      })
+      .catch(err => console.error("Failed to load events", err));
+  }, []);
 
   // Load form data from storage
   const savedFormData = StatePreservation.loadSession<EventFormData>('event_form_data');
@@ -82,37 +94,59 @@ export function CompanyEvents() {
     rules: [],
     applicationLink: '',
     maxParticipants: '',
-    registrationDeadline: ''
+    registrationDeadline: '',
+    tags: []
   });
+
+  const [availableTags, setAvailableTags] = useState<string[]>([]);
+  
+  useEffect(() => {
+    apiRequest<{ tags: string[] }>('/api/tags')
+      .then(data => setAvailableTags(data.tags || []))
+      .catch(err => {
+        console.error("Failed to fetch tags", err);
+        setAvailableTags(['#AI', '#Web3', '#Frontend', '#Backend', '#Research']);
+      });
+  }, []);
 
   // Save form data to storage
   useEffect(() => {
     StatePreservation.saveSession('event_form_data', formData);
   }, [formData]);
 
-  const handleCreateEvent = (e: React.FormEvent) => {
+  const handleCreateEvent = async (e: React.FormEvent) => {
     e.preventDefault();
-    const newEvent: Event = {
-      id: Date.now().toString(),
-      title: formData.title,
-      type: formData.type,
-      description: formData.description,
-      date: formData.date,
-      endDate: formData.endDate || undefined,
-      location: formData.location,
-      prizes: formData.prizes.filter(p => p.trim()),
-      requirements: formData.requirements.filter(r => r.trim()),
-      judgingCriteria: formData.judgingCriteria.filter(j => j.trim()),
-      rules: formData.rules.filter(r => r.trim()),
-      applicationLink: formData.applicationLink,
-      status: 'active',
-      registrations: 0,
-      maxParticipants: formData.maxParticipants ? parseInt(formData.maxParticipants) : undefined,
-      registrationDeadline: formData.registrationDeadline || undefined
-    };
-    setEvents([newEvent, ...events]);
-    setShowCreateModal(false);
-    setShowLanding(false);
+    
+    try {
+      const response = await apiRequest<any>('/api/opportunities/', {
+        method: 'POST',
+        body: JSON.stringify(formData)
+      });
+
+      const newEvent: Event = {
+        id: response.opportunity_id,
+        title: response.title,
+        type: response.type,
+        description: response.description.text,
+        date: response.description.date,
+        endDate: response.description.endDate,
+        location: response.description.location,
+        prizes: response.description.prizes || [],
+        requirements: response.description.requirements || [],
+        judgingCriteria: response.description.judgingCriteria || [],
+        rules: response.description.rules || [],
+        applicationLink: response.description.applicationLink || "",
+        status: 'active',
+        registrations: 0,
+        maxParticipants: response.description.maxParticipants ? parseInt(response.description.maxParticipants) : undefined,
+        registrationDeadline: response.description.registrationDeadline
+      };
+
+      setEvents([newEvent, ...events]);
+      setShowCreateModal(false);
+      setShowLanding(false);
+      
+      // Clear form data
     // Clear form data
     const emptyForm: EventFormData = {
       title: '',
@@ -127,13 +161,18 @@ export function CompanyEvents() {
       rules: [],
       applicationLink: '',
       maxParticipants: '',
-      registrationDeadline: ''
+      registrationDeadline: '',
+      tags: []
     };
     setFormData(emptyForm);
-    StatePreservation.clearSession('event_form_data');
-    toast.success('Event published successfully!', {
-      description: 'Your event is now live and visible to students.'
-    });
+      StatePreservation.clearSession('event_form_data');
+      toast.success('Event published successfully!', {
+        description: 'Your event is now live and visible to students.'
+      });
+    } catch (error) {
+      toast.error('Failed to create event');
+      console.error(error);
+    }
   };
 
   const handleCancelEvent = (eventId: string) => {
@@ -146,6 +185,11 @@ export function CompanyEvents() {
   };
 
   const addArrayItem = (field: 'prizes' | 'requirements' | 'judgingCriteria' | 'rules') => {
+    if (field === 'prizes') {
+        // Special handling for prizes? No, we just need to adapt how it's stored or just append empty
+        // Actually, the new Prize UI won't use this generic one.
+        return; 
+    }
     setFormData({
       ...formData,
       [field]: [...formData[field], '']
@@ -165,55 +209,54 @@ export function CompanyEvents() {
     });
   };
 
-  // Show landing page if no events or user clicks create
-  if (showLanding || events.length === 0) {
-    return (
-      <div className="max-w-6xl mx-auto py-8 animate-in fade-in duration-700">
-        <EventLandingPage 
-          onCreateClick={() => {
-            setShowLanding(false);
-            setShowCreateModal(true);
-          }}
-          hasEvents={events.length > 0}
-        />
-      </div>
-    );
-  }
-
   return (
     <div className="max-w-6xl mx-auto py-4 animate-in fade-in duration-700">
-      <div className="flex flex-col md:flex-row items-center justify-between mb-10 gap-6">
-        <div className="text-center md:text-left">
-          <h1 className="text-4xl font-extrabold text-slate-900 tracking-tight mb-2">Event Management</h1>
-          <p className="text-slate-600 text-lg">Orchestrate hackathons and workshops to engage with elite talent.</p>
-        </div>
-        <div className="flex gap-3">
-          <button
-            onClick={() => setShowLanding(true)}
-            className="flex items-center gap-2 px-6 py-3.5 bg-white border-2 border-blue-600 text-blue-600 rounded-2xl font-bold hover:bg-blue-50 transition-all"
-          >
-            <Sparkles className="w-5 h-5" />
-            View Guide
-          </button>
-          <button
-            onClick={() => setShowCreateModal(true)}
-            className="flex items-center gap-2 px-6 py-3.5 bg-blue-600 text-white rounded-2xl font-bold shadow-xl shadow-blue-200 hover:shadow-blue-300 hover:-translate-y-0.5 transition-all"
-          >
-            <Plus className="w-5 h-5" />
-            Create New Event
-          </button>
-        </div>
-      </div>
-
-      <div className="grid gap-8">
-        {events.map((event) => (
-          <EventCard
-            key={event.id}
-            event={event}
-            onCancel={() => handleCancelEvent(event.id)}
+      {(showLanding || events.length === 0) ? (
+        <div className="py-8">
+          <EventLandingPage 
+            onCreateClick={() => {
+              setShowLanding(false);
+              setShowCreateModal(true);
+            }}
+            hasEvents={events.length > 0}
           />
-        ))}
-      </div>
+        </div>
+      ) : (
+        <>
+          <div className="flex flex-col md:flex-row items-center justify-between mb-10 gap-6">
+            <div className="text-center md:text-left">
+              <h1 className="text-4xl font-extrabold text-slate-900 tracking-tight mb-2">Company Event Dashboard</h1>
+              <p className="text-slate-600 text-lg">Orchestrate hackathons and workshops to engage with elite talent.</p>
+            </div>
+            <div className="flex gap-3">
+              <button
+                onClick={() => setShowLanding(true)}
+                className="flex items-center gap-2 px-6 py-3.5 bg-white border-2 border-blue-600 text-blue-600 rounded-2xl font-bold hover:bg-blue-50 transition-all"
+              >
+                <Sparkles className="w-5 h-5" />
+                View Guide
+              </button>
+              <button
+                onClick={() => setShowCreateModal(true)}
+                className="flex items-center gap-2 px-6 py-3.5 bg-blue-600 text-white rounded-2xl font-bold shadow-xl shadow-blue-200 hover:shadow-blue-300 hover:-translate-y-0.5 transition-all"
+              >
+                <Plus className="w-5 h-5" />
+                Host an Event
+              </button>
+            </div>
+          </div>
+
+          <div className="grid gap-8">
+            {events.map((event) => (
+              <EventCard
+                key={event.id}
+                event={event}
+                onCancel={() => handleCancelEvent(event.id)}
+              />
+            ))}
+          </div>
+        </>
+      )}
 
       {showCreateModal && (
         <EventCreateModal
@@ -228,6 +271,7 @@ export function CompanyEvents() {
           addArrayItem={addArrayItem}
           updateArrayItem={updateArrayItem}
           removeArrayItem={removeArrayItem}
+          availableTags={availableTags}
         />
       )}
     </div>
@@ -368,13 +412,15 @@ function EventLandingPage({ onCreateClick, hasEvents }: { onCreateClick: () => v
         <p className="text-xl text-slate-600 mb-8 max-w-2xl mx-auto">
           Host hackathons, workshops, and sponsorships to connect with elite students and discover groundbreaking projects.
         </p>
-        <button
-          onClick={onCreateClick}
-          className="inline-flex items-center gap-3 px-8 py-4 bg-blue-600 text-white rounded-2xl font-bold text-lg shadow-xl shadow-blue-200 hover:shadow-blue-300 hover:-translate-y-1 transition-all"
-        >
-          <Plus className="w-6 h-6" />
-          Create Your First Event
-        </button>
+        <div className="flex justify-center mt-10">
+          <button
+            onClick={onCreateClick}
+            className="flex items-center gap-3 px-10 py-5 bg-blue-600 text-white rounded-3xl font-bold text-xl shadow-2xl shadow-blue-200 hover:shadow-blue-300 hover:-translate-y-1 transition-all"
+          >
+            <Plus className="w-7 h-7" />
+            Create Your First Event
+          </button>
+        </div>
       </div>
 
       {/* Features Grid */}
@@ -452,11 +498,51 @@ interface EventCreateModalProps {
   onClose: () => void;
   onSubmit: (e: React.FormEvent) => void;
   addArrayItem: (field: 'prizes' | 'requirements' | 'judgingCriteria' | 'rules') => void;
+  availableTags: string[];
   updateArrayItem: (field: 'prizes' | 'requirements' | 'judgingCriteria' | 'rules', index: number, value: string) => void;
   removeArrayItem: (field: 'prizes' | 'requirements' | 'judgingCriteria' | 'rules', index: number) => void;
 }
 
-function EventCreateModal({ formData, setFormData, onClose, onSubmit, addArrayItem, updateArrayItem, removeArrayItem }: EventCreateModalProps) {
+function EventCreateModal({ formData, setFormData, onClose, onSubmit, addArrayItem, updateArrayItem, removeArrayItem, availableTags }: EventCreateModalProps) {
+  
+  // Local state for rank prizes to sync with formData.prizes
+  // We'll parse existing prizes if any to populate
+  // Format expectation: "1st Place: $X", "2nd Place: $Y"
+  const getPrizeValue = (rank: string) => {
+    const found = formData.prizes.find(p => p.toLowerCase().includes(rank.toLowerCase()));
+    if (found) {
+        // Extract value after colon if exists, or just the whole thing
+        const parts = found.split(':');
+        return parts.length > 1 ? parts[1].trim() : found;
+    }
+    return '';
+  };
+
+  const handePrizeChange = (rank: string, value: string) => {
+     // Reconstruct prizes array
+     // Filter out this rank first
+     const others = formData.prizes.filter(p => !p.toLowerCase().includes(rank.toLowerCase()));
+     if (value.trim()) {
+         others.push(`${rank}: ${value}`);
+     }
+     
+     // Sort nicely? 1st, 2nd, 3rd
+     const order = ["1st Place", "2nd Place", "3rd Place"];
+     const sorted = others.sort((a, b) => {
+         let aRank = order.findIndex(o => a.toLowerCase().includes(o.toLowerCase()));
+         let bRank = order.findIndex(o => b.toLowerCase().includes(o.toLowerCase()));
+         
+         // If not found, place at the end
+         if (aRank === -1) aRank = 999;
+         if (bRank === -1) bRank = 999;
+         
+         return aRank - bRank;
+     });
+     
+     setFormData({...formData, prizes: sorted});
+  };
+
+
   return (
     <div className="fixed inset-0 bg-slate-900/60 backdrop-blur-md flex items-center justify-center z-50 p-4 animate-in fade-in duration-300">
       <div className="bg-white rounded-[2.5rem] max-w-4xl w-full max-h-[90vh] overflow-y-auto shadow-2xl animate-in zoom-in-95 duration-300">
@@ -581,31 +667,187 @@ function EventCreateModal({ formData, setFormData, onClose, onSubmit, addArrayIt
               <Trophy className="w-5 h-5 text-amber-600" />
               Prizes & Rewards
             </h3>
-            <div className="space-y-3">
-              {formData.prizes.map((prize, index) => (
-                <div key={index} className="flex gap-3">
-                  <input
-                    value={prize}
-                    onChange={(e) => updateArrayItem('prizes', index, e.target.value)}
-                    placeholder="E.g. $10,000 First Prize"
-                    className="flex-1 px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none"
-                  />
-                  <button
-                    type="button"
-                    onClick={() => removeArrayItem('prizes', index)}
-                    className="px-4 py-3 bg-red-50 text-red-600 rounded-xl hover:bg-red-100 transition-colors"
-                  >
-                    <X className="w-5 h-5" />
-                  </button>
-                </div>
-              ))}
-              <button
-                type="button"
-                onClick={() => addArrayItem('prizes')}
-                className="w-full py-3 border-2 border-dashed border-slate-300 rounded-xl text-slate-600 font-medium hover:border-blue-500 hover:text-blue-600 transition-colors"
-              >
-                + Add Prize
-              </button>
+            <div className="space-y-4">
+              <div className="flex gap-4">
+                  <div className="flex-1 p-4 bg-amber-50 rounded-xl border border-amber-100">
+                      <label className="block text-xs font-bold text-amber-600 mb-2 uppercase tracking-wider">1st Place Prize</label>
+                      <div className="flex items-center gap-2">
+                          <Trophy className="w-5 h-5 text-amber-500" />
+                          <input 
+                              type="text"
+                              placeholder="$10,000"
+                              className="flex-1 bg-transparent border-b border-amber-200 focus:border-amber-500 outline-none font-bold text-slate-700 placeholder:text-slate-300"
+                              value={getPrizeValue("1st Place")}
+                              onChange={(e) => handePrizeChange("1st Place", e.target.value)}
+                          />
+                      </div>
+                  </div>
+                  <div className="flex-1 p-4 bg-slate-50 rounded-xl border border-slate-200">
+                      <label className="block text-xs font-bold text-slate-500 mb-2 uppercase tracking-wider">2nd Place Prize</label>
+                      <div className="flex items-center gap-2">
+                          <Trophy className="w-5 h-5 text-slate-400" />
+                          <input 
+                              type="text"
+                              placeholder="$5,000"
+                              className="flex-1 bg-transparent border-b border-slate-200 focus:border-blue-500 outline-none font-bold text-slate-700 placeholder:text-slate-300"
+                              value={getPrizeValue("2nd Place")}
+                              onChange={(e) => handePrizeChange("2nd Place", e.target.value)}
+                          />
+                      </div>
+                  </div>
+                  <div className="flex-1 p-4 bg-orange-50 rounded-xl border border-orange-100">
+                      <label className="block text-xs font-bold text-orange-600 mb-2 uppercase tracking-wider">3rd Place Prize</label>
+                      <div className="flex items-center gap-2">
+                          <Trophy className="w-5 h-5 text-orange-500" />
+                          <input 
+                              type="text"
+                              placeholder="$2,500"
+                              className="flex-1 bg-transparent border-b border-orange-200 focus:border-orange-500 outline-none font-bold text-slate-700 placeholder:text-slate-300"
+                              value={getPrizeValue("3rd Place")}
+                              onChange={(e) => handePrizeChange("3rd Place", e.target.value)}
+                          />
+                      </div>
+                  </div>
+              </div>
+
+              {/* Custom Prizes */}
+              <div className="mt-4">
+                  <label className="block text-sm font-bold text-slate-700 mb-3">Custom Prizes & Tracks</label>
+                  <div className="space-y-3">
+                      {formData.prizes
+                          .filter(p => !["1st Place", "2nd Place", "3rd Place"].some(rank => p.includes(rank)))
+                          .map((prize, idx) => {
+                              // We need to find the real index in the main array to remove it correctly
+                              const realIndex = formData.prizes.indexOf(prize);
+                              const [title, amount] = prize.includes(':') ? prize.split(':') : [prize, ''];
+                              
+                              return (
+                                  <div key={idx} className="flex gap-3">
+                                      <div className="flex-1 flex gap-3 text-sm">
+                                          <div className="flex-1 px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl font-medium text-slate-700">
+                                              {title.trim()}
+                                          </div>
+                                          <div className="w-32 px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl font-bold text-slate-900">
+                                              {amount ? amount.trim() : 'TBA'}
+                                          </div>
+                                      </div>
+                                      <button 
+                                          type="button"
+                                          onClick={() => {
+                                              const newPrizes = [...formData.prizes];
+                                              newPrizes.splice(realIndex, 1);
+                                              setFormData({...formData, prizes: newPrizes});
+                                          }}
+                                          className="px-4 py-3 bg-red-50 text-red-600 rounded-xl hover:bg-red-100 transition-colors"
+                                      >
+                                          <X className="w-5 h-5" />
+                                      </button>
+                                  </div>
+                              );
+                          })
+                      }
+                      
+                      {/* Add New Custom Prize Input */}
+                      <div className="flex gap-3">
+                          <input 
+                              id="new-prize-title"
+                              placeholder="Prize Title (e.g. Best UX)"
+                              className="flex-1 px-4 py-3 bg-white border border-slate-200 rounded-xl focus:ring-2 focus:ring-blue-500 outline-none"
+                              onKeyDown={(e) => {
+                                  if (e.key === 'Enter') {
+                                      e.preventDefault();
+                                      document.getElementById('add-prize-btn')?.click();
+                                  }
+                              }}
+                          />
+                          <input 
+                              id="new-prize-amount"
+                              placeholder="Amount"
+                              className="w-32 px-4 py-3 bg-white border border-slate-200 rounded-xl focus:ring-2 focus:ring-blue-500 outline-none"
+                              onKeyDown={(e) => {
+                                  if (e.key === 'Enter') {
+                                      e.preventDefault();
+                                      document.getElementById('add-prize-btn')?.click();
+                                  }
+                              }}
+                          />
+                          <button
+                              id="add-prize-btn"
+                              type="button"
+                              onClick={() => {
+                                  const titleInput = document.getElementById('new-prize-title') as HTMLInputElement;
+                                  const amountInput = document.getElementById('new-prize-amount') as HTMLInputElement;
+                                  
+                                  if (titleInput.value.trim()) {
+                                      const newPrizeStream = `${titleInput.value.trim()}: ${amountInput.value.trim() || 'TBA'}`;
+                                      setFormData({
+                                          ...formData, 
+                                          prizes: [...formData.prizes, newPrizeStream]
+                                      });
+                                      titleInput.value = '';
+                                      amountInput.value = '';
+                                      titleInput.focus();
+                                  }
+                              }}
+                              className="px-6 py-3 bg-slate-900 text-white rounded-xl font-bold hover:bg-slate-800 transition-colors"
+                          >
+                              Add
+                          </button>
+                      </div>
+                  </div>
+              </div>
+            </div>
+          </section>
+
+
+          {/* Tags */}
+          <section>
+            <h3 className="text-lg font-bold text-slate-900 mb-6 flex items-center gap-2">
+              <Sparkles className="w-5 h-5 text-pink-600" />
+              Tags & Technologies
+            </h3>
+            <div className="bg-slate-50 p-6 rounded-2xl border border-slate-200">
+              <div className="flex flex-wrap gap-2 mb-4">
+                {formData.tags?.map((tag, i) => (
+                  <span key={i} className="px-3 py-1 bg-blue-100 text-blue-700 rounded-full text-sm font-bold flex items-center gap-1 group">
+                    {tag}
+                    <button 
+                        type="button"
+                        onClick={() => setFormData({...formData, tags: formData.tags.filter(t => t !== tag)})}
+                        className="w-4 h-4 rounded-full bg-blue-200 text-blue-800 flex items-center justify-center hover:bg-blue-300 transition-colors opacity-0 group-hover:opacity-100"
+                    >
+                        <X className="w-3 h-3" />
+                    </button>
+                  </span>
+                ))}
+              </div>
+              
+              <div className="relative">
+                  <div className="flex gap-2">
+                    <input 
+                      list="tag-options"
+                      placeholder="Type or select a tag..."
+                      className="flex-1 px-4 py-3 bg-white border border-slate-200 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none"
+                      onKeyDown={(e) => {
+                        if (e.key === 'Enter') {
+                          e.preventDefault();
+                          const val = e.currentTarget.value.trim();
+                          if (val && !formData.tags.includes(val)) {
+                             setFormData({...formData, tags: [...formData.tags, val]});
+                             e.currentTarget.value = "";
+                          }
+                        }
+                      }}
+                    />
+                    <datalist id="tag-options">
+                        {availableTags.map(t => (
+                            <option key={t} value={t} />
+                        ))}
+                    </datalist>
+                  </div>
+                  <p className="text-xs text-slate-400 mt-2 font-medium">Type a new tag and press Enter, or select from the list.</p>
+              </div>
+              <p className="text-xs text-slate-400 mt-2 font-medium">Select correct tags to ensure your event reaches the right candidates.</p>
             </div>
           </section>
 
@@ -650,30 +892,107 @@ function EventCreateModal({ formData, setFormData, onClose, onSubmit, addArrayIt
               Judging Criteria
             </h3>
             <div className="space-y-3">
-              {formData.judgingCriteria.map((criteria, index) => (
-                <div key={index} className="flex gap-3">
-                  <input
-                    value={criteria}
-                    onChange={(e) => updateArrayItem('judgingCriteria', index, e.target.value)}
-                    placeholder="E.g. Innovation, Technical Implementation"
-                    className="flex-1 px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none"
-                  />
-                  <button
-                    type="button"
-                    onClick={() => removeArrayItem('judgingCriteria', index)}
-                    className="px-4 py-3 bg-red-50 text-red-600 rounded-xl hover:bg-red-100 transition-colors"
-                  >
-                    <X className="w-5 h-5" />
-                  </button>
+              <div className="space-y-4">
+                {/* Total Weight Indicator */}
+                <div className="flex items-center justify-between mb-2">
+                  <span className="text-sm font-semibold text-slate-600">Total Weight Distribution</span>
+                  <span className={`text-sm font-bold ${
+                    formData.judgingCriteria.reduce((acc, curr) => {
+                      const weightMatch = curr.match(/: (\d+)%$/);
+                      return acc + (weightMatch ? parseInt(weightMatch[1]) : 0);
+                    }, 0) === 100 ? 'text-green-600' : 'text-amber-600'
+                  }`}>
+                    {formData.judgingCriteria.reduce((acc, curr) => {
+                      const weightMatch = curr.match(/: (\d+)%$/);
+                      return acc + (weightMatch ? parseInt(weightMatch[1]) : 0);
+                    }, 0)}% / 100%
+                  </span>
                 </div>
-              ))}
-              <button
-                type="button"
-                onClick={() => addArrayItem('judgingCriteria')}
-                className="w-full py-3 border-2 border-dashed border-slate-300 rounded-xl text-slate-600 font-medium hover:border-blue-500 hover:text-blue-600 transition-colors"
-              >
-                + Add Judging Criteria
-              </button>
+                <div className="w-full bg-slate-200 rounded-full h-2 mb-6 overflow-hidden">
+                  <div 
+                    className={`h-2 rounded-full transition-all duration-300 ${
+                       formData.judgingCriteria.reduce((acc, curr) => {
+                        const weightMatch = curr.match(/: (\d+)%$/);
+                        return acc + (weightMatch ? parseInt(weightMatch[1]) : 0);
+                      }, 0) === 100 ? 'bg-green-500' : 'bg-amber-500'
+                    }`}
+                    style={{
+                      width: `${Math.min(100, formData.judgingCriteria.reduce((acc, curr) => {
+                        const weightMatch = curr.match(/: (\d+)%$/);
+                        return acc + (weightMatch ? parseInt(weightMatch[1]) : 0);
+                      }, 0))}%`
+                    }}
+                  />
+                </div>
+
+                {formData.judgingCriteria.map((criteria, index) => {
+                  const name = criteria.split(':')[0] || '';
+                  const weightMatch = criteria.match(/: (\d+)%$/);
+                  const weight = weightMatch ? parseInt(weightMatch[1]) : 0; // Default to 0 if not set
+
+                  return (
+                    <div key={index} className="bg-slate-50 p-4 rounded-xl border border-slate-200 space-y-3">
+                      <div className="flex gap-3">
+                        <input
+                          value={name}
+                          onChange={(e) => {
+                             // Preserve weight when name changes
+                             const newName = e.target.value;
+                             const newCriteria = `${newName}: ${weight}%`;
+                             updateArrayItem('judgingCriteria', index, newCriteria);
+                          }}
+                          placeholder="Criterion Name (e.g. Innovation)"
+                          className="flex-1 px-4 py-2 bg-white border border-slate-200 rounded-lg focus:ring-2 focus:ring-blue-500 outline-none text-sm font-medium"
+                        />
+                        <button
+                          type="button"
+                          onClick={() => removeArrayItem('judgingCriteria', index)}
+                          className="px-3 py-2 bg-red-100 text-red-600 rounded-lg hover:bg-red-200 transition-colors"
+                        >
+                          <X className="w-5 h-5" />
+                        </button>
+                      </div>
+                      
+                      <div className="flex items-center gap-4">
+                        <span className="text-xs font-bold text-slate-500 w-12">{weight}%</span>
+                        <input
+                          type="range"
+                          min="0"
+                          max="100"
+                          step="5"
+                          value={weight}
+                          onChange={(e) => {
+                            const newWeight = parseInt(e.target.value);
+                            const newCriteria = `${name}: ${newWeight}%`;
+                            updateArrayItem('judgingCriteria', index, newCriteria);
+                          }}
+                          className="flex-1 h-2 bg-slate-200 rounded-lg appearance-none cursor-pointer accent-blue-600"
+                        />
+                      </div>
+                    </div>
+                  );
+                })}
+                
+                <button
+                  type="button"
+                  onClick={() => {
+                     // Default new item to something sensible like "New Criteria: 20%"
+                     const newItem = "New Criteria: 20%";
+                     // Instead of calling addArrayItem, we likely need to push to state. 
+                     // Assuming addArrayItem just pushes empty string, we might need to manually update or update immediately after.
+                     // The parent's addArrayItem likely adds "". 
+                     // Let's modify logic or just use addArrayItem and then update it?
+                     // Actually, looking at previous code, addArrayItem('judgingCriteria') adds an empty string. 
+                     // We should handle that robustly.
+                     addArrayItem('judgingCriteria');
+                  }}
+                  className="w-full py-3 border-2 border-dashed border-slate-300 rounded-xl text-slate-600 font-medium hover:border-blue-500 hover:text-blue-600 transition-colors"
+                >
+                  + Add Weighted Criterion
+                </button>
+                {/* Auto-set empty string to default structure if newly added */}
+                {/* This is handled by rendering logic: split(':')[0] handles empty string fine (name="") */}
+              </div>
             </div>
           </section>
 

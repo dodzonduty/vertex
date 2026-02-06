@@ -97,65 +97,15 @@ export const OpportunitiesContent: React.FC = () => {
                     setOppList(data.results);
                     setTotalResults(data.count);
                 } else {
-                    throw new Error("No results found");
+                    setOppList([]);
+                    setTotalResults(0);
                 }
             })
             .catch(err => {
-                console.error("Failed to fetch opportunities list, using fallback", err);
-                // Fallback Data
-                const fallbackHackathons = [
-                    {
-                        id: "h1",
-                        title: "Global AI Hack 2026",
-                        host: "AI Nexus Foundation",
-                        badges: [{ text: "Recommended", style: "blue-solid" }, { text: "Hackathon", style: "blue-soft" }],
-                        summary: "Build the next generation of autonomous agents in this 48-hour global challenge.",
-                        date: "Oct 12-14, 2026",
-                        price: "$10,000 Prize",
-                        location: "Remote",
-                        image: "https://lh3.googleusercontent.com/aida-public/AB6AXuCQWjvyaaToRihbJ_vk23_-pbgti7yXe_itSyT5IuWwTW7luvIYPkAXx0uWXmU8YGmIxUSyQyMDWPoFd9WU5R5WkE-D-OzFGOvZqBn53B9Qnzlrdgb9dor5o6tXMiSxNw-J6tCnQDGmEycAGGQwK48B-PyhKJn60UoLIy8jx0-IdcMfjqpR17JGHbzocYwsMJ8nfrPWF44hSTwvcfZCRxMkWLopysgLqp3SiJp_WgVkFMQehQgzeB6kqmONX5tLJESi0mdrYNMr7NA"
-                    },
-                    {
-                        id: "h2",
-                        title: "GreenTech Sprint",
-                        host: "EcoInnovate",
-                        badges: [{ text: "Hackathon", style: "amber-soft" }, { text: "#Sustainability", style: "gray-soft" }],
-                        summary: "Accelerating sustainable solutions through rapid prototyping and deep tech.",
-                        date: "Dec 01-05, 2026",
-                        price: "$7,500 Prize",
-                        location: "Hybrid • London",
-                        image: "https://lh3.googleusercontent.com/aida-public/AB6AXuCLIp0CIanjTtvkxnyAXdaEozBHpAQHExEEx64XXLNm5_a8vX1Jq4FROlTxUjfTU7_DfcJVXzcxIPqI8QWg3aiqPxsfpDywiM4-xztZzL1bl1vDbYuMLSFx8Dtm7z1bzXL-JTDJyoJybgPXWS8IDs3rqa3sr9-YDgJEnPraB-FGQpcwXBTj6awOxOBbp1bfbFFDcIGVafaWIiJVSPw8xfPupvatbR7mu76CQgSr9JyUonggUOyh-8px8lUrE9kVRCmm4wn2bJAfHyA"
-                    }
-                ];
-
-                const fallbackSponsorships = [
-                    {
-                        id: "s1",
-                        title: "Future Finance Fellowship",
-                        host: "Global Bank Corp",
-                        badges: [{ text: "Fellowship", style: "purple-solid" }, { text: "Finance", style: "amber-soft" }],
-                        summary: "A 6-month fellowship for students interested in the intersection of AI and Finance.",
-                        date: "Apply by Nov 15",
-                        price: "$5,000 Grant",
-                        location: "New York",
-                        image: "https://lh3.googleusercontent.com/aida-public/AB6AXuDBvcqg_z4t5DtImBaF4zDg1paUIXivAjiu0n3bTJpS__wzsQQ8fTjIo5ThuSuTP1puePPfX3W8klgrWopzhwEuo_F-oqNhM-JTwb2UpbOuAUZhtfHZU26mz6tmlCXzTuuDeOEarNRaPPirtfDkzynNPlwErvz5kBvcSfmS3tyGP4nPDxAzdgKIBxLw9YTfzizh4yxi8o76B2l7D0R1Vd8_EZpU5bgTojtkWTtdlExRh-dg2RJ0Ocasmg4phBDl3HFl3k4nK3k3bPk"
-                    },
-                    {
-                        id: "s2",
-                        title: "Open Source Grant",
-                        host: "Linux Foundation",
-                        badges: [{ text: "Grant", "style": "emerald-solid" }, { text: "Open Source", "style": "blue-soft" }],
-                        summary: "Supporting developers who are building critical open source infrastructure.",
-                        date: "Rolling Basis",
-                        price: "$2,000/mo",
-                        location: "Remote",
-                        image: "https://lh3.googleusercontent.com/aida-public/AB6AXuCQWjvyaaToRihbJ_vk23_-pbgti7yXe_itSyT5IuWwTW7luvIYPkAXx0uWXmU8YGmIxUSyQyMDWPoFd9WU5R5WkE-D-OzFGOvZqBn53B9Qnzlrdgb9dor5o6tXMiSxNw-J6tCnQDGmEycAGGQwK48B-PyhKJn60UoLIy8jx0-IdcMfjqpR17JGHbzocYwsMJ8nfrPWF44hSTwvcfZCRxMkWLopysgLqp3SiJp_WgVkFMQehQgzeB6kqmONX5tLJESi0mdrYNMr7NA"
-                    }
-                ];
-
-                const data = activeTab === 'hackathons' ? fallbackHackathons : fallbackSponsorships;
-                setOppList(data);
-                setTotalResults(128);
+                console.error("Failed to fetch opportunities list", err);
+                setOppList([]);
+                setTotalResults(0);
+                // toast.error("Could not load opportunities.");
             });
     }, [activeTab, activeTags]);
 
