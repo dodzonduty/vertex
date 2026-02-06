@@ -393,8 +393,8 @@ export default function StudentOnboarding() {
                 ats_score: 0,
                 skills: []
             });
+            setStep('success');
             toast.success('Profile Completed Successfully!');
-            navigate('/dashboard');
         } catch (error) {
             console.error('Finalization error:', error);
             setLoading(false);
