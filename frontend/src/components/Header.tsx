@@ -7,27 +7,45 @@ import { StatePreservation } from '../lib/utils/statePreservation';
 import './Header.css';
 
 export const Header: React.FC = () => {
+  console.log('Header Component File Loaded - v2');
   const [count, setCount] = useState<number>(0);
   const [user, setUser] = useState<any>(null);
   const [profilePic, setProfilePic] = useState<string | null>(null);
 
   useEffect(() => {
-    const userData = getUserData();
-    setUser(userData);
+    const loadUser = () => {
+      console.log('Header: loadUser called');
+      const userData = getUserData();
+      console.log('Header: userData from storage:', userData);
+      setUser(userData);
 
-    // Fetch current user with profile photo
-    if (userData?.user_id) {
-      apiRequest<{ user_id: string; email: string; role: string; profile_photo_url?: string }>('/api/auth/me')
-        .then(data => {
-          setProfilePic(data.profile_photo_url || null);
-        })
-        .catch(() => { });
-    }
+      // Fetch current user with profile photo
+      if (userData?.user_id) {
+        console.log('Header: Fetching profile for', userData.user_id);
+        apiRequest<{ user_id: string; email: string; role: string; profile_photo_url?: string }>('/api/auth/me')
+          .then(data => {
+            console.log('Header: Profile data received', data);
+            setProfilePic(data.profile_photo_url || null);
+          })
+          .catch((err) => console.error('Header: Profile fetch error', err));
+      }
+    };
+
+    console.log('Header: Mounting, attaching listener');
+    loadUser();
+
+    // Listen for auth changes
+    window.addEventListener('auth-change', loadUser);
 
     // Fetch opportunities count - use the opportunities-list endpoint
     apiRequest<{ count: number; results: any[] }>('/api/opportunities-list?type=hackathons&tags=%23All')
       .then(data => setCount(data.count || 0))
       .catch(() => setCount(0));
+
+    return () => {
+      console.log('Header: Unmounting, removing listener');
+      window.removeEventListener('auth-change', loadUser);
+    };
   }, []);
 
   const handleLogout = () => {
@@ -46,6 +64,16 @@ export const Header: React.FC = () => {
             src="https://lh3.googleusercontent.com/aida-public/AB6AXuDruz-Z1rxJw2B99u929C03U08fcvdxSK_JROTw_OzxOSsBmN5XzbwguREzreQuwCd4E7AbD8loZK5nPz9oXGwKxDzCFurTlEI1bH3irhCJkHZzVjUE68rhJYJY98VFJbXhXkEHb3hn_iYaF1rQNa59tTo8Y3gOV6canfBt7zn-KKQHlBggral3oWAH6w6vYHO-huFlrtFDuLD9wvwmetKoYCj-3cXISGEQJDtXhFTo7pP8j1iredjzJpusDMEqGs-IVY0k2K8LxPY"
           />
           <span className="logo-text">Vertex</span>
+          {user?.role === 'student' && (
+            <span className="ml-3 px-2.5 py-0.5 text-[10px] font-bold uppercase tracking-widest rounded-full border bg-indigo-50 text-indigo-600 border-indigo-100">
+              Student
+            </span>
+          )}
+          {user?.role === 'company' && (
+            <span className="ml-3 px-2.5 py-0.5 text-[10px] font-bold uppercase tracking-widest rounded-full border bg-blue-50 text-blue-600 border-blue-100">
+              Company
+            </span>
+          )}
         </Link>
 
         {/* Navigation Links */}
@@ -108,6 +136,25 @@ export const Header: React.FC = () => {
                     </div>
                 </div>
               </div>
+            </>
+          ) : user?.role === 'student' ? (
+            <>
+              <Link to="/student-dashboard" className="nav-link flex items-center gap-1">
+                <LayoutDashboard className="w-4 h-4" /> Dashboard
+              </Link>
+              <Link to="/opportunities" className="nav-link">
+                Opportunities
+                <span className="header-badge header-badge-blue">
+                  {count > 100 ? '+100' : count}
+                </span>
+              </Link>
+              <Link to="/companies" className="nav-link">
+                Companies
+                <span className="header-badge header-badge-purple">
+                  NEW
+                </span>
+              </Link>
+              <Link to="/profiles" className="nav-link">Profiles</Link>
             </>
           ) : (
             <>

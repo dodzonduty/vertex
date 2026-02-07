@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { Building2, User, Sparkles, ArrowRight, MapPin } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
-import { apiRequest } from '../../lib/api/config';
+import { apiRequest, getUserData } from '../../lib/api/config';
 import '../Opportunities.css';
 
 interface Student {
@@ -40,6 +40,13 @@ export function BrowseProfiles({ publicView = false }: BrowseProfilesProps) {
   const [students, setStudents] = useState<Student[]>([]);
   const [companies, setCompanies] = useState<Company[]>([]);
   const [loading, setLoading] = useState(true);
+  const [user, setUser] = useState<any>(getUserData());
+
+  useEffect(() => {
+    const loadUser = () => setUser(getUserData());
+    window.addEventListener('auth-change', loadUser);
+    return () => window.removeEventListener('auth-change', loadUser);
+  }, []);
 
   useEffect(() => {
     fetchData();
@@ -169,7 +176,7 @@ export function BrowseProfiles({ publicView = false }: BrowseProfilesProps) {
 
                   {/* Progress Bar for Score */}
                   {/* Progress Bar for Score OR Login CTA */}
-                  {!publicView ? (
+                  {(!publicView || user) ? (
                     student.ats_score !== undefined && (
                       <div className="mb-8 p-5 bg-slate-50 rounded-2xl border border-slate-100">
                         <div className="flex items-center justify-between mb-2 text-[10px] font-black text-slate-400 uppercase tracking-widest">

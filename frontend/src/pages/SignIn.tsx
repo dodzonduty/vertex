@@ -44,6 +44,11 @@ export function SignIn() {
                 description: `Welcome back, ${response.email}`,
             });
 
+            // Dispatch auth change event with small delay to ensure storage consistency
+            setTimeout(() => {
+                window.dispatchEvent(new Event('auth-change'));
+            }, 100);
+
             // Navigate based on role
             if (response.role === 'student') navigate('/student-home');
             else if (response.role === 'company') navigate('/company-home');

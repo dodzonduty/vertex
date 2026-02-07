@@ -1,93 +1,29 @@
 import { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
-import { User, Users, Building2, Sparkles, FolderGit2, Trophy, Mail } from 'lucide-react';
+import { User, Users, Sparkles, FolderGit2, Trophy, Mail } from 'lucide-react';
 import { StudentProfile } from '../components/student/StudentProfile';
 import { StudentProjects } from '../components/student/StudentProjects';
-import { BrowseProfiles } from '../components/student/BrowseProfiles';
-import { OpportunitiesContent } from '../components/OpportunitiesContent';
 import { StudentEnrollments } from '../components/student/StudentEnrollments';
 import { StudentTeamInvitations } from '../components/student/StudentTeamInvitations';
-import { getUserData, apiRequest } from '../lib/api/config';
+import { apiRequest } from '../lib/api/config';
 import { StatePreservation } from '../lib/utils/statePreservation';
-import '../components/Header.css';
 
 interface StudentDashboardProps {
-  onLogout: () => void;
 }
 
 type Tab = 'profile' | 'projects' | 'opportunities' | 'browse' | 'companies' | 'requests' | 'enrollments' | 'invitations';
 
-export function StudentDashboard({ onLogout }: StudentDashboardProps) {
+export function StudentDashboard({}: StudentDashboardProps) {
   // Preserve active tab state when navigating
   const savedTab = StatePreservation.loadSession<Tab>('student_dashboard_tab');
   const [activeTab, setActiveTab] = useState<Tab>(savedTab || 'profile');
-  const [userData, setUserData] = useState<any>(null);
-  const [profilePhoto, setProfilePhoto] = useState<string | null>(null);
-
   // Save tab state when it changes
   useEffect(() => {
     StatePreservation.saveSession('student_dashboard_tab', activeTab);
   }, [activeTab]);
 
-  useEffect(() => {
-    const localUserData = getUserData();
-    setUserData(localUserData);
-
-    // Fetch user profile with photo
-    if (localUserData?.user_id) {
-      apiRequest<{ user_id: string; email: string; role: string; profile_photo_url?: string }>('/api/auth/me')
-        .then(data => {
-          setProfilePhoto(data.profile_photo_url || null);
-        })
-        .catch(() => { });
-    }
-  }, []);
-
-  const initials = userData?.email ? userData.email[0].toUpperCase() : 'U';
-
   return (
-    <div className="min-h-screen bg-white font-sans text-slate-900">
-      {/* Header */}
-      <header className="header header-solid z-50">
-        <div className="header-container">
-          <Link to="/" className="logo-area">
-            <div className="logo-icon-wrapper">
-              <img
-                alt="Vertex Logo"
-                className="logo-img"
-                src="https://lh3.googleusercontent.com/aida-public/AB6AXuDruz-Z1rxJw2B99u929C03U08fcvdxSK_JROTw_OzxOSsBmN5XzbwguREzreQuwCd4E7AbD8loZK5nPz9oXGwKxDzCFurTlEI1bH3irhCJkHZzVjUE68rhJYJY98VFJbXhXkEHb3hn_iYaF1rQNa59tTo8Y3gOV6canfBt7zn-KKQHlBggral3oWAH6w6vYHO-huFlrtFDuLD9wvwmetKoYCj-3cXISGEQJDtXhFTo7pP8j1iredjzJpusDMEqGs-IVY0k2K8LxPY"
-              />
-            </div>
-            <span className="logo-text">Vertex</span>
-            <span className="ml-2 px-3 py-1 text-[10px] font-black uppercase tracking-widest rounded-full border backdrop-blur-sm bg-indigo-50/50 text-indigo-600 border-indigo-100/50">
-              Student
-            </span>
-          </Link>
-
-          <div className="flex items-center gap-6">
-            <button
-              onClick={onLogout}
-              className="text-sm font-bold text-slate-500 hover:text-indigo-600 transition-colors cursor-pointer"
-            >
-              Log out
-            </button>
-            <button
-              onClick={() => setActiveTab('profile')}
-              className="w-10 h-10 rounded-2xl flex items-center justify-center text-white font-black text-sm shadow-lg ring-2 ring-white transition-all hover:scale-105 cursor-pointer bg-indigo-600 shadow-indigo-200 overflow-hidden"
-              title="View Profile"
-            >
-              {profilePhoto ? (
-                <img src={profilePhoto} alt="Profile" className="w-full h-full object-cover" />
-              ) : (
-                initials
-              )}
-            </button>
-          </div>
-        </div>
-      </header>
-
-      {/* Main Content */}
-      <main className="pt-24">
+    <div className="bg-white font-sans text-slate-900">
         {/* Hero Section */}
         <div className="bg-gradient-to-b from-indigo-50/50 to-white py-16">
           <div className="max-w-7xl mx-auto px-4 text-center">
@@ -101,84 +37,58 @@ export function StudentDashboard({ onLogout }: StudentDashboardProps) {
         </div>
 
         {/* Navigation Tabs */}
-        <div className="border-b border-slate-200 sticky top-20 bg-white z-40">
+        <div className="sticky top-[70px] z-40 mb-10 py-4 bg-white/95 backdrop-blur-sm border-b border-slate-200/50 transition-all duration-300">
           <div className="max-w-7xl mx-auto px-4">
-            <div className="flex gap-8 overflow-x-auto no-scrollbar">
+            <div 
+              className="flex flex-wrap justify-center items-center gap-3 px-6 py-4 bg-white rounded-full border border-slate-200 shadow-xl mx-auto w-fit"
+              style={{ display: 'flex', justifyContent: 'center', flexWrap: 'wrap' }}
+            >
               <TabButton
-                icon={<User className="w-4 h-4" />}
+                icon={<User className="w-6 h-6" />}
                 label="My Profile"
                 active={activeTab === 'profile'}
                 onClick={() => setActiveTab('profile')}
               />
               <TabButton
-                icon={<FolderGit2 className="w-4 h-4" />}
+                icon={<FolderGit2 className="w-6 h-6" />}
                 label="Projects"
                 active={activeTab === 'projects'}
                 onClick={() => setActiveTab('projects')}
               />
               <TabButton
-                icon={<Sparkles className="w-4 h-4" />}
-                label="Opportunities"
-                active={activeTab === 'opportunities'}
-                onClick={() => setActiveTab('opportunities')}
-              />
-              <TabButton
-                icon={<Users className="w-4 h-4" />}
-                label="Browse Profiles"
-                active={activeTab === 'browse'}
-                onClick={() => setActiveTab('browse')}
-              />
-              <TabButton
-                icon={<Users className="w-4 h-4" />}
+                icon={<Users className="w-6 h-6" />}
                 label="Team Requests"
                 active={activeTab === 'requests'}
                 onClick={() => setActiveTab('requests')}
               />
               <TabButton
-                icon={<Trophy className="w-4 h-4" />}
+                icon={<Trophy className="w-6 h-6" />}
                 label="My Enrollments"
                 active={activeTab === 'enrollments'}
                 onClick={() => setActiveTab('enrollments')}
               />
               <TabButton
-                icon={<Mail className="w-4 h-4" />}
+                icon={<Mail className="w-6 h-6" />}
                 label="Team Invitations"
                 active={activeTab === 'invitations'}
                 onClick={() => setActiveTab('invitations')}
-              />
-              <TabButton
-                icon={<Building2 className="w-4 h-4" />}
-                label="Companies"
-                active={activeTab === 'companies'}
-                onClick={() => setActiveTab('companies')}
+                style={{ paddingRight: '40px' }}
               />
             </div>
           </div>
         </div>
 
         {/* Content */}
-        <div className="max-w-7xl mx-auto px-4 py-8">
+        <div className="max-w-7xl mx-auto px-4 pb-20">
           {activeTab === 'profile' && <StudentProfile />}
           {activeTab === 'projects' && <StudentProjects />}
-          {activeTab === 'opportunities' && <OpportunitiesContent />}
-          {activeTab === 'browse' && <BrowseProfiles />}
           {activeTab === 'requests' && <StudentTeamRequests />}
           {activeTab === 'enrollments' && <StudentEnrollments />}
           {activeTab === 'invitations' && <StudentTeamInvitations />}
-          {activeTab === 'companies' && (
-            <div className="text-center py-20">
-              <Building2 className="w-16 h-16 text-slate-300 mx-auto mb-4" />
-              <h3 className="text-2xl font-bold text-slate-900 mb-2">Companies Directory</h3>
-              <p className="text-slate-500">Browse partner companies and opportunities</p>
-            </div>
-          )}
         </div>
-      </main>
     </div>
   );
 }
-
-// ... TabButton ...
 
 function StudentTeamRequests() {
     const [teams, setTeams] = useState<any[]>([]);
@@ -265,15 +175,17 @@ interface TabButtonProps {
   label: string;
   active: boolean;
   onClick: () => void;
+  style?: React.CSSProperties;
 }
 
-function TabButton({ icon, label, active, onClick }: TabButtonProps) {
+function TabButton({ icon, label, active, onClick, style }: TabButtonProps) {
   return (
     <button
       onClick={onClick}
-      className={`flex items-center gap-2 px-4 py-3 text-sm font-bold transition-all duration-300 border-b-2 ${active
-        ? 'border-indigo-600 text-indigo-600'
-        : 'border-transparent text-slate-600 hover:text-indigo-600 hover:border-slate-200'
+      style={{ minWidth: '160px', minHeight: '64px', ...style }} 
+      className={`relative cursor-pointer flex items-center justify-center gap-3 px-8 py-5 text-lg font-bold transition-all duration-300 rounded-full whitespace-nowrap overflow-hidden ${active
+        ? 'bg-gradient-to-r from-indigo-600 to-violet-600 text-white shadow-lg shadow-indigo-200 ring-2 ring-indigo-600 ring-offset-2 transform scale-105'
+        : 'bg-transparent text-slate-500 hover:bg-slate-50 hover:text-indigo-600'
         }`}
     >
       {icon}

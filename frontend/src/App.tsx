@@ -36,11 +36,11 @@ function App() {
         <Route path="/onboarding" element={<MainLayout><Onboarding /></MainLayout>} />
         <Route path="/onboarding/student" element={<MainLayout><StudentOnboarding /></MainLayout>} />
         <Route path="/onboarding/company" element={<MainLayout><CompanyOnboarding /></MainLayout>} />
-        <Route path="/home" element={<AuthenticatedLanding onLogout={handleLogout} userType="student" />} />
-        <Route path="/student-home" element={<AuthenticatedLanding onLogout={handleLogout} userType="student" />} />
-        <Route path="/student-dashboard" element={<StudentDashboard onLogout={handleLogout} />} />
+        <Route path="/home" element={<MainLayout><AuthenticatedLanding onLogout={handleLogout} userType="student" /></MainLayout>} />
+        <Route path="/student-home" element={<MainLayout><AuthenticatedLanding onLogout={handleLogout} userType="student" /></MainLayout>} />
+        <Route path="/student-dashboard" element={<MainLayout><StudentDashboard /></MainLayout>} />
         {/* <Route path="/company-dashboard" element={<CompanyDashboard onLogout={handleLogout} />} /> */}
-        <Route path="/company-home" element={<AuthenticatedLanding onLogout={handleLogout} userType="company" />} />
+        <Route path="/company-home" element={<MainLayout><AuthenticatedLanding onLogout={handleLogout} userType="company" /></MainLayout>} />
         <Route path="/student/profile/:id" element={<MainLayout><PublicStudentProfile /></MainLayout>} />
         <Route path="/company/profile/:id" element={<MainLayout><PublicCompanyProfile /></MainLayout>} />
         <Route path="/opportunities" element={<MainLayout><Opportunities /></MainLayout>} />
