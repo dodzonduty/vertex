@@ -101,7 +101,7 @@ export function JoinHackathonModal({
 
   return (
     <div className="fixed inset-0 bg-slate-900/60 backdrop-blur-md flex items-center justify-center z-50 p-4 animate-in fade-in duration-300">
-      <div className="bg-white rounded-3xl max-w-2xl w-full max-h-[90vh] overflow-y-auto shadow-2xl animate-in zoom-in-95 duration-300">
+      <div className="bg-white rounded-3xl max-w-4xl w-full max-h-[90vh] overflow-y-auto shadow-2xl animate-in zoom-in-95 duration-300">
         {/* Header */}
         <div className="relative">
           <button
@@ -123,29 +123,29 @@ export function JoinHackathonModal({
               <h2 className="text-3xl font-black text-slate-900 mb-2">Join {opportunityTitle}</h2>
               <p className="text-slate-500 mb-8">Choose how you'd like to participate</p>
 
-              <div className="grid md:grid-cols-2 gap-4 mb-6">
+              <div className="grid md:grid-cols-2 gap-8 mb-8">
                 {/* Solo Option */}
                 <button
                   onClick={() => setStep('solo-confirm')}
-                  className="group p-6 bg-gradient-to-br from-slate-50 to-slate-100 rounded-2xl border-2 border-slate-200 hover:border-indigo-400 hover:shadow-lg transition-all text-left"
+                  className="group p-10 bg-gradient-to-br from-slate-50 to-slate-100 rounded-2xl border-2 border-slate-200 hover:border-indigo-400 hover:shadow-xl transition-all flex flex-col items-center text-center min-h-[280px] justify-center"
                 >
-                  <div className="w-12 h-12 bg-indigo-100 rounded-xl flex items-center justify-center mb-4 group-hover:scale-110 transition-transform">
-                    <User className="w-6 h-6 text-indigo-600" />
+                  <div className="w-20 h-20 bg-indigo-100 rounded-2xl flex items-center justify-center mb-6 group-hover:scale-110 transition-transform shadow-sm">
+                    <User className="w-10 h-10 text-indigo-600" />
                   </div>
-                  <h3 className="text-xl font-bold text-slate-900 mb-2">Go Solo</h3>
-                  <p className="text-sm text-slate-600">Compete individually as a lone ninja 🥷</p>
+                  <h3 className="text-2xl font-black text-slate-900 mb-3 group-hover:text-indigo-600 transition-colors">Go Solo</h3>
+                  <p className="text-base text-slate-600 font-medium">Compete individually as a lone ninja 🥷</p>
                 </button>
 
                 {/* Group Option */}
                 <button
                   onClick={() => setStep('group-form')}
-                  className="group p-6 bg-gradient-to-br from-indigo-50 to-violet-50 rounded-2xl border-2 border-indigo-200 hover:border-indigo-400 hover:shadow-lg transition-all text-left"
+                  className="group p-10 bg-gradient-to-br from-indigo-50 to-violet-50 rounded-2xl border-2 border-indigo-200 hover:border-indigo-400 hover:shadow-xl transition-all flex flex-col items-center text-center min-h-[280px] justify-center"
                 >
-                  <div className="w-12 h-12 bg-indigo-600 rounded-xl flex items-center justify-center mb-4 group-hover:scale-110 transition-transform">
-                    <Users className="w-6 h-6 text-white" />
+                  <div className="w-20 h-20 bg-indigo-600 rounded-2xl flex items-center justify-center mb-6 group-hover:scale-110 transition-transform shadow-lg shadow-indigo-200">
+                    <Users className="w-10 h-10 text-white" />
                   </div>
-                  <h3 className="text-xl font-bold text-slate-900 mb-2">With Friends</h3>
-                  <p className="text-sm text-slate-600">Form a team and collaborate 🤝</p>
+                  <h3 className="text-2xl font-black text-slate-900 mb-3 group-hover:text-indigo-600 transition-colors">With Friends</h3>
+                  <p className="text-base text-slate-600 font-medium">Form a team and collaborate 🤝</p>
                 </button>
               </div>
 
@@ -161,31 +161,34 @@ export function JoinHackathonModal({
 
           {/* Solo Confirmation */}
           {step === 'solo-confirm' && (
-            <>
-              <div className="w-20 h-20 bg-white rounded-2xl shadow-xl border border-slate-100 flex items-center justify-center font-black text-2xl mb-6">
-                🥷
+            <div className="flex flex-col items-center text-center">
+              <div className="w-24 h-24 bg-indigo-50 rounded-3xl shadow-sm border border-indigo-100 flex items-center justify-center mb-8">
+                <User className="w-12 h-12 text-indigo-600" />
               </div>
-              <h2 className="text-3xl font-black text-slate-900 mb-2">Confirm Solo Registration</h2>
-              <p className="text-slate-500 mb-8">
+              <h2 className="text-4xl font-black text-slate-900 mb-3">Confirm Solo Registration</h2>
+              <p className="text-lg text-slate-500 mb-10 max-w-xl mx-auto">
                 You're about to register as a solo participant for <strong>{opportunityTitle}</strong>
               </p>
 
-              <div className="p-6 bg-indigo-50 rounded-2xl border border-indigo-100 mb-8">
-                <div className="flex items-start gap-3">
-                  <Sparkles className="w-5 h-5 text-indigo-600 mt-0.5" />
+              <div className="w-full p-8 bg-indigo-50 rounded-3xl border border-indigo-100 mb-10 text-left">
+                <div className="flex items-start gap-5">
+                  <div className="bg-white p-3 rounded-xl shadow-sm">
+                    <Sparkles className="w-8 h-8 text-indigo-600" />
+                  </div>
                   <div>
-                    <h4 className="font-bold text-indigo-900 mb-1">Solo Ninja Mode</h4>
-                    <p className="text-sm text-indigo-700">
+                    <h4 className="text-xl font-bold text-indigo-900 mb-2">Solo Ninja Mode</h4>
+                    <p className="text-base text-indigo-700 leading-relaxed">
                       You'll compete individually. Show the world what you can build on your own!
                     </p>
                   </div>
                 </div>
               </div>
 
-              <div className="flex gap-4">
+              <div className="flex gap-6 w-full">
                 <button
                   onClick={() => setStep('choose')}
-                  className="flex-1 py-4 text-slate-600 font-bold hover:text-slate-900 transition-colors"
+                  style={{ minHeight: '72px' }}
+                  className="flex-1 text-lg text-slate-600 font-bold hover:text-slate-900 hover:bg-slate-50 rounded-2xl transition-all"
                   disabled={loading}
                 >
                   Back
@@ -193,12 +196,13 @@ export function JoinHackathonModal({
                 <button
                   onClick={handleSoloJoin}
                   disabled={loading}
-                  className="flex-1 py-4 bg-indigo-600 text-white rounded-2xl font-bold shadow-xl shadow-indigo-200 hover:shadow-indigo-300 transition-all hover:-translate-y-0.5 disabled:opacity-50"
+                  style={{ minHeight: '72px' }}
+                  className="flex-1 bg-indigo-600 text-white rounded-2xl text-lg font-bold shadow-xl shadow-indigo-200 hover:shadow-indigo-300 transition-all hover:-translate-y-1 disabled:opacity-50"
                 >
                   {loading ? 'Registering...' : 'Confirm Registration'}
                 </button>
               </div>
-            </>
+            </div>
           )}
 
           {/* Group Form */}
@@ -299,10 +303,11 @@ export function JoinHackathonModal({
                 </div>
               </div>
 
-              <div className="flex gap-4">
+              <div className="flex gap-6">
                 <button
                   onClick={() => setStep('choose')}
-                  className="flex-1 py-4 text-slate-600 font-bold hover:text-slate-900 transition-colors"
+                  style={{ minHeight: '72px' }}
+                  className="flex-1 text-slate-600 font-bold hover:text-slate-900 hover:bg-slate-50 rounded-2xl transition-all text-lg"
                   disabled={loading}
                 >
                   Back
@@ -310,7 +315,8 @@ export function JoinHackathonModal({
                 <button
                   onClick={handleGroupJoin}
                   disabled={loading}
-                  className="flex-1 py-4 bg-indigo-600 text-white rounded-2xl font-bold shadow-xl shadow-indigo-200 hover:shadow-indigo-300 transition-all hover:-translate-y-0.5 disabled:opacity-50"
+                  style={{ minHeight: '72px' }}
+                  className="flex-1 bg-indigo-600 text-white rounded-2xl font-bold shadow-xl shadow-indigo-200 hover:shadow-indigo-300 transition-all hover:-translate-y-1 disabled:opacity-50 text-lg"
                 >
                   {loading ? 'Creating Team...' : 'Create Team'}
                 </button>

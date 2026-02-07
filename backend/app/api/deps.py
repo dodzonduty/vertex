@@ -64,6 +64,32 @@ def get_current_user(
     return user
 
 
+def get_current_user_optional(
+    credentials: Optional[HTTPAuthorizationCredentials] = Depends(HTTPBearer(auto_error=False)),
+    db: Session = Depends(get_db)
+) -> Optional[User]:
+    """
+    Optional dependency to get current user if authenticated, otherwise None
+    """
+    if not credentials:
+        return None
+        
+    try:
+        token = credentials.credentials
+        payload = decode_access_token(token)
+        if payload is None:
+            return None
+            
+        user_id: str = payload.get("sub")
+        if user_id is None:
+            return None
+            
+        user = db.query(User).filter(User.user_id == user_id).first()
+        return user
+    except Exception:
+        return None
+
+
 def get_current_active_user(
     current_user: User = Depends(get_current_user)
 ) -> User:

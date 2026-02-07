@@ -124,15 +124,18 @@ def read_opportunities(
 @router.get("/opportunities/{opportunity_id}", response_model=OpportunityResponse)
 def read_single_opportunity(
     opportunity_id: str,
-    db: Session = Depends(deps.get_db)
+    db: Session = Depends(deps.get_db),
+    current_user: Optional[User] = Depends(deps.get_current_user_optional)
 ):
     """
     Retrieve a specific opportunity by ID.
     Includes company profile photo in hosted_by information and enrolled teams count.
+    Also checks if current user is enrolled.
     """
     from fastapi import HTTPException
     from app.models.company import Company
     from app.models.team import Team
+    from app.models.team_member import TeamMember
     
     opp = db.query(Opportunity).filter(Opportunity.opportunity_id == opportunity_id).first()
     if not opp:
@@ -140,6 +143,25 @@ def read_single_opportunity(
     
     # Count enrolled teams for this opportunity
     enrolled_teams_count = db.query(Team).filter(Team.opportunity_id == opportunity_id).count()
+    
+    # Check enrollment status for current user
+    is_enrolled = False
+    if current_user and current_user.role == 'student' and current_user.student:
+        student_id = current_user.student.student_id
+        # Check if student is in any team for this opportunity
+        enrollment = db.query(TeamMember).join(Team).filter(
+            Team.opportunity_id == opportunity_id,
+            TeamMember.student_id == student_id
+        ).first()
+        if enrollment:
+            is_enrolled = True
+    
+    # Set default is_enrolled on the ORM object (it's not a DB column but accessible via Pydantic model from_attributes if we patch it)
+    # Since opp is an ORM object and is_enrolled is not a column, we can attach it dynamically 
+    # BUT Pydantic from_attributes might miss it if it's not on the object. 
+    # Safest way is to ensure the response model picks it up. 
+    # Setting it on the instance usually works for Pydantic v2 from_attributes if not strict.
+    opp.is_enrolled = is_enrolled
     
     # Enrich with company profile photo if created by a company
     if opp.created_by_type == "company":

@@ -34,6 +34,7 @@ interface Opportunity {
       profile_photo_url?: string;
     };
   };
+  is_enrolled?: boolean;
 }
 
 export function OpportunityProfile() {
@@ -200,12 +201,22 @@ export function OpportunityProfile() {
               </div>
             </div>
 
-            <button 
-              onClick={() => setShowJoinModal(true)}
-              className="cta-button"
-            >
-              Join <span className="material-symbols-outlined">rocket_launch</span>
-            </button>
+            {opportunity.is_enrolled ? (
+              <button 
+                disabled
+                style={{ minHeight: '64px', minWidth: '240px', padding: '0 40px', fontSize: '1.125rem' }}
+                className="rounded-xl font-bold bg-slate-100 text-slate-400 cursor-not-allowed flex items-center justify-center gap-2"
+              >
+                Joined <span className="material-symbols-outlined text-slate-400">check_circle</span>
+              </button>
+            ) : (
+              <button 
+                onClick={() => setShowJoinModal(true)}
+                className="cta-button"
+              >
+                Join <span className="material-symbols-outlined">rocket_launch</span>
+              </button>
+            )}
           </div>
         </div>
       </div>
@@ -579,8 +590,8 @@ export function OpportunityProfile() {
           maxParticipants={desc.maxParticipants}
           onClose={() => setShowJoinModal(false)}
           onSuccess={() => {
-            // Refresh or show success message
             setShowJoinModal(false);
+            window.location.reload(); // Reload to refresh state and show "Joined" button
           }}
         />
       )}
