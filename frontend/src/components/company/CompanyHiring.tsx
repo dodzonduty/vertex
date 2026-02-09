@@ -1,8 +1,7 @@
 import { useState } from 'react';
 import { Sparkles, FolderGit2, CheckCircle2, ArrowRight } from 'lucide-react';
-import { useNavigate } from 'react-router-dom';
 import '../Opportunities.css';
-import { askAI } from '../../lib/api/ai';
+import { AIModal } from '../ai/AIModal';
 
 type SearchTarget = 'students' | 'projects';
 
@@ -29,15 +28,11 @@ interface Project {
 }
 
 export function CompanyHiring() {
-    const navigate = useNavigate();
     const [searchTarget, setSearchTarget] = useState<SearchTarget>('students');
     const [sortBy, setSortBy] = useState<string>('Most Recent');
     const [selectedTags, setSelectedTags] = useState<string[]>(['#All']); // Init with #All like Opps
 
-    // AI State
-    const [aiQuery, setAiQuery] = useState('');
-    const [aiResponse, setAiResponse] = useState<any | null>(null);
-    const [isAiLoading, setIsAiLoading] = useState(false);
+    const [isAIModalOpen, setIsAIModalOpen] = useState(false);
 
     const availableTags = [
         '#All', '#React', '#Python', '#AI/ML', '#Node.js', '#TypeScript',
@@ -130,25 +125,8 @@ export function CompanyHiring() {
         }
     };
 
-    const handleAskAI = async () => {
-        if (!aiQuery.trim()) return;
-
-        setIsAiLoading(true);
-        try {
-            const context = `User (Company) is searching for ${searchTarget}.`;
-            const response = await askAI(aiQuery, context);
-            setAiResponse(response);
-        } catch (err) {
-            console.error("AI Error:", err);
-            setAiResponse({
-                answer: "I'm sorry, I'm having trouble matching candidates right now. Please try again soon.",
-                recommended_students: [],
-                recommended_companies: [],
-                recommended_opportunities: []
-            });
-        } finally {
-            setIsAiLoading(false);
-        }
+    const handleAskAI = () => {
+        setIsAIModalOpen(true);
     };
 
     return (
@@ -164,81 +142,25 @@ export function CompanyHiring() {
                                 className="opp-search-input"
                                 placeholder="Search for talent by name, skill, or university..."
                                 type="text"
-                                value={aiQuery}
-                                onChange={(e) => setAiQuery(e.target.value)}
-                                onKeyDown={(e) => { if (e.key === 'Enter') handleAskAI(); }}
+                                onClick={handleAskAI}
+                                readOnly
                             />
                             <button
-                                className={`opp-ask-ai-btn vibrant-gradient ${isAiLoading ? 'opacity-70' : ''}`}
+                                className="opp-ask-ai-btn vibrant-gradient"
                                 onClick={handleAskAI}
-                                disabled={isAiLoading}
                             >
-                                <span className="material-symbols-outlined">{isAiLoading ? 'progress_activity' : 'auto_awesome'}</span>
-                                {isAiLoading ? 'Thinking...' : 'Ask AI'}
+                                <span className="material-symbols-outlined">auto_awesome</span>
+                                Ask AI
                             </button>
                         </div>
                     </div>
 
-                    {/* AI Response Box */}
-                    {aiResponse && (
-                        <div className="ai-response-container animate-in fade-in slide-in-from-top-4 duration-500 mb-8">
-                            <div className="glass-card ai-response-box">
-                                <div className="ai-response-header">
-                                    <div className="flex items-center gap-2">
-                                        <span className="material-symbols-outlined ai-sparkle">auto_awesome</span>
-                                        <span className="ai-response-title">Vertex AI Assistant</span>
-                                    </div>
-                                    <button className="ai-close-btn" onClick={() => setAiResponse(null)}>
-                                        <span className="material-symbols-outlined">close</span>
-                                    </button>
-                                </div>
-                                <div className="ai-response-content">
-                                    <div className="whitespace-pre-wrap mb-4">
-                                        {aiResponse.answer}
-                                    </div>
-
-                                    {/* Render Recommended Students if any */}
-                                    {aiResponse.recommended_students && aiResponse.recommended_students.length > 0 && (
-                                        <div className="mt-4 flex flex-col gap-4">
-                                            <div className="text-xs font-black text-blue-600 uppercase tracking-widest mb-2">Top Talent Matches</div>
-                                            <div className="grid grid-cols-1 gap-4">
-                                                {aiResponse.recommended_students.map((student: any) => (
-                                                    <div
-                                                        key={student.student_id}
-                                                        onClick={() => navigate(`/student/profile/${student.student_id}`)}
-                                                        className="group bg-white/50 backdrop-blur-sm rounded-2xl p-4 border border-blue-100 hover:border-blue-300 transition-all cursor-pointer flex gap-4 items-center"
-                                                    >
-                                                        {student.photo_url ? (
-                                                            <img src={student.photo_url} alt={student.full_name} className="w-12 h-12 rounded-xl object-cover shrink-0" />
-                                                        ) : (
-                                                            <div className="w-12 h-12 bg-blue-50 rounded-xl flex items-center justify-center shrink-0">
-                                                                <span className="material-symbols-outlined text-blue-600">person</span>
-                                                            </div>
-                                                        )}
-                                                        <div className="flex-1 min-w-0">
-                                                            <h4 className="font-bold text-slate-900 truncate">{student.full_name}</h4>
-                                                            <div className="flex items-center gap-2">
-                                                                <span className="text-[10px] font-bold uppercase py-0.5 px-2 bg-blue-100 text-blue-600 rounded-full">
-                                                                    {student.degree_level}
-                                                                </span>
-                                                                <span className="text-[10px] text-slate-500 truncate">
-                                                                    {student.university}
-                                                                </span>
-                                                            </div>
-                                                        </div>
-                                                        <span className="material-symbols-outlined text-slate-300 group-hover:text-blue-600 transition-colors">arrow_forward_ios</span>
-                                                    </div>
-                                                ))}
-                                            </div>
-                                        </div>
-                                    )}
-                                </div>
-                                <div className="ai-response-footer">
-                                    Powered by Gemini 2.0
-                                </div>
-                            </div>
-                        </div>
-                    )}
+                    <AIModal
+                        isOpen={isAIModalOpen}
+                        onClose={() => setIsAIModalOpen(false)}
+                        context={`User (Company) is searching for ${searchTarget}.`}
+                        placeholder={`Ask AI about ${searchTarget}...`}
+                    />
                 </div>
             </section>
 

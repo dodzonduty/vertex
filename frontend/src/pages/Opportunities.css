@@ -998,3 +998,236 @@
 .opp-refine-btn:hover {
   transform: scale(1.02);
 }
+
+/* Custom Scrollbar for Modal content */
+.custom-scrollbar::-webkit-scrollbar {
+  width: 6px;
+}
+
+.custom-scrollbar::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.custom-scrollbar::-webkit-scrollbar-thumb {
+  background: #e2e8f0;
+  border-radius: 10px;
+}
+
+.custom-scrollbar::-webkit-scrollbar-thumb:hover {
+  background: #cbd5e1;
+}
+
+/* Modal specific tweaks */
+.ai-modal-input:focus {
+  outline: none;
+  border: none;
+  box-shadow: none;
+}
+
+/* --- Chat Interface Styles --- */
+
+.ai-chat-bar-container {
+  padding: 1.5rem;
+  background: white;
+  border-top: 1px solid #f1f5f9;
+}
+
+.ai-chat-input-wrapper {
+  position: relative;
+  display: flex;
+  align-items: center;
+  background: #f8fafc;
+  border: 1px solid #e2e8f0;
+  border-radius: 1.5rem;
+  padding: 0.5rem 0.5rem 0.5rem 1.5rem;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.ai-chat-input-wrapper:focus-within {
+  background: white;
+  border-color: #818cf8;
+  box-shadow: 0 0 0 4px rgba(99, 102, 241, 0.1), 0 4px 12px rgba(99, 102, 241, 0.1);
+  transform: translateY(-1px);
+}
+
+.ai-chat-input {
+  flex: 1;
+  background: transparent;
+  border: none;
+  font-size: 1rem;
+  color: #0f172a;
+  outline: none;
+  min-height: 24px;
+}
+
+.ai-chat-input::placeholder {
+  color: #94a3b8;
+  font-weight: 500;
+}
+
+.ai-send-btn {
+  width: 2.5rem;
+  height: 2.5rem;
+  border-radius: 50%;
+  background: #4f46e5;
+  color: white;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.2s;
+  border: none;
+  cursor: pointer;
+  margin-left: 0.5rem;
+}
+
+.ai-send-btn:hover {
+  background: #4338ca;
+  transform: scale(1.05);
+}
+
+.ai-send-btn:active {
+  transform: scale(0.95);
+}
+
+.ai-send-btn:disabled {
+  background: #e2e8f0;
+  color: #94a3b8;
+  cursor: not-allowed;
+  transform: none;
+}
+
+/* --- Premium AI Modal Enhanced Styles --- */
+
+.neural-scan-container {
+  position: relative;
+  width: 120px;
+  height: 120px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.neural-orbit {
+  position: absolute;
+  border: 2px solid rgba(124, 58, 237, 0.1);
+  border-radius: 50%;
+}
+
+.orbit-1 {
+  width: 100%;
+  height: 100%;
+  animation: spin-ai 4s linear infinite;
+  border-top-color: #7C3AED;
+}
+
+.orbit-2 {
+  width: 70%;
+  height: 70%;
+  animation: spin-ai 3s linear infinite reverse;
+  border-bottom-color: #3B82F6;
+}
+
+.orbit-3 {
+  width: 40%;
+  height: 40%;
+  animation: spin-ai 2s linear infinite;
+  border-left-color: #8B5CF6;
+}
+
+@keyframes spin-ai {
+  from {
+    transform: rotate(0deg);
+  }
+
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+.scanning-beam {
+  position: absolute;
+  width: 100%;
+  height: 2px;
+  background: linear-gradient(90deg, transparent, #7C3AED, transparent);
+  animation: scan-vertical 2s ease-in-out infinite;
+  z-index: 10;
+}
+
+@keyframes scan-vertical {
+
+  0%,
+  100% {
+    top: 0%;
+    opacity: 0;
+  }
+
+  50% {
+    top: 100%;
+    opacity: 1;
+  }
+}
+
+.premium-ai-card {
+  background: rgba(255, 255, 255, 0.4);
+  backdrop-filter: blur(8px);
+  border: 1px solid rgba(255, 255, 255, 0.5);
+  transition: all 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
+.premium-ai-card:hover {
+  background: white;
+  transform: translateY(-4px) scale(1.02);
+  box-shadow: 0 20px 40px -10px rgba(124, 58, 237, 0.15);
+  border-color: rgba(124, 58, 237, 0.3);
+}
+
+.match-strength-bar {
+  height: 3px;
+  background: #f1f5f9;
+  border-radius: 99px;
+  overflow: hidden;
+}
+
+.match-strength-fill {
+  height: 100%;
+  background: linear-gradient(90deg, #3B82F6, #7C3AED);
+  border-radius: 99px;
+}
+
+.quick-start-chip {
+  padding: 0.625rem 1rem;
+  background: white;
+  border: 1px solid #f1f5f9;
+  border-radius: 1rem;
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: #64748b;
+  transition: all 0.2s;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.quick-start-chip:hover {
+  background: #f8fafc;
+  border-color: #e2e8f0;
+  color: #0f172a;
+  transform: translateY(-1px);
+}
+
+.ai-modal-header-text {
+  font-family: 'Space Grotesk', sans-serif;
+  letter-spacing: -0.01em;
+}
+
+.custom-scrollbar::-webkit-scrollbar-thumb:hover {
+  background: #cbd5e1;
+}
+
+/* Modal specific tweaks */
+.ai-modal-input:focus {
+  outline: none;
+  border: none;
+  box-shadow: none;
+}

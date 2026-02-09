@@ -3,7 +3,7 @@ import { Building2, User, Sparkles, ArrowRight, MapPin } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { apiRequest, getUserData } from '../../lib/api/config';
 import '../Opportunities.css';
-import { askAI } from '../../lib/api/ai';
+import { AIModal } from '../ai/AIModal';
 
 interface Student {
   student_id: string;
@@ -43,10 +43,7 @@ export function BrowseProfiles({ publicView = false }: BrowseProfilesProps) {
   const [loading, setLoading] = useState(true);
   const [user, setUser] = useState<any>(getUserData());
 
-  // AI State
-  const [aiQuery, setAiQuery] = useState('');
-  const [aiResponse, setAiResponse] = useState<any | null>(null);
-  const [isAiLoading, setIsAiLoading] = useState(false);
+  const [isAIModalOpen, setIsAIModalOpen] = useState(false);
 
   useEffect(() => {
     const loadUser = () => setUser(getUserData());
@@ -98,25 +95,8 @@ export function BrowseProfiles({ publicView = false }: BrowseProfilesProps) {
       .slice(0, 2);
   };
 
-  const handleAskAI = async () => {
-    if (!aiQuery.trim()) return;
-
-    setIsAiLoading(true);
-    try {
-      const context = `User is browsing ${browseTarget} for collaboration.`;
-      const response = await askAI(aiQuery, context);
-      setAiResponse(response);
-    } catch (err) {
-      console.error("AI Error:", err);
-      setAiResponse({
-        answer: "I'm sorry, I'm having trouble finding connections right now. Please try again in a moment.",
-        recommended_students: [],
-        recommended_companies: [],
-        recommended_opportunities: []
-      });
-    } finally {
-      setIsAiLoading(false);
-    }
+  const handleAskAI = () => {
+    setIsAIModalOpen(true);
   };
 
   return (
@@ -153,115 +133,26 @@ export function BrowseProfiles({ publicView = false }: BrowseProfilesProps) {
             className="opp-search-input"
             type="text"
             placeholder={`Search for ${browseTarget === 'students' ? 'peers and collaborators' : 'innovative companies'}...`}
-            value={aiQuery}
-            onChange={(e) => {
-              setSearchQuery(e.target.value);
-              setAiQuery(e.target.value);
-            }}
-            onKeyDown={(e) => { if (e.key === 'Enter') handleAskAI(); }}
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
           />
           <button
-            className={`opp-ask-ai-btn vibrant-gradient ${isAiLoading ? 'opacity-70' : ''}`}
+            className="opp-ask-ai-btn vibrant-gradient"
             onClick={handleAskAI}
-            disabled={isAiLoading}
           >
-            <span className="material-symbols-outlined">{isAiLoading ? 'progress_activity' : 'auto_awesome'}</span>
-            {isAiLoading ? 'Thinking...' : 'Ask AI'}
+            <span className="material-symbols-outlined">auto_awesome</span>
+            Ask AI
           </button>
         </div>
       </div>
 
-      {/* AI Response Box */}
-      {aiResponse && (
-        <div className="ai-response-container animate-in fade-in slide-in-from-top-4 duration-500 mb-12">
-          <div className="glass-card ai-response-box">
-            <div className="ai-response-header">
-              <div className="flex items-center gap-2">
-                <span className="material-symbols-outlined ai-sparkle">auto_awesome</span>
-                <span className="ai-response-title">Vertex AI Assistant</span>
-              </div>
-              <button className="ai-close-btn" onClick={() => setAiResponse(null)}>
-                <span className="material-symbols-outlined">close</span>
-              </button>
-            </div>
-            <div className="ai-response-content">
-              <div className="whitespace-pre-wrap mb-4">
-                {aiResponse.answer}
-              </div>
+      <AIModal
+        isOpen={isAIModalOpen}
+        onClose={() => setIsAIModalOpen(false)}
+        context={`User is browsing ${browseTarget} for collaboration.`}
+        placeholder={`Ask AI about ${browseTarget}...`}
+      />
 
-              {/* Render Recommended Students if any */}
-              {aiResponse.recommended_students && aiResponse.recommended_students.length > 0 && (
-                <div className="mt-4 flex flex-col gap-4">
-                  <div className="text-xs font-black text-indigo-600 uppercase tracking-widest mb-2">Relevant Peers for You</div>
-                  <div className="grid grid-cols-1 gap-4">
-                    {aiResponse.recommended_students.map((student: any) => (
-                      <div
-                        key={student.student_id}
-                        onClick={() => navigate(`/student/profile/${student.student_id}`)}
-                        className="group bg-white/50 backdrop-blur-sm rounded-2xl p-4 border border-indigo-100 hover:border-indigo-300 transition-all cursor-pointer flex gap-4 items-center"
-                      >
-                        {student.photo_url ? (
-                          <img src={student.photo_url} alt={student.full_name} className="w-12 h-12 rounded-xl object-cover shrink-0" />
-                        ) : (
-                          <div className="w-12 h-12 bg-indigo-50 rounded-xl flex items-center justify-center shrink-0">
-                            <span className="material-symbols-outlined text-indigo-600">person</span>
-                          </div>
-                        )}
-                        <div className="flex-1 min-w-0">
-                          <h4 className="font-bold text-slate-900 truncate">{student.full_name}</h4>
-                          <div className="flex items-center gap-2">
-                            <span className="text-[10px] font-bold uppercase py-0.5 px-2 bg-indigo-100 text-indigo-600 rounded-full">
-                              {student.degree_level}
-                            </span>
-                            <span className="text-[10px] text-slate-500 truncate">
-                              {student.university}
-                            </span>
-                          </div>
-                        </div>
-                        <span className="material-symbols-outlined text-slate-300 group-hover:text-indigo-600 transition-colors">arrow_forward_ios</span>
-                      </div>
-                    ))}
-                  </div>
-                </div>
-              )}
-
-              {/* Render Recommended Companies if any */}
-              {aiResponse.recommended_companies && aiResponse.recommended_companies.length > 0 && (
-                <div className="mt-6 flex flex-col gap-4">
-                  <div className="text-xs font-black text-blue-600 uppercase tracking-widest mb-2">Industry Leaders</div>
-                  <div className="grid grid-cols-1 gap-4">
-                    {aiResponse.recommended_companies.map((company: any) => (
-                      <div
-                        key={company.company_id}
-                        onClick={() => navigate(`/company/profile/${company.company_id}`)}
-                        className="group bg-white/50 backdrop-blur-sm rounded-2xl p-4 border border-blue-100 hover:border-blue-300 transition-all cursor-pointer flex gap-4 items-center"
-                      >
-                        {company.photo_url ? (
-                          <img src={company.photo_url} alt={company.name} className="w-12 h-12 rounded-xl object-cover shrink-0" />
-                        ) : (
-                          <div className="w-12 h-12 bg-blue-50 rounded-xl flex items-center justify-center shrink-0">
-                            <span className="material-symbols-outlined text-blue-600">corporate_fare</span>
-                          </div>
-                        )}
-                        <div className="flex-1 min-w-0">
-                          <h4 className="font-bold text-slate-900 truncate">{company.name}</h4>
-                          <span className="text-[10px] font-bold uppercase py-0.5 px-2 bg-blue-100 text-blue-600 rounded-full">
-                            {company.industry}
-                          </span>
-                        </div>
-                        <span className="material-symbols-outlined text-slate-300 group-hover:text-blue-600 transition-colors">arrow_forward_ios</span>
-                      </div>
-                    ))}
-                  </div>
-                </div>
-              )}
-            </div>
-            <div className="ai-response-footer">
-              Powered by Vertex AI
-            </div>
-          </div>
-        </div>
-      )}
 
       {/* Loading State */}
       {loading && (
