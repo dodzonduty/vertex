@@ -5,6 +5,7 @@ from pydantic import BaseModel, EmailStr
 from datetime import datetime
 from typing import Optional, List, Any
 from app.schemas.project import ProjectResponse
+from app.schemas.auth import UserResponse
 
 
 class CertificateResponse(BaseModel):
@@ -46,6 +47,7 @@ class StudentResponse(BaseModel):
     linkedin_url: Optional[str] = None
     created_at: datetime
     updated_at: datetime
+    user: Optional[UserResponse] = None
     
     class Config:
         from_attributes = True
