@@ -42,7 +42,7 @@ export function StudentOpenMatch({ opportunityId }: { opportunityId: string }) {
   const [searchQuery, setSearchQuery] = useState('');
   const [useAISearch, setUseAISearch] = useState(false);
   const [selectedRoom, setSelectedRoom] = useState<Room | null>(null);
-  
+
   const [rooms, setRooms] = useState<Room[]>([]);
   const [loading, setLoading] = useState(true);
 
@@ -50,10 +50,10 @@ export function StudentOpenMatch({ opportunityId }: { opportunityId: string }) {
   const [newRoomTitle, setNewRoomTitle] = useState('');
   const [newRoomDesc, setNewRoomDesc] = useState('');
   const [newRoomRoles, setNewRoomRoles] = useState<CreateRoleData[]>([{ title: '', count: 1, tags: '' }]);
-  
+
   // Navigation Logic
   const handleViewHostProfile = (hostId: string) => {
-      window.location.href = `/student/profile/${hostId}`;
+    window.location.href = `/student/profile/${hostId}`;
   };
 
   useEffect(() => {
@@ -88,56 +88,56 @@ export function StudentOpenMatch({ opportunityId }: { opportunityId: string }) {
 
   const handleCreateRoom = async (e: React.FormEvent) => {
     e.preventDefault();
-    
+
     // Filter valid roles
     const validRoles = newRoomRoles.filter(r => r.title.trim() !== '');
     if (validRoles.length === 0) {
-        toast.error("Please add at least one role to your room.");
-        return;
+      toast.error("Please add at least one role to your room.");
+      return;
     }
 
     try {
-        const payload = {
-            title: newRoomTitle,
-            description: newRoomDesc,
-            opportunity_id: opportunityId,
-            roles: validRoles.map(r => ({
-                title: r.title,
-                count: r.count,
-                tags: r.tags.split(',').map(t => t.trim()).filter(Boolean)
-            }))
-        };
-        
-        await apiRequest('/api/rooms/', {
-            method: 'POST',
-            body: JSON.stringify(payload)
-        });
-        
-        toast.success("Room created successfully!");
-        setShowCreateRoom(false);
-        fetchRooms();
-        
-        // Reset form
-        setNewRoomTitle('');
-        setNewRoomDesc('');
-        setNewRoomRoles([{ title: '', count: 1, tags: '' }]);
-        
+      const payload = {
+        title: newRoomTitle,
+        description: newRoomDesc,
+        opportunity_id: opportunityId,
+        roles: validRoles.map(r => ({
+          title: r.title,
+          count: r.count,
+          tags: r.tags.split(',').map(t => t.trim()).filter(Boolean)
+        }))
+      };
+
+      await apiRequest('/api/rooms/', {
+        method: 'POST',
+        body: JSON.stringify(payload)
+      });
+
+      toast.success("Room created successfully!");
+      setShowCreateRoom(false);
+      fetchRooms();
+
+      // Reset form
+      setNewRoomTitle('');
+      setNewRoomDesc('');
+      setNewRoomRoles([{ title: '', count: 1, tags: '' }]);
+
     } catch (err) {
-        toast.error("Failed to create room.");
-        console.error(err);
+      toast.error("Failed to create room.");
+      console.error(err);
     }
   };
 
   const handleJoinRequest = async (room: Room, roleId: string) => {
-      try {
-          await apiRequest(`/api/rooms/${room.id}/join`, {
-              method: 'POST',
-              body: JSON.stringify({ opening_id: roleId, message: "Requesting to join via OpenMatch" })
-          });
-          toast.success("Join request sent!");
-      } catch (err: any) {
-          toast.error(err.message || "Failed to join");
-      }
+    try {
+      await apiRequest(`/api/rooms/${room.id}/join`, {
+        method: 'POST',
+        body: JSON.stringify({ opening_id: roleId, message: "Requesting to join via OpenMatch" })
+      });
+      toast.success("Join request sent!");
+    } catch (err: any) {
+      toast.error(err.message || "Failed to join");
+    }
   };
 
   return (
@@ -157,45 +157,45 @@ export function StudentOpenMatch({ opportunityId }: { opportunityId: string }) {
       </div>
 
       {/* Search - Premium */}
-      <div className={`bg-white rounded-3xl p-2 mb-10 border transition-all duration-500 shadow-xl shadow-slate-200/50 flex flex-col md:flex-row items-center gap-2 ${useAISearch ? 'border-indigo-500 ring-4 ring-indigo-500/10' : 'border-slate-100 font-medium'}`}>
-        <div className="flex-1 relative w-full group">
-          <Search className={`absolute left-5 top-1/2 -translate-y-1/2 w-5 h-5 transition-colors ${useAISearch ? 'text-indigo-500' : 'text-slate-400'}`} />
+      <div className={`bg-white rounded-3xl p-3 mb-10 border transition-all duration-500 shadow-xl shadow-slate-200/50 flex flex-col md:flex-row items-center gap-3 ${useAISearch ? 'border-indigo-500 ring-4 ring-indigo-500/10' : 'border-slate-100'}`}>
+        <div className="flex items-center gap-3 flex-1 w-full">
+          <Search className={`w-5 h-5 ml-2 transition-colors flex-shrink-0 ${useAISearch ? 'text-indigo-500' : 'text-slate-400'}`} />
           <input
             type="text"
             placeholder={useAISearch ? "Describe your goal (e.g. 'I need a web3 team that values clean code...')" : "Search rooms..."}
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
-            className="w-full pl-14 pr-4 py-4 bg-transparent outline-none text-slate-900 placeholder:text-slate-400 font-medium"
+            className="flex-1 py-3 bg-transparent outline-none text-slate-900 placeholder:text-slate-400 font-medium"
           />
         </div>
         <button
           onClick={() => setUseAISearch(!useAISearch)}
-          className={`flex items-center gap-2 px-6 py-4 rounded-2xl transition-all ${useAISearch ? 'bg-indigo-600 text-white shadow-lg' : 'bg-slate-50 text-slate-600 hover:bg-slate-100'}`}
+          className={`flex items-center gap-2 px-6 py-3 rounded-2xl transition-all font-bold whitespace-nowrap ${useAISearch ? 'bg-gradient-to-r from-indigo-600 to-violet-600 text-white shadow-lg shadow-indigo-300' : 'bg-slate-100 text-slate-700 hover:bg-slate-200'}`}
         >
           <Sparkles className={`w-5 h-5 ${useAISearch ? 'animate-pulse' : ''}`} />
-          <span className="font-bold whitespace-nowrap">AI Smart Filter</span>
+          <span>AI Smart Filter</span>
         </button>
       </div>
 
       {loading ? (
         <div className="flex justify-center py-20">
-            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-indigo-600"></div>
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-indigo-600"></div>
         </div>
       ) : (
         <div className="grid md:grid-cols-2 gap-8 mb-12">
-            {rooms.length === 0 ? (
-                <div className="col-span-2 text-center py-20 text-slate-400">
-                    <p>No active rooms found. Be the first to create one!</p>
-                </div>
-            ) : (
-                rooms.map((room) => (
-                    <RoomCard
-                        key={room.id}
-                        room={room}
-                        onViewDetails={() => setSelectedRoom(room)}
-                    />
-                ))
-            )}
+          {rooms.length === 0 ? (
+            <div className="col-span-2 text-center py-20 text-slate-400">
+              <p>No active rooms found. Be the first to create one!</p>
+            </div>
+          ) : (
+            rooms.map((room) => (
+              <RoomCard
+                key={room.id}
+                room={room}
+                onViewDetails={() => setSelectedRoom(room)}
+              />
+            ))
+          )}
         </div>
       )}
 
@@ -207,69 +207,69 @@ export function StudentOpenMatch({ opportunityId }: { opportunityId: string }) {
               <form onSubmit={handleCreateRoom} className="space-y-6">
                 <div>
                   <label className="block text-xs font-bold text-slate-400 uppercase tracking-widest mb-3">Room Title</label>
-                  <input 
-                    required 
+                  <input
+                    required
                     value={newRoomTitle}
                     onChange={e => setNewRoomTitle(e.target.value)}
-                    placeholder="E.g. Fullstack Devs for FinTech" 
-                    className="w-full px-5 py-4 bg-slate-50 border border-slate-100 rounded-2xl focus:ring-4 focus:ring-indigo-500/10 outline-none" 
+                    placeholder="E.g. Fullstack Devs for FinTech"
+                    className="w-full px-5 py-4 bg-slate-50 border border-slate-100 rounded-2xl focus:ring-4 focus:ring-indigo-500/10 outline-none"
                   />
                 </div>
                 <div>
                   <label className="block text-xs font-bold text-slate-400 uppercase tracking-widest mb-3">Vision & Goals</label>
-                  <textarea 
-                    rows={4} 
-                    required 
+                  <textarea
+                    rows={4}
+                    required
                     value={newRoomDesc}
                     onChange={e => setNewRoomDesc(e.target.value)}
-                    placeholder="What are you building?" 
-                    className="w-full px-5 py-4 bg-slate-50 border border-slate-100 rounded-2xl focus:ring-4 focus-ring-indigo-500/10 outline-none" 
+                    placeholder="What are you building?"
+                    className="w-full px-5 py-4 bg-slate-50 border border-slate-100 rounded-2xl focus:ring-4 focus-ring-indigo-500/10 outline-none"
                   />
                 </div>
 
                 {/* Roles Section */}
                 <div>
-                    <div className="flex justify-between items-center mb-3">
-                        <label className="block text-xs font-bold text-slate-400 uppercase tracking-widest">Open Roles needed</label>
-                        <button type="button" onClick={handleAddRole} className="text-xs font-bold text-indigo-600 flex items-center gap-1 hover:text-indigo-700">
-                             <Plus className="w-3 h-3" /> Add Role
-                        </button>
-                    </div>
-                    <div className="space-y-3">
-                        {newRoomRoles.map((role, idx) => (
-                            <div key={idx} className="p-4 bg-slate-50 rounded-xl border border-slate-100 flex gap-3 items-start relative">
-                                <div className="flex-1 space-y-3">
-                                    <div className="flex gap-3">
-                                        <input 
-                                            placeholder="Role Title (e.g. Frontend Dev)"
-                                            value={role.title}
-                                            onChange={e => handleRoleChange(idx, 'title', e.target.value)}
-                                            className="flex-1 px-3 py-2 bg-white border border-slate-200 rounded-lg text-sm"
-                                            required
-                                        />
-                                        <input 
-                                            type="number"
-                                            min="1"
-                                            value={role.count}
-                                            onChange={e => handleRoleChange(idx, 'count', parseInt(e.target.value))}
-                                            className="w-20 px-3 py-2 bg-white border border-slate-200 rounded-lg text-sm"
-                                        />
-                                    </div>
-                                    <input 
-                                        placeholder="Skills (comma seq: React, Node)"
-                                        value={role.tags}
-                                        onChange={e => handleRoleChange(idx, 'tags', e.target.value)}
-                                        className="w-full px-3 py-2 bg-white border border-slate-200 rounded-lg text-sm"
-                                    />
-                                </div>
-                                {newRoomRoles.length > 1 && (
-                                    <button type="button" onClick={() => handleRemoveRole(idx)} className="text-slate-400 hover:text-red-500 p-1">
-                                        <X className="w-4 h-4" />
-                                    </button>
-                                )}
-                            </div>
-                        ))}
-                    </div>
+                  <div className="flex justify-between items-center mb-3">
+                    <label className="block text-xs font-bold text-slate-400 uppercase tracking-widest">Open Roles needed</label>
+                    <button type="button" onClick={handleAddRole} className="text-xs font-bold text-indigo-600 flex items-center gap-1 hover:text-indigo-700">
+                      <Plus className="w-3 h-3" /> Add Role
+                    </button>
+                  </div>
+                  <div className="space-y-3">
+                    {newRoomRoles.map((role, idx) => (
+                      <div key={idx} className="p-4 bg-slate-50 rounded-xl border border-slate-100 flex gap-3 items-start relative">
+                        <div className="flex-1 space-y-3">
+                          <div className="flex gap-3">
+                            <input
+                              placeholder="Role Title (e.g. Frontend Dev)"
+                              value={role.title}
+                              onChange={e => handleRoleChange(idx, 'title', e.target.value)}
+                              className="flex-1 px-3 py-2 bg-white border border-slate-200 rounded-lg text-sm"
+                              required
+                            />
+                            <input
+                              type="number"
+                              min="1"
+                              value={role.count}
+                              onChange={e => handleRoleChange(idx, 'count', parseInt(e.target.value))}
+                              className="w-20 px-3 py-2 bg-white border border-slate-200 rounded-lg text-sm"
+                            />
+                          </div>
+                          <input
+                            placeholder="Skills (comma seq: React, Node)"
+                            value={role.tags}
+                            onChange={e => handleRoleChange(idx, 'tags', e.target.value)}
+                            className="w-full px-3 py-2 bg-white border border-slate-200 rounded-lg text-sm"
+                          />
+                        </div>
+                        {newRoomRoles.length > 1 && (
+                          <button type="button" onClick={() => handleRemoveRole(idx)} className="text-slate-400 hover:text-red-500 p-1">
+                            <X className="w-4 h-4" />
+                          </button>
+                        )}
+                      </div>
+                    ))}
+                  </div>
                 </div>
 
                 <div className="flex gap-4 pt-10 border-t border-slate-100">
@@ -299,15 +299,15 @@ export function StudentOpenMatch({ opportunityId }: { opportunityId: string }) {
                   <div className="flex items-center gap-3 text-xs font-bold text-slate-400 uppercase tracking-widest">
                     <span>Host: {selectedRoom.host}</span>
                     {selectedRoom.host_id && (
-                        <>
-                            <span>•</span>
-                            <button 
-                                onClick={() => handleViewHostProfile(selectedRoom.host_id!)}
-                                className="text-indigo-600 hover:text-indigo-800 hover:underline cursor-pointer"
-                            >
-                                View Profile
-                            </button>
-                        </>
+                      <>
+                        <span>•</span>
+                        <button
+                          onClick={() => handleViewHostProfile(selectedRoom.host_id!)}
+                          className="text-indigo-600 hover:text-indigo-800 hover:underline cursor-pointer"
+                        >
+                          View Profile
+                        </button>
+                      </>
                     )}
                     <span>•</span>
                     <span>{selectedRoom.createdAt}</span>
