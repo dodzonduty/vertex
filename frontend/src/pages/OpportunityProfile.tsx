@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { useParams } from 'react-router-dom';
+import { useParams, useNavigate } from 'react-router-dom';
 import { StudentOpenMatch } from '../components/student/StudentOpenMatch';
 import { OpportunityRules } from './OpportunityRules';
 import { OpportunityJudging } from './OpportunityJudging';
@@ -32,6 +32,7 @@ interface Opportunity {
       name: string;
       type: string;
       profile_photo_url?: string;
+      company_id?: string;
     };
   };
   is_enrolled?: boolean;
@@ -39,6 +40,7 @@ interface Opportunity {
 
 export function OpportunityProfile() {
   const { id } = useParams();
+  const navigate = useNavigate();
   const [activeTab, setActiveTab] = useState<'overview' | 'rooms' | 'rules' | 'judging' | 'eligibility_ai'>('overview');
   const [opportunity, setOpportunity] = useState<Opportunity | null>(null);
   const [loading, setLoading] = useState(true);
@@ -50,20 +52,20 @@ export function OpportunityProfile() {
       try {
         const token = getAuthToken();
         const response = await fetch(`http://localhost:8000/api/opportunities/${id}`, {
-            method: 'GET',
-            headers: token ? { 
-                'Authorization': `Bearer ${token}`,
-                'Content-Type': 'application/json'
-            } : {
-                'Content-Type': 'application/json'
-            }
+          method: 'GET',
+          headers: token ? {
+            'Authorization': `Bearer ${token}`,
+            'Content-Type': 'application/json'
+          } : {
+            'Content-Type': 'application/json'
+          }
         });
-        
+
         if (response.ok) {
-            const data = await response.json();
-            setOpportunity(data);
+          const data = await response.json();
+          setOpportunity(data);
         } else {
-            console.error("Failed to fetch opportunity:", response.statusText);
+          console.error("Failed to fetch opportunity:", response.statusText);
         }
       } catch (err) {
         console.error("Failed to fetch opportunity", err);
@@ -105,31 +107,58 @@ export function OpportunityProfile() {
     }
   };
 
+  const handleLeaveHackathon = async () => {
+    if (!window.confirm('Are you sure you want to leave this event? This action cannot be undone.')) {
+      return;
+    }
+
+    try {
+      const token = getAuthToken();
+      const response = await fetch(`http://localhost:8000/api/enrollment/leave/${id}`, {
+        method: 'DELETE',
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'Content-Type': 'application/json'
+        }
+      });
+
+      if (response.ok) {
+        window.location.reload(); // Reload to update enrollment status
+      } else {
+        const error = await response.json();
+        alert(error.detail || 'Failed to leave event');
+      }
+    } catch (err) {
+      console.error('Failed to leave event', err);
+      alert('Failed to leave event. Please try again.');
+    }
+  };
+
   if (loading) {
-      return (
-          <div className="flex items-center justify-center min-h-screen">
-              <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div>
-          </div>
-      );
+    return (
+      <div className="flex items-center justify-center min-h-screen">
+        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div>
+      </div>
+    );
   }
 
   if (!opportunity) {
-      return <div className="text-center py-20 text-xl font-bold text-slate-600">Event not found</div>;
+    return <div className="text-center py-20 text-xl font-bold text-slate-600">Event not found</div>;
   }
 
   const desc = opportunity.description || {};
-  
+
   // Parse Prizes
   const prizes = opportunity.description.prizes || [];
-  
+
   // Track which prizes are used in the main grid
   const usedPrizes = new Set<number>(); // Store indices
-  
+
   // Helper to find prize by keyword
   const findPrizeIndex = (keywords: string[]) => {
-      return prizes.findIndex((p, idx) => 
-          !usedPrizes.has(idx) && keywords.some(k => p.toLowerCase().includes(k.toLowerCase()))
-      );
+    return prizes.findIndex((p, idx) =>
+      !usedPrizes.has(idx) && keywords.some(k => p.toLowerCase().includes(k.toLowerCase()))
+    );
   };
 
   // 1. Grand Prize (Winner - Yellow)
@@ -143,12 +172,12 @@ export function OpportunityProfile() {
   if (runnerUpIdx === -1 && prizes.length > 1 && !usedPrizes.has(1)) runnerUpIdx = 1; // Fallback to second
   if (runnerUpIdx !== -1) usedPrizes.add(runnerUpIdx);
   const runnerUp = runnerUpIdx !== -1 ? prizes[runnerUpIdx] : "";
-  
+
   // 3. Third Card (Blue - 3rd Place OR Best UX)
   let thirdCardIdx = findPrizeIndex(["3rd Place"]);
   if (thirdCardIdx === -1) {
-      // Try finding special categories if 3rd place not explicit
-      thirdCardIdx = findPrizeIndex(["Best UX", "Innovation"]);
+    // Try finding special categories if 3rd place not explicit
+    thirdCardIdx = findPrizeIndex(["Best UX", "Innovation"]);
   }
   if (thirdCardIdx === -1 && prizes.length > 2 && !usedPrizes.has(2)) thirdCardIdx = 2; // Fallback to third
   if (thirdCardIdx !== -1) usedPrizes.add(thirdCardIdx);
@@ -202,15 +231,15 @@ export function OpportunityProfile() {
             </div>
 
             {opportunity.is_enrolled ? (
-              <button 
-                disabled
+              <button
+                onClick={handleLeaveHackathon}
                 style={{ minHeight: '64px', minWidth: '240px', padding: '0 40px', fontSize: '1.125rem' }}
-                className="rounded-xl font-bold bg-slate-100 text-slate-400 cursor-not-allowed flex items-center justify-center gap-2"
+                className="rounded-xl font-bold bg-red-50 text-red-600 border-2 border-red-200 hover:bg-red-100 hover:border-red-300 transition-all flex items-center justify-center gap-2"
               >
-                Joined <span className="material-symbols-outlined text-slate-400">check_circle</span>
+                Leave Event <span className="material-symbols-outlined">logout</span>
               </button>
             ) : (
-              <button 
+              <button
                 onClick={() => setShowJoinModal(true)}
                 className="cta-button"
               >
@@ -304,7 +333,7 @@ export function OpportunityProfile() {
                       <span className="material-symbols-outlined" style={{ fontSize: '14px', color: 'var(--primary)' }}>category</span> Categories
                     </h4>
                     <ul className="info-list">
-                       {/* Mock categories for now as they aren't in schema properly yet besides tags */}
+                      {/* Mock categories for now as they aren't in schema properly yet besides tags */}
                       <li className="info-item"><span className="dot"></span> Smart Energy Grids</li>
                       <li className="info-item"><span className="dot"></span> Carbon Footprint Tracking</li>
                       <li className="info-item"><span className="dot"></span> Circular Economy AI</li>
@@ -317,11 +346,11 @@ export function OpportunityProfile() {
                     </h4>
                     <div className="requirements-box">
                       {desc.requirements && desc.requirements.length > 0 ? (
-                          desc.requirements.map((req, i) => (
-                             <p key={i} className="req-desc" style={{marginBottom: '0.5rem'}}>• {req}</p>
-                          ))
+                        desc.requirements.map((req, i) => (
+                          <p key={i} className="req-desc" style={{ marginBottom: '0.5rem' }}>• {req}</p>
+                        ))
                       ) : (
-                          <p className="req-desc">No specific requirements listed.</p>
+                        <p className="req-desc">No specific requirements listed.</p>
                       )}
                     </div>
                   </div>
@@ -341,54 +370,54 @@ export function OpportunityProfile() {
 
               <div className="prizes-grid">
                 {grandPrize && (
-                    <div className="prize-card prize-yellow">
+                  <div className="prize-card prize-yellow">
                     <div className="prize-icon-circle prize-icon-yellow">
-                        <span className="material-symbols-outlined">workspace_premium</span>
+                      <span className="material-symbols-outlined">workspace_premium</span>
                     </div>
                     <h4 style={{ fontSize: '1.125rem', fontWeight: 'bold', marginBottom: '0.25rem' }}>{getPriceAmount(grandPrize)}</h4>
                     <p style={{ fontSize: '0.875rem', fontWeight: 'bold', color: '#ca8a04', marginBottom: '0.5rem' }}>{getPriceTitle(grandPrize).replace(/1st Place/i, 'Grand Prize')}</p>
                     <p style={{ fontSize: '0.75rem', color: '#64748b' }}>Winner</p>
-                    </div>
+                  </div>
                 )}
 
                 {runnerUp && (
-                    <div className="prize-card prize-slate">
+                  <div className="prize-card prize-slate">
                     <div className="prize-icon-circle prize-icon-slate">
-                        <span className="material-symbols-outlined">award_star</span>
+                      <span className="material-symbols-outlined">award_star</span>
                     </div>
                     <h4 style={{ fontSize: '1.125rem', fontWeight: 'bold', marginBottom: '0.25rem' }}>{getPriceAmount(runnerUp)}</h4>
                     <p style={{ fontSize: '0.875rem', fontWeight: 'bold', color: '#64748b', marginBottom: '0.5rem' }}>{getPriceTitle(runnerUp).replace(/2nd Place/i, 'Runner Up')}</p>
                     <p style={{ fontSize: '0.75rem', color: '#64748b' }}>Second Place</p>
-                    </div>
+                  </div>
                 )}
 
                 {bestUx && (
-                    <div className="prize-card prize-blue">
+                  <div className="prize-card prize-blue">
                     <div className="prize-icon-circle prize-icon-blue">
-                        <span className="material-symbols-outlined">featured_video</span>
+                      <span className="material-symbols-outlined">featured_video</span>
                     </div>
                     <h4 style={{ fontSize: '1.125rem', fontWeight: 'bold', marginBottom: '0.25rem' }}>{getPriceAmount(bestUx)}</h4>
                     <p style={{ fontSize: '0.875rem', fontWeight: 'bold', color: '#2563eb', marginBottom: '0.5rem' }}>{getPriceTitle(bestUx)}</p>
                     <p style={{ fontSize: '0.75rem', color: '#64748b' }}>Third Place / Special</p>
-                    </div>
+                  </div>
                 )}
               </div>
 
               {/* Secondary Prizes */}
               {secondaryPrizes.length > 0 && (
-                  <div className="secondary-prizes-grid">
-                    {secondaryPrizes.map((prize, i) => (
-                        <div key={i} className="prize-card-small">
-                            <div className="prize-icon-small">
-                                <span className="material-symbols-outlined" style={{ color: '#2563eb' }}>card_giftcard</span>
-                            </div>
-                            <div>
-                                <p style={{ fontSize: '0.875rem', fontWeight: 'bold', color: '#64748b' }}>{getPriceTitle(prize)}</p>
-                                <p style={{ fontSize: '1.125rem', fontWeight: 'bold', color: '#0f172a' }}>{getPriceAmount(prize)}</p>
-                            </div>
-                        </div>
-                    ))}
-                  </div>
+                <div className="secondary-prizes-grid">
+                  {secondaryPrizes.map((prize, i) => (
+                    <div key={i} className="prize-card-small">
+                      <div className="prize-icon-small">
+                        <span className="material-symbols-outlined" style={{ color: '#2563eb' }}>card_giftcard</span>
+                      </div>
+                      <div>
+                        <p style={{ fontSize: '0.875rem', fontWeight: 'bold', color: '#64748b' }}>{getPriceTitle(prize)}</p>
+                        <p style={{ fontSize: '1.125rem', fontWeight: 'bold', color: '#0f172a' }}>{getPriceAmount(prize)}</p>
+                      </div>
+                    </div>
+                  ))}
+                </div>
               )}
             </section>
 
@@ -397,19 +426,19 @@ export function OpportunityProfile() {
                 <span className="material-symbols-outlined" style={{ color: 'var(--primary)' }}>upload_file</span> Rules & Submission
               </h3>
               <div className="submission-grid">
-                 {desc.rules && desc.rules.length > 0 ? (
-                     desc.rules.map((rule, i) => (
-                        <div key={i} className="sub-card">
-                            <span className="material-symbols-outlined" style={{ color: 'var(--primary)', marginBottom: '0.75rem' }}>gavel</span>
-                            <h4 style={{ fontWeight: 'bold', fontSize: '0.875rem', marginBottom: '0.25rem' }}>Rule {i+1}</h4>
-                            <p style={{ fontSize: '0.75rem', color: '#64748b' }}>{rule}</p>
-                        </div>
-                     ))
-                 ) : (
-                    <div className="sub-card">
-                        <p style={{ fontSize: '0.75rem', color: '#64748b' }}>Standard Submission Rules Apply.</p>
+                {desc.rules && desc.rules.length > 0 ? (
+                  desc.rules.map((rule, i) => (
+                    <div key={i} className="sub-card">
+                      <span className="material-symbols-outlined" style={{ color: 'var(--primary)', marginBottom: '0.75rem' }}>gavel</span>
+                      <h4 style={{ fontWeight: 'bold', fontSize: '0.875rem', marginBottom: '0.25rem' }}>Rule {i + 1}</h4>
+                      <p style={{ fontSize: '0.75rem', color: '#64748b' }}>{rule}</p>
                     </div>
-                 )}
+                  ))
+                ) : (
+                  <div className="sub-card">
+                    <p style={{ fontSize: '0.75rem', color: '#64748b' }}>Standard Submission Rules Apply.</p>
+                  </div>
+                )}
               </div>
             </section>
 
@@ -519,11 +548,11 @@ export function OpportunityProfile() {
               <h4 style={{ fontWeight: 'bold', fontSize: '1.125rem', marginBottom: '1rem' }}>Hosted By</h4>
               <div className="host-card">
                 <div className="host-img-box">
-                  <div 
-                    className="host-img" 
-                    style={{ 
-                      backgroundImage: desc.hosted_by?.profile_photo_url 
-                        ? `url("${desc.hosted_by.profile_photo_url}")` 
+                  <div
+                    className="host-img"
+                    style={{
+                      backgroundImage: desc.hosted_by?.profile_photo_url
+                        ? `url("${desc.hosted_by.profile_photo_url}")`
                         : `url("https://lh3.googleusercontent.com/aida-public/AB6AXuAwi2bPE1U55tlZMUGpuLPWo39dq6jDPh_2WKZ0gJxeSeNPsMJBhnm6ZrV5Y4LMeS0tEv9_l8gq7H3fty3sW19IeiZ4l6ab01Gwq0TsBe49m5r7c2j7vd2uPPZU3h4PtLRFptsB2dqOdVHXdhi8LAjyg8OV-3OT1UCkHBrSARkw3ThlxoyAnODnaAtiszeigPzDiIvlKdHN3u-MU8sTuGtbRPb2g6rWy4YIX5NBjEMpNwXm5iqlLsiFrgA2IoBw93hK2olnQE6TZ3Q")`,
                       backgroundSize: 'cover',
                       backgroundPosition: 'center'
@@ -539,7 +568,17 @@ export function OpportunityProfile() {
                   </p>
                 </div>
               </div>
-              <button className="view-profile-btn">View Profile</button>
+              <button
+                className="view-profile-btn"
+                onClick={() => {
+                  if (desc.hosted_by?.company_id) {
+                    navigate(`/company/profile/${desc.hosted_by.company_id}`);
+                  }
+                }}
+                disabled={!desc.hosted_by?.company_id}
+              >
+                View Profile
+              </button>
             </div>
 
             {/* Match Rooms */}
@@ -557,7 +596,7 @@ export function OpportunityProfile() {
                 </div>
                 <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
                   <div className="avatars">
-                     {/* Mock avatars */}
+                    {/* Mock avatars */}
                     <div className="avatar" style={{ backgroundColor: '#ccc' }}></div>
                     <div className="avatar" style={{ backgroundColor: '#999' }}></div>
                   </div>

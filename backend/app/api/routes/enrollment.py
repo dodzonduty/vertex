@@ -359,3 +359,59 @@ def decline_invitation(
     db.commit()
     
     return InvitationResponse(status="declined")
+
+@router.delete("/leave/{opportunity_id}")
+def leave_hackathon(
+    opportunity_id: str,
+    db: Session = Depends(deps.get_db),
+    current_user: User = Depends(deps.get_current_active_user)
+):
+    """
+    Leave a hackathon/opportunity by removing the student from their team
+    """
+    # Get student profile
+    student = db.query(Student).filter(Student.user_id == current_user.user_id).first()
+    if not student:
+        raise HTTPException(status_code=400, detail="Student profile required")
+    
+    # Find the team the student is enrolled in for this opportunity
+    team = db.query(Team).join(TeamMember).filter(
+        Team.opportunity_id == opportunity_id,
+        TeamMember.student_id == student.student_id
+    ).first()
+    
+    if not team:
+        raise HTTPException(status_code=404, detail="You are not enrolled in this event")
+    
+    # Get the team member record
+    team_member = db.query(TeamMember).filter(
+        TeamMember.team_id == team.team_id,
+        TeamMember.student_id == student.student_id
+    ).first()
+    
+    if not team_member:
+        raise HTTPException(status_code=404, detail="Team membership not found")
+    
+    # Remove the student from the team
+    db.delete(team_member)
+    
+    # If this was a solo team or the last member, delete the team
+    remaining_members = db.query(TeamMember).filter(
+        TeamMember.team_id == team.team_id
+    ).count()
+    
+    if remaining_members == 0:
+        # Delete all pending invitations for this team
+        db.query(TeamInvitation).filter(
+            TeamInvitation.team_id == team.team_id
+        ).delete()
+        
+        # Delete the team itself
+        db.delete(team)
+    
+    db.commit()
+    
+    return {
+        "message": "Successfully left the event",
+        "team_id": team.team_id
+    }
