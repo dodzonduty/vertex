@@ -174,7 +174,8 @@ def read_single_opportunity(
                 opp.description["hosted_by"] = {
                     "name": company.name if company else "Unknown Company",
                     "type": "Organization",
-                    "profile_photo_url": creator_user.profile_photo_url if creator_user.profile_photo_url else None
+                    "profile_photo_url": creator_user.profile_photo_url if creator_user.profile_photo_url else None,
+                    "company_id": company.company_id if company else None
                 }
                 # Add enrolled teams count
                 opp.description["enrolled_teams_count"] = enrolled_teams_count

@@ -230,10 +230,10 @@ export const Companies: React.FC = () => {
                             href={company.website}
                             target="_blank"
                             rel="noopener noreferrer"
-                            className="opp-apply-btn"
+                            className="opp-apply-btn flex items-center gap-1"
                             title="Visit Website"
                           >
-                            <LinkIcon className="w-4 h-4" />
+                            <LinkIcon className="w-4 h-4" />`n                            <span>Website</span>
                           </a>
                         )}
                         <button
@@ -308,4 +308,6 @@ export const Companies: React.FC = () => {
     </div>
   );
 };
+
+
 

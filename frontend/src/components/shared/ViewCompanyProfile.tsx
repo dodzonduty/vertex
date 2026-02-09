@@ -31,8 +31,14 @@ interface ViewCompanyProfileProps {
 
 export function ViewCompanyProfile({ company, onClose, onEventClick }: ViewCompanyProfileProps) {
   return (
-    <div className="fixed inset-0 bg-slate-900/60 backdrop-blur-md flex items-center justify-center z-50 p-4 overflow-y-auto animate-in fade-in duration-300">
-      <div className="bg-white rounded-[2.5rem] max-w-5xl w-full my-8 shadow-2xl shadow-blue-500/10 overflow-hidden relative animate-in zoom-in-95 duration-300">
+    <div
+      className="fixed inset-0 bg-slate-900/60 backdrop-blur-md flex items-center justify-center z-50 p-4 overflow-y-auto animate-in fade-in duration-300"
+      onClick={onClose}
+    >
+      <div
+        className="bg-white rounded-[2.5rem] max-w-5xl w-full my-8 shadow-2xl shadow-blue-500/10 overflow-hidden relative animate-in zoom-in-95 duration-300 max-h-[90vh] overflow-y-auto"
+        onClick={(e) => e.stopPropagation()}
+      >
         {/* Close Button - Floating */}
         <button
           onClick={onClose}
@@ -68,11 +74,23 @@ export function ViewCompanyProfile({ company, onClose, onEventClick }: ViewCompa
                   <span>{company.size} Employees</span>
                 </div>
               </div>
-              <div className="pb-2">
+              <div className="pb-2 flex gap-3">
                 <button className="px-8 py-4 bg-blue-600 text-white rounded-2xl hover:bg-blue-700 transition-all font-bold shadow-xl shadow-blue-500/20 hover:shadow-blue-500/40 flex items-center gap-2 group">
-                  Follow Headquarters
+                  Follow
                   <ArrowRight className="w-5 h-5 group-hover:translate-x-1 transition-transform" />
                 </button>
+                {company.socialLinks.find(link => link.type.toLowerCase().includes('website')) && (
+                  <a
+                    href={company.socialLinks.find(link => link.type.toLowerCase().includes('website'))?.url}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="px-8 py-4 bg-white text-blue-600 border-2 border-blue-200 rounded-2xl hover:bg-blue-50 transition-all font-bold shadow-sm flex items-center gap-2 group"
+                  >
+                    <Globe className="w-5 h-5" />
+                    Visit Website
+                    <ArrowRight className="w-5 h-5 group-hover:translate-x-1 transition-transform" />
+                  </a>
+                )}
               </div>
             </div>
 
