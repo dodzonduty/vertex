@@ -23,8 +23,8 @@ export function JoinHackathonModal({
   const [inviteEmails, setInviteEmails] = useState<string[]>(['']);
   const [loading, setLoading] = useState(false);
 
-  const maxAllowed = maxParticipants && maxParticipants.toLowerCase() !== 'unlimited' 
-    ? parseInt(maxParticipants) 
+  const maxAllowed = maxParticipants && maxParticipants.toLowerCase() !== 'unlimited'
+    ? parseInt(maxParticipants)
     : Infinity;
 
   const handleSoloJoin = async () => {
@@ -34,7 +34,7 @@ export function JoinHackathonModal({
         method: 'POST',
         body: JSON.stringify({ opportunity_id: opportunityId })
       });
-      
+
       toast.success(response.message);
       onSuccess();
       onClose();
@@ -52,6 +52,13 @@ export function JoinHackathonModal({
     }
 
     const validEmails = inviteEmails.filter(e => e.trim() !== '');
+
+    // Require at least one invited teammate
+    if (validEmails.length === 0) {
+      toast.error('Please invite at least one teammate to create a team');
+      return;
+    }
+
     const totalMembers = 1 + validEmails.length;
 
     if (maxAllowed !== Infinity && totalMembers > maxAllowed) {
@@ -69,7 +76,7 @@ export function JoinHackathonModal({
           invited_emails: validEmails
         })
       });
-      
+
       toast.success(response.message);
       onSuccess();
       onClose();
@@ -100,7 +107,7 @@ export function JoinHackathonModal({
   };
 
   return (
-    <div className="fixed inset-0 bg-slate-900/60 backdrop-blur-md flex items-center justify-center z-50 p-4 animate-in fade-in duration-300">
+    <div className="fixed inset-0 bg-slate-900/60 backdrop-blur-md flex items-center justify-center z-50 p-4 animate-in fade-in duration-300 cursor-default">
       <div className="bg-white rounded-3xl max-w-4xl w-full max-h-[90vh] overflow-y-auto shadow-2xl animate-in zoom-in-95 duration-300">
         {/* Header */}
         <div className="relative">
@@ -247,17 +254,15 @@ export function JoinHackathonModal({
 
                   <div className="space-y-3">
                     {inviteEmails.map((email, idx) => (
-                      <div key={idx} className="flex gap-2">
-                        <div className="flex-1 relative">
-                          <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
-                          <input
-                            type="email"
-                            value={email}
-                            onChange={(e) => updateEmail(idx, e.target.value)}
-                            placeholder="teammate@example.com"
-                            className="w-full pl-11 pr-4 py-3 bg-slate-50 border border-slate-100 rounded-xl text-sm focus:ring-2 focus:ring-indigo-500/20 outline-none"
-                          />
-                        </div>
+                      <div key={idx} className="flex gap-2 items-center">
+                        <Search className="w-4 h-4 text-slate-400 flex-shrink-0" />
+                        <input
+                          type="email"
+                          value={email}
+                          onChange={(e) => updateEmail(idx, e.target.value)}
+                          placeholder="teammate@example.com"
+                          className="flex-1 px-4 py-3 bg-slate-50 border border-slate-100 rounded-xl text-sm focus:ring-2 focus:ring-indigo-500/20 outline-none"
+                        />
                         {inviteEmails.length > 1 && (
                           <button
                             type="button"
@@ -272,8 +277,8 @@ export function JoinHackathonModal({
                   </div>
 
                   <p className="text-xs text-slate-500 mt-2">
-                    {maxAllowed === Infinity 
-                      ? 'No team size limit' 
+                    {maxAllowed === Infinity
+                      ? 'No team size limit'
                       : `You + ${inviteEmails.filter(e => e.trim()).length} invited = ${1 + inviteEmails.filter(e => e.trim()).length}/${maxAllowed} members`
                     }
                   </p>
@@ -328,3 +333,4 @@ export function JoinHackathonModal({
     </div>
   );
 }
+
