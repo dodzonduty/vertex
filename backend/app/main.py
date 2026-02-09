@@ -1,12 +1,13 @@
 """
 Vertex FastAPI Application
 Main entry point for the backend API
+AI Search Refined - Reloading...
 """
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
 from app.core.config import settings
-from app.api.routes import auth, students, opportunities, tags, match, onboarding, rooms, enrollment, companies, trending
+from app.api.routes import auth, students, opportunities, tags, match, onboarding, rooms, enrollment, companies, trending, ai
 
 
 # Create FastAPI application
@@ -39,6 +40,7 @@ app.include_router(trending.router)
 app.include_router(match.router)
 app.include_router(rooms.router)
 app.include_router(enrollment.router)
+app.include_router(ai.router)
 
 # Mocks - Only include mocks that don't have real implementations yet
 from app.mocks import perfect_match_mock
@@ -71,4 +73,4 @@ def health_check():
 
 if __name__ == "__main__":
     import uvicorn
-    uvicorn.run(app, host="0.0.0.0", port=8000)
+    uvicorn.run("app.main:app", host="0.0.0.0", port=8000, reload=True)

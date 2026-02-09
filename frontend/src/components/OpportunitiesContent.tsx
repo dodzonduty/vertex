@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { apiRequest } from '../lib/api/config';
 import './Opportunities.css';
+import { askAI } from '../lib/api/ai';
 
 export const OpportunitiesContent: React.FC = () => {
     const navigate = useNavigate();
@@ -19,6 +20,11 @@ export const OpportunitiesContent: React.FC = () => {
     const [oppList, setOppList] = useState<any[]>([]);
     const [totalResults, setTotalResults] = useState<number>(0);
     const [sortBy, setSortBy] = useState<string>('Most Recent');
+
+    // AI State
+    const [aiQuery, setAiQuery] = useState('');
+    const [aiResponse, setAiResponse] = useState<any | null>(null);
+    const [isAiLoading, setIsAiLoading] = useState(false);
 
     // Fetch all widget data when activeTab changes
     React.useEffect(() => {
@@ -172,6 +178,25 @@ export const OpportunitiesContent: React.FC = () => {
         }
     };
 
+    const handleAskAI = async () => {
+        if (!aiQuery.trim()) return;
+        setIsAiLoading(true);
+        try {
+            const response = await askAI(aiQuery, `User is searching for ${activeTab} with tags: ${activeTags.join(', ')}`);
+            setAiResponse(response);
+        } catch (err) {
+            console.error("AI Error:", err);
+            setAiResponse({
+                answer: "I'm sorry, I'm having trouble retrieving data right now. Please try again soon.",
+                recommended_students: [],
+                recommended_companies: [],
+                recommended_opportunities: []
+            });
+        } finally {
+            setIsAiLoading(false);
+        }
+    };
+
     return (
         <main className="opp-main">
             {/* Search Section */}
@@ -185,13 +210,79 @@ export const OpportunitiesContent: React.FC = () => {
                                 className="opp-search-input"
                                 placeholder="Describe your dream opportunity..."
                                 type="text"
+                                value={aiQuery}
+                                onChange={(e) => setAiQuery(e.target.value)}
+                                onKeyDown={(e) => { if (e.key === 'Enter') handleAskAI(); }}
                             />
-                            <button className="opp-ask-ai-btn vibrant-gradient">
-                                <span className="material-symbols-outlined">auto_awesome</span>
-                                Ask AI
+                            <button
+                                className={`opp-ask-ai-btn vibrant-gradient ${isAiLoading ? 'opacity-70' : ''}`}
+                                onClick={handleAskAI}
+                                disabled={isAiLoading}
+                            >
+                                <span className="material-symbols-outlined">{isAiLoading ? 'progress_activity' : 'auto_awesome'}</span>
+                                {isAiLoading ? 'Thinking...' : 'Ask AI'}
                             </button>
                         </div>
                     </div>
+
+                    {/* AI Response Box */}
+                    {aiResponse && (
+                        <div className="ai-response-container animate-in fade-in slide-in-from-top-4 duration-500">
+                            <div className="glass-card ai-response-box">
+                                <div className="ai-response-header">
+                                    <div className="flex items-center gap-2">
+                                        <span className="material-symbols-outlined ai-sparkle">auto_awesome</span>
+                                        <span className="ai-response-title">Vertex AI Assistant</span>
+                                    </div>
+                                    <button className="ai-close-btn" onClick={() => setAiResponse(null)}>
+                                        <span className="material-symbols-outlined">close</span>
+                                    </button>
+                                </div>
+                                <div className="ai-response-content">
+                                    <div className="whitespace-pre-wrap mb-4">
+                                        {aiResponse.answer}
+                                    </div>
+
+                                    {/* Render Recommended Opportunities if any */}
+                                    {aiResponse.recommended_opportunities && aiResponse.recommended_opportunities.length > 0 && (
+                                        <div className="mt-4 flex flex-col gap-4">
+                                            <div className="text-xs font-black text-indigo-600 uppercase tracking-widest mb-2">Top Matches For You</div>
+                                            <div className="grid grid-cols-1 gap-4">
+                                                {aiResponse.recommended_opportunities.map((opp: any) => (
+                                                    <div
+                                                        key={opp.opportunity_id}
+                                                        onClick={() => navigate(`/opportunities/${opp.opportunity_id}`)}
+                                                        className="group bg-white/50 backdrop-blur-sm rounded-2xl p-4 border border-indigo-100 hover:border-indigo-300 transition-all cursor-pointer flex gap-4 items-center"
+                                                    >
+                                                        <div className="w-12 h-12 bg-indigo-50 rounded-xl flex items-center justify-center shrink-0">
+                                                            <span className="material-symbols-outlined text-indigo-600">rocket_launch</span>
+                                                        </div>
+                                                        <div className="flex-1 min-w-0">
+                                                            <h4 className="font-bold text-slate-900 truncate">{opp.title}</h4>
+                                                            <div className="flex items-center gap-2">
+                                                                <span className="text-[10px] font-bold uppercase py-0.5 px-2 bg-indigo-100 text-indigo-600 rounded-full">
+                                                                    {opp.type}
+                                                                </span>
+                                                                {opp.description && (
+                                                                    <span className="text-[10px] text-slate-500 truncate block">
+                                                                        {opp.description.substring(0, 60)}...
+                                                                    </span>
+                                                                )}
+                                                            </div>
+                                                        </div>
+                                                        <span className="material-symbols-outlined text-slate-300 group-hover:text-indigo-600 transition-colors">arrow_forward_ios</span>
+                                                    </div>
+                                                ))}
+                                            </div>
+                                        </div>
+                                    )}
+                                </div>
+                                <div className="ai-response-footer">
+                                    Powered by Gemini 2.0
+                                </div>
+                            </div>
+                        </div>
+                    )}
                 </div>
             </section>
 
