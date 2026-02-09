@@ -149,3 +149,44 @@ def list_companies(
         })
     
     return result
+
+@router.get("/{company_id}", response_model=dict)
+def get_company_by_id(
+    company_id: str,
+    db: Session = Depends(get_db)
+):
+    """
+    Get a specific company's public profile by company_id
+    
+    Args:
+        company_id: Company ID
+        db: Database session
+        
+    Returns:
+        Company profile with user information
+    """
+    company = db.query(Company).options(
+        joinedload(Company.user)
+    ).filter(Company.company_id == company_id).first()
+    
+    if not company:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Company not found"
+        )
+    
+    return {
+        "company_id": company.company_id,
+        "name": company.name,
+        "industry": company.industry,
+        "description": company.description,
+        "size": company.size,
+        "phone": company.phone,
+        "address": company.address,
+        "verified": company.verified,
+        "user": {
+            "email": company.user.email if company.user else None,
+            "profile_photo_url": company.user.profile_photo_url if company.user else None,
+            "status": company.user.status if company.user else None
+        }
+    }
