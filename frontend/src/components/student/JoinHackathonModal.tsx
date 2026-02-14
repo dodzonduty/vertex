@@ -113,7 +113,7 @@ export function JoinHackathonModal({
         <div className="relative">
           <button
             onClick={onClose}
-            className="absolute top-4 right-4 z-20 w-10 h-10 bg-slate-100 text-slate-500 rounded-full flex items-center justify-center hover:bg-slate-200 transition-all font-bold"
+            className="absolute top-4 right-4 z-20 w-10 h-10 bg-slate-100 text-slate-500 rounded-full flex items-center justify-center hover:bg-slate-200 transition-all font-bold cursor-pointer"
           >
             ×
           </button>
@@ -134,7 +134,7 @@ export function JoinHackathonModal({
                 {/* Solo Option */}
                 <button
                   onClick={() => setStep('solo-confirm')}
-                  className="group p-10 bg-gradient-to-br from-slate-50 to-slate-100 rounded-2xl border-2 border-slate-200 hover:border-indigo-400 hover:shadow-xl transition-all flex flex-col items-center text-center min-h-[280px] justify-center"
+                  className="group p-10 bg-gradient-to-br from-slate-50 to-slate-100 rounded-2xl border-2 border-slate-200 hover:border-indigo-400 hover:shadow-xl transition-all flex flex-col items-center text-center min-h-[280px] justify-center cursor-pointer"
                 >
                   <div className="w-20 h-20 bg-indigo-100 rounded-2xl flex items-center justify-center mb-6 group-hover:scale-110 transition-transform shadow-sm">
                     <User className="w-10 h-10 text-indigo-600" />
@@ -146,7 +146,7 @@ export function JoinHackathonModal({
                 {/* Group Option */}
                 <button
                   onClick={() => setStep('group-form')}
-                  className="group p-10 bg-gradient-to-br from-indigo-50 to-violet-50 rounded-2xl border-2 border-indigo-200 hover:border-indigo-400 hover:shadow-xl transition-all flex flex-col items-center text-center min-h-[280px] justify-center"
+                  className="group p-10 bg-gradient-to-br from-indigo-50 to-violet-50 rounded-2xl border-2 border-indigo-200 hover:border-indigo-400 hover:shadow-xl transition-all flex flex-col items-center text-center min-h-[280px] justify-center cursor-pointer"
                 >
                   <div className="w-20 h-20 bg-indigo-600 rounded-2xl flex items-center justify-center mb-6 group-hover:scale-110 transition-transform shadow-lg shadow-indigo-200">
                     <Users className="w-10 h-10 text-white" />
@@ -195,7 +195,7 @@ export function JoinHackathonModal({
                 <button
                   onClick={() => setStep('choose')}
                   style={{ minHeight: '72px' }}
-                  className="flex-1 text-lg text-slate-600 font-bold hover:text-slate-900 hover:bg-slate-50 rounded-2xl transition-all"
+                  className="flex-1 text-lg text-slate-600 font-bold hover:text-slate-900 hover:bg-slate-50 rounded-2xl transition-all cursor-pointer"
                   disabled={loading}
                 >
                   Back
@@ -204,7 +204,7 @@ export function JoinHackathonModal({
                   onClick={handleSoloJoin}
                   disabled={loading}
                   style={{ minHeight: '72px' }}
-                  className="flex-1 bg-indigo-600 text-white rounded-2xl text-lg font-bold shadow-xl shadow-indigo-200 hover:shadow-indigo-300 transition-all hover:-translate-y-1 disabled:opacity-50"
+                  className="flex-1 bg-indigo-600 text-white rounded-2xl text-lg font-bold shadow-xl shadow-indigo-200 hover:shadow-indigo-300 transition-all hover:-translate-y-1 disabled:opacity-50 cursor-pointer disabled:cursor-not-allowed"
                 >
                   {loading ? 'Registering...' : 'Confirm Registration'}
                 </button>
@@ -221,7 +221,7 @@ export function JoinHackathonModal({
               <h2 className="text-3xl font-black text-slate-900 mb-2">Create Your Team</h2>
               <p className="text-slate-500 mb-8">Invite your friends to join the adventure</p>
 
-              <div className="space-y-6 mb-8">
+              <div className="space-y-8 mb-8">
                 {/* Team Name */}
                 <div>
                   <label className="block text-xs font-bold text-slate-400 uppercase tracking-widest mb-3">
@@ -232,7 +232,8 @@ export function JoinHackathonModal({
                     value={teamName}
                     onChange={(e) => setTeamName(e.target.value)}
                     placeholder="e.g., Code Warriors"
-                    className="w-full px-5 py-4 bg-slate-50 border border-slate-100 rounded-2xl focus:ring-4 focus:ring-indigo-500/10 outline-none"
+                    className="w-full text-lg bg-slate-50 border border-slate-100 rounded-2xl focus:ring-4 focus:ring-indigo-500/10 outline-none shadow-sm placeholder:text-slate-400 transition-all hover:bg-white focus:bg-white"
+                    style={{ height: '72px', paddingLeft: '24px', paddingRight: '24px' }}
                     required
                   />
                 </div>
@@ -246,7 +247,7 @@ export function JoinHackathonModal({
                     <button
                       type="button"
                       onClick={addEmailField}
-                      className="text-xs font-bold text-indigo-600 flex items-center gap-1 hover:text-indigo-700"
+                      className="text-xs font-bold text-indigo-600 flex items-center gap-1 hover:text-indigo-700 cursor-pointer"
                     >
                       <Plus className="w-3 h-3" /> Add Member
                     </button>
@@ -261,13 +262,14 @@ export function JoinHackathonModal({
                           value={email}
                           onChange={(e) => updateEmail(idx, e.target.value)}
                           placeholder="teammate@example.com"
-                          className="flex-1 px-4 py-3 bg-slate-50 border border-slate-100 rounded-xl text-sm focus:ring-2 focus:ring-indigo-500/20 outline-none"
+                          className="flex-1 text-base bg-slate-50 border border-slate-100 rounded-2xl focus:ring-4 focus:ring-indigo-500/10 outline-none shadow-sm placeholder:text-slate-400 transition-all hover:bg-white focus:bg-white"
+                          style={{ height: '64px', paddingLeft: '24px', paddingRight: '24px' }}
                         />
                         {inviteEmails.length > 1 && (
                           <button
                             type="button"
                             onClick={() => removeEmailField(idx)}
-                            className="px-3 text-slate-400 hover:text-red-500 transition-colors"
+                            className="px-3 text-slate-400 hover:text-red-500 transition-colors cursor-pointer"
                           >
                             <X className="w-4 h-4" />
                           </button>
@@ -299,7 +301,7 @@ export function JoinHackathonModal({
                           // Navigate to Open Match tab - this will be handled by parent
                           window.dispatchEvent(new CustomEvent('navigate-to-open-match'));
                         }}
-                        className="text-sm font-bold text-violet-600 hover:text-violet-800 underline"
+                        className="text-sm font-bold text-violet-600 hover:text-violet-800 underline cursor-pointer"
                       >
                         Create Open Match →
                       </button>
@@ -312,7 +314,7 @@ export function JoinHackathonModal({
                 <button
                   onClick={() => setStep('choose')}
                   style={{ minHeight: '72px' }}
-                  className="flex-1 text-slate-600 font-bold hover:text-slate-900 hover:bg-slate-50 rounded-2xl transition-all text-lg"
+                  className="flex-1 text-slate-600 font-bold hover:text-slate-900 hover:bg-slate-50 rounded-2xl transition-all text-lg cursor-pointer"
                   disabled={loading}
                 >
                   Back
@@ -321,7 +323,7 @@ export function JoinHackathonModal({
                   onClick={handleGroupJoin}
                   disabled={loading}
                   style={{ minHeight: '72px' }}
-                  className="flex-1 bg-indigo-600 text-white rounded-2xl font-bold shadow-xl shadow-indigo-200 hover:shadow-indigo-300 transition-all hover:-translate-y-1 disabled:opacity-50 text-lg"
+                  className="flex-1 bg-indigo-600 text-white rounded-2xl font-bold text-lg shadow-xl shadow-indigo-200 hover:shadow-indigo-300 transition-all hover:-translate-y-1 disabled:opacity-50 cursor-pointer disabled:cursor-not-allowed"
                 >
                   {loading ? 'Creating Team...' : 'Create Team'}
                 </button>

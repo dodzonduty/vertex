@@ -1,7 +1,9 @@
 import { useState, useEffect } from 'react';
-import { Plus, Users, Search, Sparkles, UserPlus, ArrowRight, ShieldCheck, X } from 'lucide-react';
+import { Plus, Users, UserPlus, ArrowRight, ShieldCheck, X } from 'lucide-react';
 import { apiRequest } from '../../lib/api/config';
 import { toast } from 'sonner';
+import { AIModal } from '../ai/AIModal';
+import '../../pages/Opportunities.css'; // Import styles for AI search bar
 
 interface Room {
   id: string;
@@ -39,8 +41,7 @@ interface CreateRoleData {
 
 export function StudentOpenMatch({ opportunityId }: { opportunityId: string }) {
   const [showCreateRoom, setShowCreateRoom] = useState(false);
-  const [searchQuery, setSearchQuery] = useState('');
-  const [useAISearch, setUseAISearch] = useState(false);
+  const [isAIModalOpen, setIsAIModalOpen] = useState(false);
   const [selectedRoom, setSelectedRoom] = useState<Room | null>(null);
 
   const [rooms, setRooms] = useState<Room[]>([]);
@@ -140,6 +141,10 @@ export function StudentOpenMatch({ opportunityId }: { opportunityId: string }) {
     }
   };
 
+  const handleAskAI = () => {
+    setIsAIModalOpen(true);
+  };
+
   return (
     <div className="max-w-6xl mx-auto py-4 animate-in fade-in duration-700">
       <div className="flex flex-col md:flex-row items-center justify-between mb-10 gap-6 text-center md:text-left">
@@ -149,32 +154,46 @@ export function StudentOpenMatch({ opportunityId }: { opportunityId: string }) {
         </div>
         <button
           onClick={() => setShowCreateRoom(true)}
-          className="flex items-center gap-2 px-6 py-3.5 bg-indigo-600 text-white rounded-2xl font-bold shadow-xl shadow-indigo-200 hover:shadow-indigo-300 hover:-translate-y-0.5 transition-all"
+          style={{ minHeight: '56px', padding: '0 32px', cursor: 'pointer' }}
+          className="flex items-center gap-2 bg-indigo-600 text-white rounded-2xl font-bold shadow-xl shadow-indigo-200 hover:shadow-indigo-300 hover:-translate-y-0.5 transition-all"
         >
           <Plus className="w-5 h-5" />
           Create Room
         </button>
       </div>
 
-      {/* Search - Premium */}
-      <div className={`bg-white rounded-3xl p-3 mb-10 border transition-all duration-500 shadow-xl shadow-slate-200/50 flex flex-col md:flex-row items-center gap-3 ${useAISearch ? 'border-indigo-500 ring-4 ring-indigo-500/10' : 'border-slate-100'}`}>
-        <div className="flex items-center gap-3 flex-1 w-full">
-          <Search className={`w-5 h-5 ml-2 transition-colors flex-shrink-0 ${useAISearch ? 'text-indigo-500' : 'text-slate-400'}`} />
-          <input
-            type="text"
-            placeholder={useAISearch ? "Describe your goal (e.g. 'I need a web3 team that values clean code...')" : "Search rooms..."}
-            value={searchQuery}
-            onChange={(e) => setSearchQuery(e.target.value)}
-            className="flex-1 py-3 bg-transparent outline-none text-slate-900 placeholder:text-slate-400 font-medium"
+      {/* Search - Premium AI Style */}
+      <div className="opp-search-section" style={{ padding: '0 0 2rem 0' }}>
+        <div className="opp-search-width-container" style={{ maxWidth: '100%' }}>
+          <div className="opp-search-group">
+            <div className="opp-search-bg-blur"></div>
+            <div className="opp-search-box">
+              <span className="material-symbols-outlined opp-search-icon">search</span>
+              <input
+                className="opp-search-input"
+                placeholder="Find your dream team with AI..."
+                onClick={handleAskAI}
+                value=""
+                readOnly
+                style={{ cursor: 'pointer' }}
+              />
+              <button
+                className="opp-ask-ai-btn vibrant-gradient"
+                onClick={handleAskAI}
+              >
+                <span className="material-symbols-outlined">auto_awesome</span>
+                Ask AI
+              </button>
+            </div>
+          </div>
+
+          <AIModal
+            isOpen={isAIModalOpen}
+            onClose={() => setIsAIModalOpen(false)}
+            context="User is looking for Open Match rooms."
+            placeholder="Describe the team you're looking for..."
           />
         </div>
-        <button
-          onClick={() => setUseAISearch(!useAISearch)}
-          className={`flex items-center gap-2 px-6 py-3 rounded-2xl transition-all font-bold whitespace-nowrap ${useAISearch ? 'bg-gradient-to-r from-indigo-600 to-violet-600 text-white shadow-lg shadow-indigo-300' : 'bg-slate-100 text-slate-700 hover:bg-slate-200'}`}
-        >
-          <Sparkles className={`w-5 h-5 ${useAISearch ? 'animate-pulse' : ''}`} />
-          <span>AI Smart Filter</span>
-        </button>
       </div>
 
       {loading ? (
@@ -212,7 +231,8 @@ export function StudentOpenMatch({ opportunityId }: { opportunityId: string }) {
                     value={newRoomTitle}
                     onChange={e => setNewRoomTitle(e.target.value)}
                     placeholder="E.g. Fullstack Devs for FinTech"
-                    className="w-full px-5 py-4 bg-slate-50 border border-slate-100 rounded-2xl focus:ring-4 focus:ring-indigo-500/10 outline-none"
+                    style={{ height: '72px', paddingLeft: '24px', paddingRight: '24px' }}
+                    className="w-full bg-slate-50 border border-slate-100 rounded-2xl focus:ring-4 focus:ring-indigo-500/10 outline-none"
                   />
                 </div>
                 <div>
@@ -223,7 +243,8 @@ export function StudentOpenMatch({ opportunityId }: { opportunityId: string }) {
                     value={newRoomDesc}
                     onChange={e => setNewRoomDesc(e.target.value)}
                     placeholder="What are you building?"
-                    className="w-full px-5 py-4 bg-slate-50 border border-slate-100 rounded-2xl focus:ring-4 focus-ring-indigo-500/10 outline-none"
+                    style={{ height: '120px', padding: '24px' }}
+                    className="w-full bg-slate-50 border border-slate-100 rounded-2xl focus:ring-4 focus-ring-indigo-500/10 outline-none resize-none"
                   />
                 </div>
 
@@ -231,7 +252,7 @@ export function StudentOpenMatch({ opportunityId }: { opportunityId: string }) {
                 <div>
                   <div className="flex justify-between items-center mb-3">
                     <label className="block text-xs font-bold text-slate-400 uppercase tracking-widest">Open Roles needed</label>
-                    <button type="button" onClick={handleAddRole} className="text-xs font-bold text-indigo-600 flex items-center gap-1 hover:text-indigo-700">
+                    <button type="button" onClick={handleAddRole} className="text-xs font-bold text-indigo-600 flex items-center gap-1 hover:text-indigo-700 cursor-pointer">
                       <Plus className="w-3 h-3" /> Add Role
                     </button>
                   </div>
@@ -244,7 +265,8 @@ export function StudentOpenMatch({ opportunityId }: { opportunityId: string }) {
                               placeholder="Role Title (e.g. Frontend Dev)"
                               value={role.title}
                               onChange={e => handleRoleChange(idx, 'title', e.target.value)}
-                              className="flex-1 px-3 py-2 bg-white border border-slate-200 rounded-lg text-sm"
+                              style={{ height: '56px', paddingLeft: '16px', paddingRight: '16px' }}
+                              className="flex-1 bg-white border border-slate-200 rounded-lg text-sm"
                               required
                             />
                             <input
@@ -252,18 +274,20 @@ export function StudentOpenMatch({ opportunityId }: { opportunityId: string }) {
                               min="1"
                               value={role.count}
                               onChange={e => handleRoleChange(idx, 'count', parseInt(e.target.value))}
-                              className="w-20 px-3 py-2 bg-white border border-slate-200 rounded-lg text-sm"
+                              style={{ height: '56px', paddingLeft: '16px', paddingRight: '16px' }}
+                              className="w-20 bg-white border border-slate-200 rounded-lg text-sm"
                             />
                           </div>
                           <input
                             placeholder="Skills (comma seq: React, Node)"
                             value={role.tags}
                             onChange={e => handleRoleChange(idx, 'tags', e.target.value)}
-                            className="w-full px-3 py-2 bg-white border border-slate-200 rounded-lg text-sm"
+                            style={{ height: '56px', paddingLeft: '16px', paddingRight: '16px' }}
+                            className="w-full bg-white border border-slate-200 rounded-lg text-sm"
                           />
                         </div>
                         {newRoomRoles.length > 1 && (
-                          <button type="button" onClick={() => handleRemoveRole(idx)} className="text-slate-400 hover:text-red-500 p-1">
+                          <button type="button" onClick={() => handleRemoveRole(idx)} className="text-slate-400 hover:text-red-500 p-1 cursor-pointer">
                             <X className="w-4 h-4" />
                           </button>
                         )}
@@ -273,8 +297,21 @@ export function StudentOpenMatch({ opportunityId }: { opportunityId: string }) {
                 </div>
 
                 <div className="flex gap-4 pt-10 border-t border-slate-100">
-                  <button type="button" onClick={() => setShowCreateRoom(false)} className="flex-1 py-4 text-slate-400 font-bold hover:text-slate-600">Cancel</button>
-                  <button type="submit" className="flex-1 py-4 bg-indigo-600 text-white rounded-2xl font-bold shadow-xl shadow-indigo-500/10">Launch Room</button>
+                  <button
+                    type="button"
+                    onClick={() => setShowCreateRoom(false)}
+                    style={{ height: '64px', cursor: 'pointer' }}
+                    className="flex-1 text-slate-400 font-bold hover:text-slate-600 rounded-2xl hover:bg-slate-50 transition-colors"
+                  >
+                    Cancel
+                  </button>
+                  <button
+                    type="submit"
+                    style={{ height: '64px', cursor: 'pointer' }}
+                    className="flex-1 bg-indigo-600 text-white rounded-2xl font-bold shadow-xl shadow-indigo-500/10 hover:shadow-indigo-500/20 transition-all hover:-translate-y-0.5"
+                  >
+                    Launch Room
+                  </button>
                 </div>
               </form>
             </div>
