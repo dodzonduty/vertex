@@ -71,6 +71,7 @@ async def analyze_github(
         data = await github_service.extract_project(url)
         return data
     except Exception as e:
+        logger.error(f"GitHub analysis error: {e}", exc_info=True)
         raise HTTPException(status_code=500, detail=str(e))
 
 
